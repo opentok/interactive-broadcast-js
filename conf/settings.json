@@ -1,0 +1,20 @@
+{
+  // common nodejs settings
+  "PORT": 3000,
+  // SECRET_KEY used for encrypting session
+  "SECRET_KEY": "MISUPERPASSWORD",
+
+  "S3_COMPOSEDVIDEO_URL": "https://s3-us-west-2.amazonaws.com/chatshow/",
+  // AWS specific settings
+  "S3_BUCKET_NAME":"chatshow",
+  "S3_BUCKET_NAME_IMAGES":"spotlight-tokbox-images",
+  "SIGNALING_SERVER_URL" : "https://tokbox-ib-staging-signaling.herokuapp.com",
+  // custom app settings
+  "BACKEND_URL": "https://tokbox-ib-staging-tesla.herokuapp.com",
+  "FRONTEND_URL": "https://tokbox-ib-staging.herokuapp.com",
+  "POSTPRODUCTION_ENABLED": "true",
+  "INTERACTIVE_STREAM_LIMIT": "2",
+  "REDIS_URL": "redis://rediscloud:VJ3286OJK2V4fzgu@pub-redis-16349.us-east-1-2.2.ec2.garantiadata.com:16349",
+  "INSTANCE_ENABLE_ARCHIVING":"false"
+}
+  

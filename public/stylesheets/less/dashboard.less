@@ -1,0 +1,354 @@
+.boxWrap{
+  border-radius:3px;
+  min-height: 350px;
+  padding: 10px;
+  background: #fff;
+}
+
+.panel-dashboard{
+  padding: 0;
+}
+
+.no-events{
+  min-height: 350px;
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  span{
+    display: block;
+  }
+}
+
+.event-line{
+  position: relative;
+  margin: 0 0 10px;
+  border: 1px solid @borderColor;
+  border-radius: 3px;
+  padding: 10px;
+  >span{
+    display: block;
+    margin-right: 205px;
+    &.event-title{
+      font-size: 18px;
+      font-weight: 800;
+    }
+    &.event-date{
+      color: #888;
+      margin-bottom: 2px;
+    }
+    &.event-status{
+      display: inline-block;
+      font-size: 12px;
+      padding: 2px 14px;
+      border: none;
+      margin: 0;
+      border-radius: 3px;
+      color: #fff;
+      font-weight: 400;
+      min-width: 60px;
+      text-align: center;
+      border: 2px solid;
+      &.pre-show{
+        border-color: @color9;
+        color: @color9;
+      }
+      &.live{
+        border-color: @color7;
+        color: @color7;
+      }
+      &.created{
+        border-color: @color5;
+        color: @color5;
+      }
+      &.closed{
+        border-color: @color3;
+        color: @color3;
+      }
+    }
+  }
+  .event-actions{
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -17px;
+  }
+}
+
+/*Add Event*/
+.divider-line{
+  border-bottom: 1px solid @borderColor;
+}
+
+.video-box-holder{
+  width: 100%;
+  height: 300px;
+  background: beige;
+  .videoBox{
+    float: left;
+    padding: 10px;
+    width: 45%;
+  }
+}
+.videoBox{
+  overflow: hidden !important;
+
+  .btn-crop {
+    position: absolute;
+    bottom: 0;
+    left: 2px;
+  }
+
+  &.removeCrop {
+    .OT_video-element {
+      object-fit: contain;
+    }
+  }
+}
+.countdown-overlay{
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(61, 61, 61, 0.51);
+  z-index: 1000;
+}
+.countdown-overlay span{
+  font-size: 75px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -38px 0 0 -38px;
+  display: block;
+  width: 75px;
+  height: 75px;
+  color:white;
+  text-align: center;
+  line-height: 75px;
+}
+.message-bar{
+  width: 100%;
+  display:block;
+  height: 20px;
+  background-color: red;
+  color: white;
+  font-size: 20px;
+  line-height: 20px;
+  text-align:center;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1000;
+}
+.video-chat{
+  width: 200px;
+  height: 160px;
+  margin:25px;
+  background-color: #444;
+}
+.btn.actions {
+  min-width: 116px;
+  margin-left: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+ol.sidebar-list{
+  padding:0;
+}
+
+
+
+.top-event-controls{
+  .end-show{
+    padding: 8px 14px;
+    margin-left: 4px;
+  }
+}
+.event-status{
+  display: inline-block;
+  font-size: 12px;
+  padding: 4px 14px;
+  border: none;
+  margin: 0 0 0 4px;;
+  border-radius: 3px;
+  color: #fff;
+  font-weight: 400;
+  min-width: 60px;
+  text-align: center;
+  border: 2px solid;
+  &.pre-show{
+    border-color: @color9;
+    color: @color9;
+  }
+  &.live{
+    border-color: @color7;
+    color: @color7;
+  }
+  &.show-ended{
+    border-color: @color10;
+    color: @color10;
+  }
+}
+
+.chat-top-controls{
+  background: #F5F5F5;
+  padding: 5px;
+
+  .btn-wrap{
+    .btn{
+      display: inline-block;
+      width: auto;
+      padding: 0 6px;
+      margin: 0 0 2px 2px;
+      line-height: 30px;
+      font-size: 12px;
+    }
+  }
+}
+
+.sortOptions {
+  float: right;
+  top: -40px;
+  position: relative;
+
+  .label-sort{
+    display: inline-block;
+    padding: 0 5px 0 10px;
+    color: #888;
+  }
+  .sort-group{
+    display: inline-block;
+    .btn-sort {
+      margin: 0;
+      padding: 0px 10px;
+      font-size: 12px;
+      line-height: 30px;
+      text-align: center;
+      border-right:1px solid #ccc;
+      border-radius: 0;
+      i{
+        font-size: 12px;
+        display: none;
+      }
+      &:first-child{
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+      }
+      &:last-child{
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+        border: none;
+      }
+      &.active{
+        color: #fff;
+        background-color: #46b8da;
+
+        &:hover{
+          background-color: #57bfdd;
+        }
+
+        &.desc{
+          .fa-arrow-down{
+            display: inline-block;
+          }
+        }
+
+        &.asc{
+          .fa-arrow-up{
+            display: inline-block;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.eventVideoPlayer{
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  video{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+
+.btn-embed{
+  .caret{
+    margin-left: 6px;
+  }
+}
+
+.dropdown-embed{
+  li{
+
+    &:hover{
+      cursor: pointer;
+      background: #f3f3f3;
+    }
+
+    button{
+      display: block;
+      border: none;
+      outline: none;
+      background: none;
+      width: 100%;
+      padding: 3px 20px;
+      text-align: left;
+
+      &:hover,
+      &.zeroclipboard-is-hover{
+        background: #f3f3f3 !important;
+        cursor: pointer !important;
+      }
+    }
+  }
+}
+.has-error .input-group-addon{
+  color: white !important;
+}
+.status-large, user-count{
+  width: auto;
+  font-size: 16px;
+  padding:  0 ;
+  color: #fff;
+  line-height: 30px;
+  font-weight: 400;
+  text-align: center;
+  &.stat-blue{
+    background: @color5;
+  }
+  &.stat-green{
+    background: @color7;
+  }
+  &.stat-red{
+    background: @color10;
+  }
+  &.stat-lightBlue{
+    background: @color20;
+  }
+}
+
+.user-count{
+  margin-bottom: 16px;
+  color: #58666E;
+  text-align: left;
+}
+
+.s-pad-left{
+  padding: 2px;
+  cursor:default;
+  &.red {
+    color: @color10;
+  }
+}
+.metrics-chart{
+  margin: 10px;
+}

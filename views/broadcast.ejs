@@ -1,0 +1,68 @@
+<% include common/header.ejs %>
+<link rel="stylesheet prefetch" href="https://releases.flowplayer.org/6.0.5/skin/minimalist.css">
+<style class="cp-pen-styles">
+#hlsjslive {
+  background-color: #000000;
+  max-height: 500px; 
+}
+</style>
+<body <% if (embed == 1) { %>class="embedWidget"<% } %>>
+<!-- Start Page Loading -->
+<div class="loading"><img src="/img/loading.gif" alt="loading-img"></div>
+<div class="broadcast-container" ></div> 
+<!-- End Page Loading -->
+<!-- END TOP -->
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+<!-- START CONTENT -->
+
+<div class="content fan_view no-header">  
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="panel panel-default fan-live-panel fan-live-full">
+
+                    <div class="panel-title">
+                        <h4><%= fan_url %></h4>
+                        <ul class="panel-tools">
+                            <li class="waiting"><span><%= '' %></span></li>
+                        </ul>
+                    </div>
+
+                    <div class="panel-body">
+                        <div id="broadcast_app" event_image="<%=event_image%>" broadcast=<%- JSON.stringify(broadcast) %> signaling_url="<%=signaling_url%>" ></div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<% include common/footer.ejs%>
+<script src="https://releases.flowplayer.org/6.0.5/flowplayer.min.js"></script>
+<script src="https://releases.flowplayer.org/hlsjs/flowplayer.hlsjs.min.js"></script>
+<script>
+window.onload = function () {
+    /*flowplayer('#hlsjslive', {
+        splash: false,
+        embed: false,
+        ratio: 9 / 16,
+        autoplay: true,
+        clip: {
+            autoplay: true,
+            live: true,
+            sources: [{
+                    type: 'application/x-mpegurl',
+                    src: '<%=broadcast.broadcastUrl%>'
+                }]
+        }
+    });*/
+    //$('.fp-fullscreen, .fp-controls, .fp-timeline, .fp-progress, .fp-timeline-tooltip, .fp-time').addClass('hidden');
+};
+</script>
+</body>
+</html>

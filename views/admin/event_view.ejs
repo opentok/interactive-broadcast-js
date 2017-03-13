@@ -1,0 +1,28 @@
+<% include header.ejs %>
+<% include top_navigation.ejs %>
+
+<div class="content">
+  <div class="page-header">
+    <ol class="breadcrumb">
+      <li><a href="/admin">Back To Events</a></li>
+      <li class="active">VIEW EVENT</li>
+    </ol>
+    <h1 class="title"><%= event.event_name %></h1>
+
+    <div class="right">
+      <span class="event-status show-ended">ENDED</span>
+    </div>
+  </div>
+
+  <div class="container-default">
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12 col-md-8 col-md-offset-2">
+          <div id="view_event_container" data-event-data='<%- JSON.stringify(event) %>'>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% include footer.ejs %>

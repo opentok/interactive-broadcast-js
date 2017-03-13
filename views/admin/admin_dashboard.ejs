@@ -1,0 +1,52 @@
+<% include header.ejs %>
+
+<!-- Start Page Loading -->
+<div class="loading"><img src="/img/loading.gif" alt="loading-img"></div>
+<!-- End Page Loading -->
+<div id="top" class="clearfix">
+
+    <% include ../common/app_logo.ejs %>
+
+    <!-- Start Top Right -->
+    <ul class="top-right">
+
+        <li class="link">
+            <a href="#" class=""><b><%= user.name %></b></a>
+        </li>
+        <li class="link">
+            |
+        </li>
+        <li class="link">
+            <a href="/logout" class=""><i class="fa falist fa-power-off"></i> Logout</a>
+        </li>
+
+    </ul>
+    <!-- End Top Right -->
+
+</div>
+<!-- END TOP -->
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+<!-- START CONTENT -->
+<div class="content">
+
+    <!-- Start Page Header -->
+    <div class="page-header">
+        <ol class="breadcrumb">
+            <li class="active">DashBoard</li>
+        </ol>
+        <h1 class="title">DashBoard</h1>
+
+        <!-- Start Page Header Right Div -->
+        <div class="right admin-controls" id="admin-controls" data-server-url="<%= serverUrl %>" data-signaling-server-url="<%= signalingServerUrl %>" data-admin-id="<%= user.userHash %>" data-isSuperAdmin="<%= user.is_superadmin%>"></div>
+    </div>
+
+    <div class="container-default">
+      <div notification="<%= notification %>" isSuper="<%= user.is_superadmin%>" id="event_list_container"></div>
+    </div>
+
+</div>
+<% include footer.ejs %>

@@ -1,0 +1,64 @@
+<% include header.ejs %>
+
+<!-- Start Page Loading -->
+<div class="loading"><img src="/img/loading.gif" alt="loading-img"></div>
+<!-- End Page Loading -->
+<div id="top" class="clearfix">
+
+  <% include ../common/app_logo.ejs %>
+
+  <!-- Start Top Right -->
+  <ul class="top-right">
+
+    <li class="link">
+      <a href="#"><b><%= user.name %></b></a>
+    </li>
+    <li class="link">
+      |
+    </li>
+    <li class="link">
+      <a href="/logout" class=""><i class="fa falist fa-power-off"></i> Logout</a>
+    </li>
+
+  </ul>
+  <!-- End Top Right -->
+
+</div>
+<!-- END TOP -->
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+<!-- START CONTENT -->
+<div class="content">
+
+  <!-- Start Page Header -->
+  <div class="page-header">
+    <ol class="breadcrumb">
+      <li><a href="/admin">Back To Events</a></li>
+      <li class="active">EDIT EVENT</li>
+    </ol>
+    <h1 class="title"><%= event.event_name %></h1>
+
+    <!-- Start Page Header Right Div -->
+    <div class="right">
+    </div>
+    <!-- End Page Header Right Div -->
+
+  </div>
+  <!-- End Page Header -->
+
+  <!-- //////////////////////////////////////////////////////////////////////////// -->
+  <!-- START CONTAINER -->
+  <div class="container-default">
+    <div class="boxWrap container" id="edit_event_container" instance_enable_archiving="<%=instance_enable_archiving%>" postproductionurl_enabled="<%=postproductionurl_enabled%>" data-event-data='<%- JSON.stringify(event) %>'>
+
+    </div>
+  </div>
+  <!-- END CONTAINER -->
+  <!-- //////////////////////////////////////////////////////////////////////////// -->
+
+
+</div>
+<% include footer.ejs %>

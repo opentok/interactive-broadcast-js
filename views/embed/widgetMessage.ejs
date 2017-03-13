@@ -1,0 +1,24 @@
+(function () {
+  function async_load () {
+    var container = document.querySelector('#<%= container %>');
+    var event;
+    container.innerHTML = '<%= message %>';
+    if (window.Event) {
+      event = new Event('tb:cs:noUpcomingEvents');
+    } else {
+      event = document.createEvent('Event');
+      event.initEvent('tb:cs:noUpcomingEvents');
+    }
+    container.dispatchEvent(event);
+  }
+  
+  if(<%= immediate %>) {
+    async_load();
+  } else {
+    if (window.attachEvent)
+      window.attachEvent('onload', async_load);
+    else
+      window.addEventListener('load', async_load, false);
+
+  }    
+})();

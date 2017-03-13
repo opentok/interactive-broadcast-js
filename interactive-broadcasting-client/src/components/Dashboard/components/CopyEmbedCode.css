@@ -1,0 +1,30 @@
+.CopyEmbedCode {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.CopyEmbedCode .toggle .fa {
+  margin-left: 5px;
+}
+
+.CopyEmbedCode-button-container {
+  width: 100%;
+  position: absolute;
+  visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  top: 110%;
+  border: 1px solid lightgrey;
+}
+
+.CopyEmbedCode-button-container .btn.white {
+  border: none;
+  width: 100%;
+  margin: 0;
+}
+
+.CopyEmbedCode-button-container.expanded {
+  visibility: initial;
+}
+

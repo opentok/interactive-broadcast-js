@@ -1,0 +1,25 @@
+(function () {
+  function async_load () {
+    var tag = document.createElement('iframe');
+    tag.src = '<%= eventUrl %>?embed=<%= embed_css %>';
+    tag.frameBorder = '0';
+    tag.width = '<%= width %>';
+    tag.height = '<%= height %>';
+    tag.scrolling = "no";
+
+    var container = document.querySelector('#<%= container %>');
+    container.appendChild(tag);
+  }
+
+  if(<%= immediate %>) {
+    async_load();
+  } else {
+    if (window.attachEvent)
+        window.attachEvent('onload', async_load);
+      else
+        window.addEventListener('load', async_load, false);
+    
+  }
+  
+})();
+

@@ -1,0 +1,24 @@
+language: node_js
+
+node_js:
+  - 0.10
+
+addons:
+  sauce_connect: true
+
+before_install: 
+  - npm install -g grunt-cli jest-cli protractor
+
+install: npm install
+
+before_script: grunt build
+
+cache:
+  directories:
+    - node_modules
+
+env:
+  global:
+  - NODE_ENV=test
+  - secure: EGBb2VT05HQRKqYpB5zLtLcdV3b0IlL4MxoFoybGkNjUxSWSga5pvchMuan7rwnHbR7P0f2v+aY5eC/oVuaavTgfZHP6/I4q1Z0Y8nudCwOWSjwB13XdN/PDc4wpBd+CsV9zeObghbbG3pExiSoWCgx/LqFRaQEIXL8ri8xRJeRN8IFGS837TIESOSHMW5+UTgrwVuuGa5ctQ0MuQ6NxA5skxH5wlHA5j38/Hhm4Xyn8rNRTZTxxf+2CYumsAKKqvgu4sB7q/Ni1CMxUHPuNdaaTd0VK+/MqKIXGUsfCaeYlDVoIDjQ4M0iDAJ8tUUDdiDw4wbXxUVXU16MYxc+w5VDx8Jq8S+K2oz+NyPP8IstW1csCntq6oOJiJJAUPO/P0e4OB66V9/DR+FvlUhZ88sO+oAuS1crA/rlgu8JyVk4ceZkMxDG7i0pMlpaMXb9nhFdonuZnCJ+ikmXVfDZw1KGvd4f4pcC2UaceH8GlCGidIwQdrOxEzqhgQO2XJ8k5JtiBLdr+rdP0uGmw1hK3ltbJwkbhM6/bYzY4V/2PIkRejQ2uN68vB2dFLqhynjzVhqTuEmzzrjnQBy3b6FAcZaZXQ90BWqvBSuKAJ8I7pYJZSmZY+QjD2lvWdczKErLLrH2S2ztA+pc4xnNx0aylqBU4OjAkfFq9MpRn1JZJsQI=
+  - secure: bsOrhDf8FYJF3Q2nFOrtbRmmJFqWhuG1RQqQWY1KAXHH/0w2VpCgk6zingNryIgrTNuBnq0hyZ1U1AgfyMNZw9oT5kvpE6ndk4SI4ajKSTJ87Lwj+78jKR+Dv19D/d/J5SvfvWuG2RfuXOUQ2qP5XZRJlWZLN56TVi26AV4E28jRmCAw4ktmr/UycooUcItxDYkm1+nFJznvtH3zcwtaRk8wNNCs0PlSmw7OsvQmqSF0vknzsq2opqD126PPe+7fhr0sdtYQX1Bdrdnm0xFb9VSon0Vuqdlv22/N+elPse11novhm/rDqRbhutcZ3+S1pdYTJ3hfEeiMRuNC6ouDjyNvnvdlfgdqG6s8c+Fw577A0FQggCve2KBf7ZS3g5b3jrFVQkB5JIRKV1xpq2kLMV+VK+B1L45mHjQ8PYDIMzfOu/5KRPSyeJKirpkWnCqAoyruyTx8INUU+g6/B+i9uXXgSvpsDqjctigEEKk8zXd3UPXTRWUNR/vz4LTytHfOAkDgXBH98IuYRpraAkvgfyeXhOeKS4AS6KbExjmQhAbHQ+6GpJW7DiaE50zovg8UPa4/4UFyjRxniMMBBGs1kSrQ7hRAac6vx8pBt43sTwyGsZLj48ZI+mzZojle+CS5i94qa2JDMCtsrx0HVx2MOEja5ivR3u84mKKQjDGjFgw=

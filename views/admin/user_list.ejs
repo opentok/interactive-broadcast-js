@@ -1,0 +1,54 @@
+<% include header.ejs %>
+
+<!-- Start Page Loading -->
+<div class="loading"><img src="/img/loading.gif" alt="loading-img"></div>
+<!-- End Page Loading -->
+<div id="top" class="clearfix">
+
+    <% include ../common/app_logo.ejs %>
+
+    <!-- Start Top Right -->
+    <ul class="top-right">
+
+        <li class="link">
+            <a href="#" class=""><b><%= user.name %></b></a>
+        </li>
+        <li class="link">
+            |
+        </li>
+        <li class="link">
+            <a href="/logout" class=""><i class="fa falist fa-power-off"></i> Logout</a>
+        </li>
+
+    </ul>
+    <!-- End Top Right -->
+
+</div>
+<!-- END TOP -->
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+
+<!-- //////////////////////////////////////////////////////////////////////////// -->
+<!-- START CONTENT -->
+<div class="content">
+
+    <!-- Start Page Header -->
+    <div class="page-header">
+        <ol class="breadcrumb">
+            <li><a href="/admin">Back To Events</a></li>
+        </ol>
+        <h1 class="title">Users</h1>
+
+        <!-- Start Page Header Right Div -->
+    </div>
+
+    <div class="container-default">
+        <div id="user_list_container" isSuper="<%= user.is_superadmin%>">
+
+        </div>
+    </div>
+
+
+</div>
+<% include footer.ejs %>

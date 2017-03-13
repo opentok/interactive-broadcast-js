@@ -1,0 +1,14 @@
+.DashboardEvents {
+  background: #F5F5F5;
+  padding: 20px;
+}
+
+.DashboardEvents .toggle-events {
+  display: flex;
+}
+
+.DashboardEvents .toggle-events .btn {
+  width: 150px;
+  height: 30px;
+  margin: 0 5px;
+}
