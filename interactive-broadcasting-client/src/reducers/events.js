@@ -10,6 +10,8 @@ const events = (state: EventsState = initialState, action: EventsAction): Events
   switch (action.type) {
     case 'SET_EVENTS':
       return R.assoc('list', action.events, state);
+    case 'FILTER_EVENTS':
+      return R.assoc('filter', action.filter, state);
     default:
       return state;
   }

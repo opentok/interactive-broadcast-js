@@ -15,8 +15,8 @@ declare type LocalStorageState = {
 }
 
 // Redux Actions
-declare type Action = UserAction | EventsAction;
 
+declare type Action = UserAction | EventsAction | AlertAction;
 // Redux dispatch, action creators, etc.
 declare type ActionCreator = (*) => Action;
 declare type Dispatch = (action: Action | Thunk | Array<Action>) => any; // eslint-disable-line flowtype/no-weak-types

@@ -53,9 +53,18 @@ const post = (route: string, body: *, headers: object): Promise =>
       .catch(reject);
   });
 
+const del = (route: string): Promise =>
+  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
+    fetch(request('delete', route))
+      .then(parseResponse)
+      .then(resolve)
+      .catch(reject);
+  });
+
 
 const getAdmin = (adminId: string): Promise => get(`admin/${adminId}`);
 const getEvents = (): Promise => get('events');
+const deleteEvent = (id: string): Promise => del(`events/${id}`);
 
 module.exports = {
   get,
@@ -63,4 +72,5 @@ module.exports = {
   url,
   getAdmin,
   getEvents,
+  deleteEvent,
 };
