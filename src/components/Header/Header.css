@@ -1,0 +1,20 @@
+.Header {
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    color: white;
+    background-color: #00a3e3;
+}
+
+.Header-logo {
+    width: 250px;
+    height: 100%;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 300;
+    font-family: 'Montserrat', sans-serif;
+    background-color: rgba(0, 0, 0, 0.05);
+}

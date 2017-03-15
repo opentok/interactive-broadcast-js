@@ -66,6 +66,11 @@ const events = [
   },
 ];
 
+
+app.get('/api/events/current', (req, res) => {
+  res.send(events[0])
+});
+
 app.get('/api/events', (req, res) => {
   res.send(events)
 });
