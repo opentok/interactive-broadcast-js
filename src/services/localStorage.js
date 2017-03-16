@@ -22,3 +22,14 @@ export const saveState = (state: LocalStorageState) => {
     // Nothing to do, nowhere to go
   }
 };
+
+export const saveAuthToken = (token: string): void => {
+  try {
+    localStorage.setItem(`${storageKey}-token`, token);
+  } catch (error) {
+    // Nothing to do, nowhere to go
+  }
+};
+
+export const loadAuthToken = (): ?string => localStorage.getItem(`${storageKey}-token`);
+

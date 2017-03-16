@@ -2,10 +2,8 @@
 
 const user = (state: UserState = null, action: UserAction): UserState => {
   switch (action.type) {
-    case 'LOGIN':
+    case 'SET_USER':
       return action.user;
-    case 'LOGOUT':
-      return null;
     default:
       return state;
   }

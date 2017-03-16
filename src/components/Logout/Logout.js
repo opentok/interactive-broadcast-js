@@ -15,7 +15,7 @@ type Props = BaseProps & DispatchProps;
 const Logout = ({ user, logOutUser }: Props): ReactElement =>
   user &&
   <span className="Logout">
-    <Link to="/admin"><span>{user.name}</span></Link>
+    <Link to="/admin"><span>{user.displayName}</span></Link>
     <span className="divider">|</span>
     <button className="Logout btn" onClick={logOutUser}>Logout <Icon name="sign-out" size="lg" /></button>
   </span>;

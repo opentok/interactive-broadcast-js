@@ -1,8 +1,11 @@
 import R from 'ramda';
+import { loadAuthToken as jwt } from './localStorage';
 
 /** Constants */
 const url = 'http://localhost:3001/api';
 const defaultHeaders = { 'Content-Type': 'application/json' };
+type Headers = { 'Content-Type': 'application/json', jwt?: string };
+const headers = (requiresAuth: boolean): Headers => R.merge(defaultHeaders, requiresAuth ? { Authorization: `Bearer ${jwt()}` } : null);
 
 /** Helper methods */
 
@@ -20,50 +23,45 @@ const parseResponse = (response: Response): * => {
   }
 };
 
-type RequestOptions = {
-  noJSON: boolean,
-  headers: object
-};
-
-const request = (method: string, route: string, data: * = null, options: RequestOptions = {}): Promise => {
-  const headers = options.headers || defaultHeaders;
-  const body = data && !options.noJSON ? JSON.stringify(data) : data;
+const request = (method: string, route: string, data: * = null, requiresAuth: boolean = true): Promise => {
+  const body = data && JSON.stringify(data);
   return new Request(getURL(route), {
     method: method.toUpperCase(),
     mode: 'cors',
-    headers: new Headers(headers),
+    headers: new Headers(headers(requiresAuth)),
     body,
   });
 };
 
 /** Exports */
-const get = (route: string): Promise =>
+const get = (route: string, requiresAuth: boolean = true): Promise =>
   new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request('get', route))
+    fetch(request('get', route, null, requiresAuth))
       .then(parseResponse)
       .then(resolve)
       .catch(reject);
   });
 
-const post = (route: string, body: *, headers: object): Promise =>
+const post = (route: string, body: * = null, requiresAuth: boolean = true): Promise =>
   new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request('post', route, body, headers))
-      .then(parseResponse)
-      .then(resolve)
-      .catch(reject);
-  });
-
-
-const del = (route: string): Promise =>
-  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request('delete', route))
+    fetch(request('post', route, body, requiresAuth))
       .then(parseResponse)
       .then(resolve)
       .catch(reject);
   });
 
 
-const getAdmin = (adminId: string): Promise => get(`admin/${adminId}`);
+const del = (route: string, requiresAuth: boolean = true): Promise =>
+  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
+    fetch(request('delete', route, null, requiresAuth))
+      .then(parseResponse)
+      .then(resolve)
+      .catch(reject);
+  });
+
+
+const getAuthToken = (uid: string): Promise => post('auth/token', { uid }, false);
+const getUser = (uid: string): Promise => get(`admin/${uid}`);
 const getEvents = (): Promise => get('events');
 const deleteEvent = (id: string): Promise => del(`events/${id}`);
 
@@ -71,7 +69,8 @@ module.exports = {
   get,
   post,
   url,
-  getAdmin,
+  getAuthToken,
+  getUser,
   getEvents,
   deleteEvent,
 };

@@ -1,8 +1,8 @@
 // @flow
 import R from 'ramda';
-import { browserHistory } from 'react-router';
 import firebase from '../services/firebase';
-import { getAdmin } from '../services/api';
+import { getAuthToken } from '../services/api';
+import { saveAuthToken } from '../services/localStorage';
 import { logIn, logOut } from './user';
 
 const authError: ActionCreator = (error: null | Error): AuthAction => ({
@@ -10,12 +10,12 @@ const authError: ActionCreator = (error: null | Error): AuthAction => ({
   error,
 });
 
-const validate: ThunkActionCreator = (userId: string): Thunk =>
+const validate: ThunkActionCreator = (uid: string): Thunk =>
   (dispatch: Dispatch) => {
-    getAdmin(userId)
-      .then((user: User) => {
-        dispatch(logIn(user));
-        browserHistory.push('/admin');
+    getAuthToken(uid)
+      .then(({ token }: {token: string}) => {
+        saveAuthToken(token);
+        dispatch(logIn(uid));
       });
   };
 

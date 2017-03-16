@@ -14,4 +14,7 @@ declare type User = {
  };
 
 declare type UserState = null | User;
-declare type UserAction = { type: 'LOGIN', user: User } | { type: 'LOGOUT' };
+declare type UserAction =
+  { type: 'SET_USER', user: User } |
+  { type: 'LOGIN', userId: string } |
+  { type: 'LOGOUT' };
