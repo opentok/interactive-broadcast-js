@@ -3,7 +3,7 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router';
 import Icon from 'react-fontawesome';
-import { logOut } from '../../actions/user';
+import { signOut } from '../../actions/auth';
 import './Logout.css';
 
 /* beautify preserve:start */
@@ -24,7 +24,7 @@ const mapStateToProps = (state: { user: User }): Props => R.pick(['user'], state
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
     logOutUser: () => {
-      dispatch(logOut());
+      dispatch(signOut());
     },
   });
 

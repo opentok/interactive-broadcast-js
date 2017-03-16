@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { browserHistory } from 'react-router';
 import R from 'ramda';
 import classNames from 'classnames';
-import { authenticate } from '../../actions/auth';
+import { signIn } from '../../actions/auth';
 import LoginForm from './components/LoginForm';
 import logo from '../../images/logo.png';
 import './Login.css';
@@ -67,10 +67,10 @@ class Login extends Component {
 }
 
 const mapStateToProps = (state: State): BaseProps => R.pick(['auth', 'user'], state);
-const mapDispatchToProps: MapDispatchToProps < DispatchProps > = (dispatch: Dispatch): DispatchProps =>
+const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
     authenticateUser: (credentials: AuthCredentials) => {
-      dispatch(authenticate(credentials));
+      dispatch(signIn(credentials));
     },
   });
 export default connect(mapStateToProps, mapDispatchToProps)(Login);
