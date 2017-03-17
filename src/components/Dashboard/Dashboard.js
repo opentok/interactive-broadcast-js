@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import R from 'ramda';
 import { connect } from 'react-redux';
 import { getBroadcastEvents } from '../../actions/events';
 import DashboardHeader from './components/DashboardHeader';
@@ -7,14 +8,16 @@ import DashboardEvents from './components/DashboardEvents';
 import './Dashboard.css';
 
 /* beautify preserve:start */
-type Props = { loadEvents: Unit };
+type BaseProps = { user: User };
+type DispatchProps = { loadEvents: Unit };
+type Props = BaseProps & DispatchProps;
 /* beautify preserve:end */
 
 class Dashboard extends Component {
   props: Props;
 
   componentDidMount() {
-    this.props.loadEvents();
+    this.props.loadEvents(this.props.user.id);
   }
 
   render(): ReactComponent {
@@ -27,10 +30,11 @@ class Dashboard extends Component {
   }
 }
 
-const mapDispatchToProps: MapDispatchToProps<Props> = (dispatch: Dispatch): Props =>
+const mapStateToProps = (state: State): BaseProps => R.pick(['user'], state);
+const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
-    loadEvents: () => {
-      dispatch(getBroadcastEvents());
+    loadEvents: (userId: string) => {
+      dispatch(getBroadcastEvents(userId));
     },
   });
-export default connect(null, mapDispatchToProps)(Dashboard);
+export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);

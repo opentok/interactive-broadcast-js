@@ -4,7 +4,7 @@ import { browserHistory } from 'react-router';
 import { getEvents, deleteEvent } from '../services/api';
 import { setAlert } from './alert';
 
-const setEvents: ActionCreator = (events: BroadcastEvent[]): EventsAction => ({
+const setEvents: ActionCreator = (events: BroadcastEventMap): EventsAction => ({
   type: 'SET_EVENTS',
   events,
 });
@@ -14,10 +14,10 @@ const removeEvent: ActionCreator = (id: string): EventsAction => ({
   id,
 });
 
-const getBroadcastEvents: ThunkActionCreator = (): Thunk =>
+const getBroadcastEvents: ThunkActionCreator = (userId: string): Thunk =>
   (dispatch: Dispatch) => {
-    getEvents()
-      .then((events: BroadcastEvent[]) => {
+    getEvents(userId)
+      .then((events: BroadcastEventMap) => {
         dispatch(setEvents(events));
         browserHistory.push('/admin');
       });

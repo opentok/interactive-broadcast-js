@@ -33,11 +33,11 @@ const comparator = (sorting: EventSorting): Comparator => {
   return R.comparator((a: BroadcastEvent, b: BroadcastEvent): number => R[operator](sortingProp(a), sortingProp(b)));
 };
 
-const filterAndSort = ({ list, filter, sorting }: EventsState): BroadcastEvent[] =>
+const filterAndSort = ({ map, filter, sorting }: EventsState): BroadcastEvent[] =>
   R.compose(
     R.filter(statusFilter(filter)),
     R.sort(comparator(sorting)) // eslint-disable-line comma-dangle
-  )(list);
+  )(R.values(map));
 
 module.exports = {
   filterAndSort,

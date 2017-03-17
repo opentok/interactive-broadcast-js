@@ -60,9 +60,9 @@ const del = (route: string, requiresAuth: boolean = true): Promise =>
   });
 
 
-const getAuthToken = (uid: string): Promise => post('auth/token', { uid }, false);
-const getUser = (uid: string): Promise => get(`admin/${uid}`);
-const getEvents = (): Promise => get('events');
+const getAuthToken = (userId: string): Promise => post('auth/token', { uid: userId }, false);
+const getUser = (userId: string): Promise => get(`admin/${userId}`);
+const getEvents = (adminId: string): Promise => get(`event?adminId=${adminId}`);
 const deleteEvent = (id: string): Promise => del(`events/${id}`);
 
 module.exports = {

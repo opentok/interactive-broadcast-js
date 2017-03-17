@@ -12,17 +12,18 @@ const eventName = ({ id, status, name }: NameProps): ReactComponent =>  // eslin
     <Link to={`event/${id}/edit`}>{name}</Link>;
 
 /** Event Timestamp */
-type TimeProps = { id: string, status: EventStatus, showStarted: string, showEnded: string };
-const eventTime = ({ id, status, showStarted = '', showEnded = '' }: TimeProps): ReactElement => {
+type TimeProps = { id: string, status: EventStatus, dateTimeStart: string, dateTimeEnd: string, showStartedAt: string, showEndedAt: string };
+const eventTime = ({ id, status, dateTimeStart = '', dateTimeEnd = '', showStartedAt = '', showEndedAt = '' }: TimeProps): ReactElement => {
 
   const formattedDate = (d: string): string => moment(d).format('MMM DD, YYYY hh:mm A');
   const formattedDuration = (start: string, end: string): string => moment.utc(moment(end).diff(moment(start))).format('HH:mm:ss');
 
   const notEmpty = R.complement(R.isEmpty);
-  const hasTimestamps = R.and(notEmpty(showStarted), notEmpty(showEnded));
+  const hasDates = R.and(notEmpty(dateTimeStart), notEmpty(dateTimeEnd));
+  const hasStartEndTimes = R.and(notEmpty(showStartedAt), notEmpty(showEndedAt));
 
-  const dateText = hasTimestamps ? `${formattedDate(showStarted)} to ${formattedDate(showEnded)}` : 'Date not provided';
-  const durationText = hasTimestamps && status === 'closed' ? formattedDuration(showStarted, showEnded) : null;
+  const dateText = hasDates ? `${formattedDate(dateTimeStart)} to ${formattedDate(dateTimeEnd)}` : 'Date not provided';
+  const durationText = hasStartEndTimes && status === 'closed' ? formattedDuration(showStartedAt, showEndedAt) : null;
 
   const date = (): ReactComponent => <div className="date" key={`event-date-${id}`}>{dateText}</div>;
   const duration = (): ReactComponent =>
