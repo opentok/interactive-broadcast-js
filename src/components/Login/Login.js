@@ -3,15 +3,18 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { browserHistory } from 'react-router';
 import R from 'ramda';
-import classNames from 'classnames';
-import { signIn } from '../../actions/auth';
+import { userForgotPassword, resetPassword, signIn } from '../../actions/auth';
 import LoginForm from './components/LoginForm';
 import logo from '../../images/logo.png';
 import './Login.css';
 
 /* beautify preserve:start */
 type BaseProps = { auth: AuthState, user: User };
-type DispatchProps = { authenticateUser: (credentials: AuthCredentials) => void };
+type DispatchProps = {
+  authenticateUser: (credentials: AuthCredentials) => void,
+  onForgotPassword: Unit,
+  sendResetEmail: (email: AuthCredentials) => void
+ };
 type Props = BaseProps & DispatchProps;
 /* beautify preserve:end */
 
@@ -23,15 +26,14 @@ class Login extends Component {
     error: boolean
   };
 
-  auth: Unit;
-  onSubmit: Unit;
   resetError: Unit;
-  validateAdmin: Unit;
+  handleSubmit: Unit;
 
   constructor(props: Props) {
     super(props);
     this.state = { error: false };
     this.resetError = this.resetError.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -41,8 +43,13 @@ class Login extends Component {
     }
   }
 
+  handleSubmit(credentials: AuthCredentials) {
+    const { sendResetEmail, authenticateUser } = this.props;
+    this.props.auth.forgotPassword ? sendResetEmail(credentials) : authenticateUser(credentials);
+  }
+
   componentWillReceiveProps(nextProps: Props) {
-    const error = R.complement(R.isNil)(R.path(['auth', 'error'], nextProps));
+    const error = (R.path(['auth', 'error'], nextProps));
     this.setState({ error });
   }
 
@@ -51,16 +58,22 @@ class Login extends Component {
   }
 
   render(): ReactComponent {
-    const { resetError } = this;
+    const { resetError, handleSubmit } = this;
     const { error } = this.state;
-    const { authenticateUser } = this.props;
+    const { onForgotPassword } = this.props;
+    const { forgotPassword } = this.props.auth;
     return (
       <div className="Login">
         <div className="Login-header" >
           <img src={logo} alt="opentok" />
         </div>
-        <LoginForm onSubmit={authenticateUser} onUpdate={resetError} error={error} />
-        <div className={classNames('Login-error', { error })}>Please check your credentials and try again</div>
+        <LoginForm onSubmit={handleSubmit} onUpdate={resetError} error={error} forgotPassword={forgotPassword} />
+        <div className="Login-messages">
+          { error && <div className="Login-error">Please check your credentials and try again</div> }
+          <button className="Login-forgot btn transparent" onClick={R.partial(onForgotPassword, [true])}>
+            { forgotPassword ? 'Enter your email to reset your password.' : 'Forgot your password?' }
+          </button>
+        </div>
       </div>
     );
   }
@@ -71,6 +84,12 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   ({
     authenticateUser: (credentials: AuthCredentials) => {
       dispatch(signIn(credentials));
+    },
+    onForgotPassword: (forgot: boolean) => {
+      dispatch(userForgotPassword(forgot));
+    },
+    sendResetEmail: (credentials: AuthCredentials) => {
+      dispatch(resetPassword(credentials));
     },
   });
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

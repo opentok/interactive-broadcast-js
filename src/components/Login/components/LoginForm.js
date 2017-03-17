@@ -9,7 +9,8 @@ import TextInput from '../../Common/TextInput';
 type Props = {
   onSubmit: Unit,
   onUpdate: Unit,
-  error: boolean
+  error: boolean,
+  forgotPassword: boolean
 };
 /* beautify preserve:end */
 
@@ -53,20 +54,23 @@ class LoginForm extends Component {
 
   render(): ReactComponent {
     const { handleSubmit, handleChange } = this;
-    const { error } = this.props;
+    const { error, forgotPassword } = this.props;
     const { email, password } = this.state.fields;
+    const submitText = forgotPassword ? 'RESET PASSWORD' : 'SIGN IN';
     return (
       <form className="LoginForm" onSubmit={handleSubmit}>
         <div className="input-container">
           <Icon className="icon" name="envelope" style={{ color: 'darkgrey' }} />
           <TextInput type="email" value={email} handleChange={handleChange} error={error} />
         </div>
+        { !forgotPassword &&
+          <div className="input-container">
+            <Icon className="icon" name="key" style={{ color: 'darkgrey' }} />
+            <TextInput type="password" value={password} handleChange={handleChange} error={error} />
+          </div>
+        }
         <div className="input-container">
-          <Icon className="icon" name="key" style={{ color: 'darkgrey' }} />
-          <TextInput type="password" value={password} handleChange={handleChange} error={error} />
-        </div>
-        <div className="input-container">
-          <input className="btn" type="submit" value="SIGN IN" />
+          <input className="btn" type="submit" value={submitText} />
         </div>
       </form>
     );

@@ -21,14 +21,24 @@
   width: 75px;
 }
 
-.Login-error {
-  visibility: hidden;
-  color: red;
-  font-weight: 600;
+.Login-messages {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 50px;
   font-style: italic;
 }
 
-.Login-error.error {
-  visibility: initial;
+.Login-forgot {
+  font-style: italic;
+}
+
+.Login-forgot:hover {
+  background-color: initial !important;
+}
+
+.Login-error {
+  color: red;
+  font-weight: 600;
 }
 

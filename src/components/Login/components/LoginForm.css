@@ -1,9 +1,11 @@
 .LoginForm {
   width: 100%;
+  height: 220px;
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
   align-items: center;
-  padding: 20px 0;
+  padding: 10px 0;
 }
 
 .LoginForm .input-container {
