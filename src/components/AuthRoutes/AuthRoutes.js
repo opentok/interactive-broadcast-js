@@ -6,23 +6,23 @@ import { browserHistory } from 'react-router';
 
 type Props = {
   children: ReactComponent[],
-  user: User
+  currentUser: User
 };
 
 class AuthRoutes extends Component {
   props: Props;
 
   componentWillMount() {
-    if (!this.props.user) {
+    if (!this.props.currentUser) {
       browserHistory.replace('/');
     }
   }
 
   render(): ReactComponent {
-    return this.props.user ? this.props.children : null;
+    return this.props.currentUser ? this.props.children : null;
   }
 }
 
-const mapStateToProps = (state: State): Props => R.pick(['user'], state);
+const mapStateToProps = (state: State): Props => R.pick(['currentUser'], state);
 export default connect(mapStateToProps)(AuthRoutes);
 

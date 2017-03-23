@@ -9,7 +9,7 @@ type NameProps = { id: string, status: string, name: string };
 const eventName = ({ id, status, name }: NameProps): ReactComponent =>  // eslint-disable-line no-confusing-arrow
   status === 'closed' ?
     <span>{name}</span> :
-    <Link to={`event/${id}/edit`}>{name}</Link>;
+    <Link to={`events/${id}/edit`}>{name}</Link>;
 
 /** Event Timestamp */
 type TimeProps = { id: string, status: EventStatus, dateTimeStart: string, dateTimeEnd: string, showStartedAt: string, showEndedAt: string };

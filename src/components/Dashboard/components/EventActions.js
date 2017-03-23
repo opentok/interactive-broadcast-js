@@ -12,35 +12,35 @@ type BaseProps = { id: string, status: EventStatus, archiveUrl: string };
 type DispatchProps = { deleteEvent: Unit };
 type Props = BaseProps & DispatchProps;
 const EventActions = ({ id, status, archiveUrl = '', deleteEvent }: Props): ReactComponent => {
-  const style = (type: string): string => classNames('btn', 'event-action', type);
+  const style = (color: string): string => classNames('btn', 'action', color);
 
   const start = (): ReactComponent =>
     <Link to={`events/${id}`} key={`action-start-${id}`} >
-      <button className={style('start')}><Icon name="check" /> Start Event</button>
+      <button className={style('green')}><Icon name="check" /> Start Event</button>
     </Link>;
 
   const edit = (): ReactComponent =>
     <Link to={`events/${id}/edit`} key={`action-edit-${id}`} >
-      <button className={style('edit')}><Icon name="pencil" /> Edit</button>
+      <button className={style('orange')}><Icon name="pencil" /> Edit</button>
     </Link>;
 
   const del = (): ReactComponent =>
-    <button className={style('delete')} key={`action-remove-${id}`} onClick={R.partial(deleteEvent, [id])} >
+    <button className={style('red')} key={`action-remove-${id}`} onClick={R.partial(deleteEvent, [id])} >
       <Icon name="remove" /> Delete
     </button>;
 
   const view = (): ReactComponent =>
     <Link to={`events/${id}`} key={`action-view-${id}`} >
-      <button className={style(`view ${status}`)}><Icon name="eye" /> View Event</button>
+      <button className={style(`${status === 'live' ? 'blue' : 'green'}`)}><Icon name="eye" /> View Event</button>
     </Link>;
 
   const end = (): ReactComponent =>
-    <button className={style('end')} key={`action-end-${id}`} onClick={()=> console.log('ending', id)} >
+    <button className={style('grey')} key={`action-end-${id}`} onClick={()=> console.log('ending', id)} >
       <Icon name="times" /> End Event
     </button>;
 
   const close = (): ReactComponent =>
-    <button className={style('close')} key={`action-close-${id}`} onClick={()=> console.log('closing', id)} >
+    <button className={style('grey')} key={`action-close-${id}`} onClick={()=> console.log('closing', id)} >
       <Icon name="times" /> Close Event
     </button>;
 
@@ -51,7 +51,7 @@ const EventActions = ({ id, status, archiveUrl = '', deleteEvent }: Props): Reac
 
   const actionButtons = (): ReactComponent[] => {
     switch (status) {
-      case 'notStarted':
+      case 'N':
         return [start(), edit(), del()];
       case 'preshow':
         return [view('preshow'), close()];

@@ -3,7 +3,7 @@ import R from 'ramda';
 import firebase from '../services/firebase';
 import { getAuthToken } from '../services/api';
 import { saveAuthToken } from '../services/localStorage';
-import { logIn, logOut } from './user';
+import { logIn, logOut } from './currentUser';
 import { setAlert, resetAlert } from './alert';
 
 const authError: ActionCreator = (error: null | Error): AuthAction => ({

@@ -1,0 +1,42 @@
+.EditUser {
+    display: flex;
+    flex-direction: column;
+}
+
+.EditUser-form .edit-user-top,
+.EditUser-form .edit-user-bottom {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.EditUser-form .input-container {
+    position: relative;
+}
+
+.EditUser-form .edit-user-top input {
+    font-size: 13px;
+    height: 34px;
+    border: 1px solid #BDC4C9;
+    border-radius: 3px;
+    box-shadow: inset 0px 1px 0px #F1F0F1;
+    margin: 0 5px;
+    padding: 6px 12px 6px 40px;
+}
+
+.EditUser-form .edit-user-bottom .input-container {
+    margin-right: 10px;
+}
+
+.EditUser-form .edit-user-bottom .input-container .label {
+    margin-left: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #58666e;
+}
+
+.EditUser .input-container .icon {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+}

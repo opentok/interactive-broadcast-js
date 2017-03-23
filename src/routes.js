@@ -4,6 +4,8 @@ import { Router, Route, IndexRedirect, browserHistory } from 'react-router';
 import App from './components/App/App';
 import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
+import Users from './components/Users/Users';
+import Event from './components/Event/Event';
 import AuthRoutes from './components/AuthRoutes/AuthRoutes';
 
 const routes = (
@@ -13,6 +15,9 @@ const routes = (
       <Route path="login" component={Login} />
       <Route component={AuthRoutes}>
         <Route path="admin" component={Dashboard} />
+        <Route path="users" component={Users} />
+        <Route path="events/new" component={Event} />
+        <Route path="events/:id/edit" component={Event} />
       </Route>
     </Route>
   </Router>);

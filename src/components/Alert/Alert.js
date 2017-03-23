@@ -8,13 +8,14 @@ import { resetAlert } from '../../actions/alert';
 
 type DispatchProps = { reset: Unit };
 type Props = AlertOptions & DispatchProps;
-const Alert = ({ show, type, title, text, showCancelButton, onConfirm, reset }: Props): ReactComponent =>
+const Alert = ({ show, type, title, text, showConfirmButton = true, showCancelButton, onConfirm, reset }: Props): ReactComponent =>
   <div className="Alert">
     <SweetAlert
       show={show}
       type={type}
       title={title}
       text={text}
+      showConfirmButton={showConfirmButton}
       showCancelButton={showCancelButton}
       onConfirm={onConfirm || reset}
       onEscapeKey={reset}

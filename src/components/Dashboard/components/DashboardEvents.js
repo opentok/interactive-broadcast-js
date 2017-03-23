@@ -1,7 +1,5 @@
 // @flow
 import React from 'react';
-import { connect } from 'react-redux';
-import R from 'ramda';
 import EventList from './EventList';
 import FilterEvents from './FilterEvents';
 import SortEvents from './SortEvents';
@@ -15,7 +13,7 @@ type Props = {
 /* beautify preserve:end */
 
 const DashboardEvents = ({ events }: Props): ReactComponent =>
-  <div className="DashboardEvents">
+  <div className="DashboardEvents admin-page-content">
     <div className="DashboardEvents-controls">
       <FilterEvents />
       <SortEvents />
@@ -23,6 +21,5 @@ const DashboardEvents = ({ events }: Props): ReactComponent =>
     <EventList events={filterAndSort(events)} />
   </div>;
 
-const mapStateToProps = (state: State): Props => R.pick(['events'], state);
-export default connect(mapStateToProps)(DashboardEvents);
+export default DashboardEvents;
 

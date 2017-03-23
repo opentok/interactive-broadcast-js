@@ -1,0 +1,211 @@
+/*.hidden{
+    display: none;
+}
+.rounded{
+    border-radius: 4px;
+}*/
+
+.EventForm {
+    position: relative;
+    width: 90%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0 auto;
+    padding: 20px 20px;
+}
+
+.EventForm .input-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.EventForm .error-message-container {
+    position: absolute;
+    top: 34%;
+    right: 6%;
+    margin: 0 auto;
+    width: 63%;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: red;
+    font-weight: 600;
+    font-style: italic;
+}
+
+.EventForm .input-container .label {
+    width: 30%;
+    text-align: left;
+    color: #58666E;
+    font-size: 13px;
+}
+
+.EventForm .input-container .icon {
+    position: absolute;
+    top: 10px;
+    left: 31%;
+    z-index: 2;
+}
+
+.EventForm .input-container input {
+    height: 34px;
+    width: 65%;
+    font-size: 13px;
+    border: 1px solid #BDC4C9;
+    border-radius: 3px;
+    box-shadow: inset 0px 1px 0px #F1F0F1;
+    margin: 0 5px;
+    padding: 6px 12px 6px 30px;
+}
+
+.EventForm .input-container .date-time-container {
+    display: flex;
+    width: 66%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.EventForm .input-container .date-time-container .time-selection {
+    position: relative;
+    width: 47%;
+}
+
+.EventForm .input-container .date-time-container .time-selection.error input {
+    border-color: red;
+}
+
+.EventForm .input-container .date-time-container .time-selection .icon {
+    left: 3.5%;
+}
+
+.EventForm .input-container .date-time-container .time-selection .rdt {
+    margin: 0 5px;
+}
+
+.EventForm .input-container .date-time-container .time-selection input {
+    width: 100%;
+    margin: 0;
+}
+
+.EventForm .form-divider {
+    width: 100%;
+    border-bottom: 1px solid #BDC4C9;
+    padding: 5px 0;
+}
+
+.EventForm .form-divider h4 {
+    width: 100%;
+    color: #58666E;
+    text-align: left;
+    margin-bottom: 0;
+}
+
+/*.EventForm .input-container input[type=url] {
+    font-weight: 700;
+}*/
+
+.EventForm .input-container.disabled input {
+    font-weight: 700;
+    background-color: rgba(211, 211, 211, .3);
+}
+
+.EventForm .input-container .btn.copy {
+    position: absolute;
+    right: 4.5%;
+    width: 185px;
+    height: 34px;
+    font-weight: 300;
+    border: 1px solid #BDC4C9;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    justify-content: flex-start;
+}
+
+.EventForm .input-container .btn.copy .icon {
+    position: static;
+    margin: 0 10px;
+}
+
+.EventForm .input-container.checkbox,
+.EventForm .input-container.submit {
+    width: 65%;
+    left: 30%;
+}
+
+.EventForm .input-container.submit button[disabled] {
+    background-color: lightgray;
+    cursor: not-allowed;
+}
+
+.EventForm .input-container.checkbox input {
+    width: auto;
+    height: 34px;
+    border: none;
+    box-shadow: none;
+}
+
+.EventForm .input-container.checkbox .label {
+    color: #607d8b;
+    font-size: 14px;
+    font-weight: 300;
+    width: initial;
+    margin-left: 5px;
+}
+
+/*
+.EventForm .form-group{
+    display: flex;
+    flex-direction: row;
+    background-color: white;
+    width: 90%;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    height:50px;
+}
+.EventForm .form-group .label{
+    width: 200px;
+    margin-right: 20px;
+    text-align: right;
+}
+
+.EventForm .input-container {
+    width: 65%;
+    margin: 10px 0;
+    display: flex;
+    align-items: flex-start;
+}
+.EventForm .input-container.button-container {
+    align-items: flex-end;
+}
+.EventForm .input-container.button-container .btn{
+    width: 100px;
+    height: 40px;
+    margin: 5px;
+}
+.EventForm span.separation{
+    padding: 5px;
+}
+.EventForm .form-group input ,
+.EventForm .input-container input {
+    height: 35px;
+    font-size: 14px;
+    padding: 6px 12px;
+    font-weight: 400;
+    line-height: 1;
+    color: #555;
+    background-color: white;
+    border: 1px solid #ccc;
+}
+
+input.img-uploader {
+    height: 40px !important;
+    display: flex;
+    align-items: baseline;
+}
+*/

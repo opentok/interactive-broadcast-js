@@ -5,17 +5,18 @@ import React from 'react';
 
 // Redux state(s)
 declare type State = {
-  user: UserState,
-  events: BroadcastEvent[]
+  currentUser: CurrentUserState,
+  users: UserMap,
+  events: BroadcastEventMap
 };
 
 // What persists in local storage
 declare type LocalStorageState = {
-  user?: UserState
+  currentUser?: CurrentUserState
 }
 
 // Redux Actions
-declare type Action = AuthAction | UserAction | EventsAction | AlertAction;
+declare type Action = AuthAction | UserAction | ManageUsersAction | EventsAction | AlertAction;
 
 // Redux dispatch, action creators, etc.
 declare type ActionCreator = (*) => Action;
@@ -30,6 +31,9 @@ declare type ReactComponent = React$Element<*> | React.CElement | null;
 
 // Functions
 declare type Unit = (*) => void;
+
+// Forms
+declare type FormErrors = null | { fields: { [field: string]: string, message: string } };
 
 /**
  * Boilerplate React & Redux Types

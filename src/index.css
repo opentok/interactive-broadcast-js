@@ -9,14 +9,12 @@ body {
     padding: 0;
 }
 
-a {
-    text-decoration: none;
-}
-
+a,
 a:visited,
 a:hover,
-a:active  {
-    color: inherit;
+a:active {
+    text-decoration: none;
+    color: #00a3e3;
 }
 
 input.error {
@@ -61,4 +59,67 @@ input.error {
 
 .btn.transparent:hover {
     background-color: #eee;
+}
+
+.btn.action {
+    height: 34px;
+    margin: 0 5px;
+    padding: 7px 20px;
+}
+
+.btn.action.green {
+    background-color: #30c06c;
+}
+
+.btn.action.blue {
+    background-color: #46b8da;
+}
+
+.btn.action.orange {
+    background-color: rgba(243, 156,18,.80);
+}
+
+.btn.action.red {
+    background-color: #EF4836;
+}
+
+.btn.action.grey {
+    color: rgb(88, 102, 110);
+    background-color: #E4E4E4;
+}
+
+.btn.action span.fa {
+    margin-right: 5px;
+}
+
+.link.white,
+.link.white:visited,
+.link.white:hover,
+.link.white:active {
+    color: white;
+}
+
+.admin-page-header {
+    height: 92px;
+}
+
+.admin-page-content {
+    background: #F5F5F5;
+    padding: 20px;
+}
+
+.admin-page-list {
+    background-color: white;
+    margin: 10px 5px;
+    padding: 10px;
+    list-style-type: none;
+}
+
+.admin-page-list-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #e8ebed;
+    border-radius: 3px;
 }

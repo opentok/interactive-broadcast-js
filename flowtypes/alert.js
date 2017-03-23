@@ -15,7 +15,8 @@ declare type AlertOptions = {
   type: AlertType,
   title?: string,
   text?: string,
-  onConfirm: Unit,
+  onConfirm?: Unit,
+  showConfirmButton?: boolean,
   showCancelButton?: boolean
 };
 

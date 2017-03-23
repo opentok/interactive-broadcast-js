@@ -5,7 +5,7 @@ declare type BroadcastEvent = {
   id: string,
   name: string,
   status: EventStatus,
-  archive: boolean,
+  archiveEvent: boolean,
   fanUrl: string,
   hostUrl: string,
   showEnded: string,
@@ -37,10 +37,29 @@ declare type EventFilter = 'all' | 'current' | 'archived';
 declare type EventSortByOption = 'mostRecent' | 'startDate' | 'state';
 declare type EventOrderOption = 'ascending' | 'descending';
 declare type EventSorting = { sortBy: EventSortByOption, order: EventOrderOption }
-declare type EventsState = { map: BroadcastEventMap, filter: EventFilter, sorting: EventSorting }
+declare type EventsState = { map: null | BroadcastEventMap, filter: EventFilter, sorting: EventSorting }
 declare type EventsAction =
   { type: 'SET_EVENTS', events: BroadcastEventMap } |
+  { type: 'UPDATE_EVENT', event: BroadcastEvent } |
   { type: 'FILTER_EVENTS', filter: EventFilter } |
   { type: 'SORT_EVENTS', sortBy: EventSortByOption } |
   { type: 'DELETE_BROADCAST_PROMPT', id: string, onConfirm: string => void } |
+  { type: 'CREATE_EVENT', event: BroadcastEvent } |
   { type: 'REMOVE_EVENT', id: string };
+
+
+declare type BroadcastEventFormData = {
+    name: string,
+    adminId?: string,
+    startImage?: string,
+    endImage?: string,
+    dateTimeStart?: string,
+    dateTimeEnd?: string,
+    archiveEvent: boolean,
+    fanUrl: string,
+    fanAudioUrl: string,
+    hostUrl: string,
+    celebrityUrl: string,
+    redirectUrl?: string,
+    composed: boolean
+}

@@ -11,7 +11,7 @@ import './DashboardHeader.css';
 
 /* beautify preserve:start */
 type Props = {
-  user: User
+  currentUser: User
 };
 /* beautify preserve:end */
 
@@ -43,13 +43,13 @@ class DashboardHeader extends Component {
 
   render(): ReactComponent {
     const { onCopy } = this;
-    const { user } = this.props;
+    const { currentUser } = this.props;
     return (
-      <div className="DashboardHeader">
+      <div className="DashboardHeader admin-page-header">
         <h3>Dashboard</h3>
         <div className="DashboardHeader-controls">
           <CopyEmbedCode onCopy={onCopy} />
-          <CopyToClipboard text={user.id} onCopy={R.partial(onCopy, ['User ID'])} >
+          <CopyToClipboard text={currentUser.id} onCopy={R.partial(onCopy, ['User ID'])} >
             <button className="btn white control">Copy User ID</button>
           </CopyToClipboard>
           <Link to="/events/new">
@@ -64,5 +64,5 @@ class DashboardHeader extends Component {
   }
 }
 
-const mapStateToProps = (state: { user: User }): Props => R.pick(['user'], state);
+const mapStateToProps = (state: { currentUser: User }): Props => R.pick(['currentUser'], state);
 export default connect(mapStateToProps)(DashboardHeader);

@@ -6,7 +6,7 @@ import { eventName, eventTime, eventStatus } from './EventListHelpers';
 import './EventList.css';
 
 const renderEvent = (e: BroadcastEvent): ReactComponent =>
-  <li className="EventList-item" key={e.id}>
+  <li className="EventList-item admin-page-list-item" key={e.id}>
     <div className="event-info">
       <div className="event-name">
         { eventName(e) }
@@ -23,7 +23,7 @@ const renderEvent = (e: BroadcastEvent): ReactComponent =>
 
 type Props = { events: BroadcastEvent[] };
 const EventList = ({ events }: Props): ReactComponent =>
-  <ul className="EventList">
+  <ul className="EventList admin-page-list">
     {
       R.ifElse(
         R.isEmpty,

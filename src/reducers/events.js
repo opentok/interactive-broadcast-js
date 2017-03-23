@@ -2,7 +2,7 @@
 import R from 'ramda';
 
 const initialState: EventsState = {
-  map: {},
+  map: null, // Set to null so we know that events haven't been loaded
   filter: 'all',
   sorting: { sortBy: 'mostRecent', order: 'descending' },
 };
@@ -12,8 +12,12 @@ const reverseOrder = (current: EventOrderOption): EventOrderOption => current ==
 
 const events = (state: EventsState = initialState, action: EventsAction): EventsState => {
   switch (action.type) {
+    case 'ADD_EVENT':
+      return R.assocPath(['map', action.event.id], action.event, state);
     case 'SET_EVENTS':
       return R.assoc('map', action.events, state);
+    case 'UPDATE_EVENT':
+      return R.assocPath(['map', action.event.id], R.merge(R.pathOr({}, ['map', action.event.id], state), action.event));
     case 'FILTER_EVENTS':
       return R.assoc('filter', action.filter, state);
     case 'SORT_EVENTS':

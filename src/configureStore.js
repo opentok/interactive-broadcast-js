@@ -16,7 +16,7 @@ const configureStore = (): Store<State> => {
   // What do we want to persist to local storage?
   store.subscribe(throttle(() => {
     saveState({
-      user: store.getState().user,
+      currentUser: store.getState().currentUser,
     });
   }, 1000));
 

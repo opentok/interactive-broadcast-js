@@ -1,8 +1,8 @@
 // @flow
 
-const user = (state: UserState = null, action: UserAction): UserState => {
+const user = (state: CurrentUserState = null, action: UserAction): CurrentUserState => {
   switch (action.type) {
-    case 'SET_USER':
+    case 'SET_CURRENT_USER':
       return action.user;
     default:
       return state;

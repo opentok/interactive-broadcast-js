@@ -9,7 +9,7 @@ import logo from '../../images/logo.png';
 import './Login.css';
 
 /* beautify preserve:start */
-type BaseProps = { auth: AuthState, user: User };
+type BaseProps = { auth: AuthState, currentUser: User };
 type DispatchProps = {
   authenticateUser: (credentials: AuthCredentials) => void,
   onForgotPassword: Unit,
@@ -37,8 +37,8 @@ class Login extends Component {
   }
 
   componentDidMount() {
-    const { user } = this.props;
-    if (user) {
+    const { currentUser } = this.props;
+    if (currentUser) {
       browserHistory.push('/admin');
     }
   }
@@ -79,7 +79,7 @@ class Login extends Component {
   }
 }
 
-const mapStateToProps = (state: State): BaseProps => R.pick(['auth', 'user'], state);
+const mapStateToProps = (state: State): BaseProps => R.pick(['auth', 'currentUser'], state);
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
     authenticateUser: (credentials: AuthCredentials) => {

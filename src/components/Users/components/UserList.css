@@ -1,0 +1,24 @@
+.UserList-item {
+  /*position: relative;*/
+}
+
+.UserList-item .user-info {
+  display: flex;
+  align-items: center;
+  color: #58666e;
+  font-size: 14px;
+}
+
+.UserList-item .user-info span {
+  line-height: 20px;
+}
+
+.UserList-item .user-info .name {
+  margin-right: 5px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
+.UserList-item .user-info .email {
+  font-weight: 300;
+}

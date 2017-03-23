@@ -7,18 +7,21 @@ import { properCase } from '../../services/util';
 type Props = {
   type: string,
   value: string,
+  name?: string,
   error: boolean,
-  handleChange: Unit
+  handleChange: (string, SyntheticInputEvent) => void,
+  disabled?: boolean
 };
 
-const TextInput = ({ type, value, error, handleChange }: Props): ReactComponent =>
+const TextInput = ({ type, value, name, error, disabled, handleChange }: Props): ReactComponent =>
   <input
     type={type}
-    name={type}
+    name={name || type}
     value={value}
-    placeholder={properCase(type)}
+    placeholder={properCase(name || type)}
     onChange={R.partial(handleChange, [type])}
     className={classNames({ error })}
+    disabled={disabled}
   />;
 
 export default TextInput;
