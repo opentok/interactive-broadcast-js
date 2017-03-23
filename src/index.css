@@ -41,6 +41,14 @@ input.error {
     box-shadow: none;
 }
 
+.btn.inactive {
+    cursor: initial;
+}
+
+.btn.disabled {
+    cursor: not-allowed;
+}
+
 .btn.white {
     color: rgb(88, 102, 110);
     background-color: white;

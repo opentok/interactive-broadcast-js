@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { browserHistory } from 'react-router';
 import R from 'ramda';
+import classNames from 'classnames';
 import { userForgotPassword, resetPassword, signIn } from '../../actions/auth';
 import LoginForm from './components/LoginForm';
 import logo from '../../images/logo.png';
@@ -70,7 +71,7 @@ class Login extends Component {
         <LoginForm onSubmit={handleSubmit} onUpdate={resetError} error={error} forgotPassword={forgotPassword} />
         <div className="Login-messages">
           { error && <div className="Login-error">Please check your credentials and try again</div> }
-          <button className="Login-forgot btn transparent" onClick={R.partial(onForgotPassword, [true])}>
+          <button className={classNames('Login-forgot btn transparent', { inactive: forgotPassword })} onClick={R.partial(onForgotPassword, [true])}>
             { forgotPassword ? 'Enter your email to reset your password.' : 'Forgot your password?' }
           </button>
         </div>

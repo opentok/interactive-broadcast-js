@@ -6,15 +6,12 @@ import R from 'ramda';
 import shortid from 'shortid';
 import Hashids from 'hashids';
 import classNames from 'classnames';
-import { toastr } from 'react-redux-toastr';
 import moment from 'moment';
 import Icon from 'react-fontawesome';
-import CopyToClipboard from 'react-copy-to-clipboard';
-import 'react-datetime/css/react-datetime.css';
+import CopyToClipboard from '../../Common/CopyToClipboard';
 import DatePicker from '../../Common/DatePicker';
 import firebase from '../../../services/firebase';
 import { uploadEventImage, uploadEventImageSuccess } from '../../../actions/events';
-import '../../Common/DatePicker.css';
 import './EventForm.css';
 
 /* beautify preserve:start */
@@ -33,7 +30,6 @@ type Props = BaseProps & DispatchProps;
 /* beautify preserve:end */
 
 const eventNameFromProps: (Props => string) = R.pathOr('', ['event', 'name']);
-const onCopy = (type: string): void => toastr.success(`${type} copied to clipboard`, { icon: 'success' });
 
 type EventFormState = {
   fields: {
@@ -192,7 +188,7 @@ class EventForm extends Component {
           <div className="label">Fan URL</div>
           <Icon className="icon" name="link" style={{ color: 'darkgrey' }} />
           <input type="url" name="fanUrl" value={fields.fanUrl} onChange={handleChange} disabled />
-          <CopyToClipboard text={fields.fanUrl} onCopy={R.partial(onCopy, ['Fan URL'])} >
+          <CopyToClipboard text={fields.fanUrl} onCopyText="Fan URL" >
             <button className="btn white copy" type="button">
               <Icon className="icon" name="copy" style={{ color: '#607d8b' }} />
               Copy Fan URL
@@ -203,7 +199,7 @@ class EventForm extends Component {
           <div className="label">Fan Audio Only URL</div>
           <Icon className="icon" name="link" style={{ color: 'darkgrey' }} />
           <input type="url" name="fanAudioUrl" value={fields.fanAudioUrl} onChange={handleChange} disabled />
-          <CopyToClipboard text={fields.fanAudioUrl} onCopy={R.partial(onCopy, ['Fan Audio URL'])} >
+          <CopyToClipboard text={fields.fanAudioUrl} onCopyText="Fan Audio URL" >
             <button className="btn white copy" type="button">
               <Icon className="icon" name="copy" style={{ color: '#607d8b' }} />
               Copy Fan Audio URL
@@ -214,7 +210,7 @@ class EventForm extends Component {
           <div className="label">Host URL</div>
           <Icon className="icon" name="link" style={{ color: 'darkgrey' }} />
           <input type="url" name="hostURL" value={fields.hostUrl} onChange={handleChange} disabled />
-          <CopyToClipboard text={fields.hostUrl} onCopy={R.partial(onCopy, ['Host URL'])} >
+          <CopyToClipboard text={fields.hostUrl} onCopyText="Host URL" >
             <button className="btn white copy" type="button" >
               <Icon className="icon" name="copy" style={{ color: '#607d8b' }} />
               Copy Host URL
@@ -225,7 +221,7 @@ class EventForm extends Component {
           <div className="label">Celebrity URL</div>
           <Icon className="icon" name="link" style={{ color: 'darkgrey' }} />
           <input type="url" name="celebrityUrl" value={fields.celebrityUrl} disabled />
-          <CopyToClipboard text={fields.celebrityUrl} onCopy={R.partial(onCopy, ['Celebrity URL'])} >
+          <CopyToClipboard text={fields.celebrityUrl} onCopyText="Celebrity URL" >
             <button className="btn white copy" type="button" >
               <Icon className="icon" name="copy" style={{ color: '#607d8b' }} />
               Copy Celebrity URL

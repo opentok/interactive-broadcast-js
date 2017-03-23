@@ -4,8 +4,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import Icon from 'react-fontawesome';
 import R from 'ramda';
-import CopyToClipboard from 'react-copy-to-clipboard';
-import { toastr } from 'react-redux-toastr';
+import CopyToClipboard from '../../Common/CopyToClipboard';
 import CopyEmbedCode from './CopyEmbedCode';
 import './DashboardHeader.css';
 
@@ -32,10 +31,6 @@ class DashboardHeader extends Component {
     this.toggleEmbedMenu = this.toggleEmbedMenu.bind(this);
   }
 
-  onCopy = (type: string) => {
-    toastr.success('Success', `${type} coped to clipboard`, { icon: 'success' });
-  }
-
   toggleEmbedMenu() {
     const { embedMenuOpen } = this.state;
     this.setState({ embedMenuOpen: !embedMenuOpen });
@@ -49,7 +44,7 @@ class DashboardHeader extends Component {
         <h3>Dashboard</h3>
         <div className="DashboardHeader-controls">
           <CopyEmbedCode onCopy={onCopy} />
-          <CopyToClipboard text={currentUser.id} onCopy={R.partial(onCopy, ['User ID'])} >
+          <CopyToClipboard text={currentUser.id} onCopyText="User ID" >
             <button className="btn white control">Copy User ID</button>
           </CopyToClipboard>
           <Link to="/events/new">

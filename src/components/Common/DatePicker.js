@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import moment from 'moment';
 import Datetime from 'react-datetime';
-import './DatePicker.css';
+import 'react-datetime/css/react-datetime.css';
 
 type Props = {
   name: string,

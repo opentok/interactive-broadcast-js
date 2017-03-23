@@ -2,8 +2,8 @@
 import React, { Component } from 'react';
 import R from 'ramda';
 import Icon from 'react-fontawesome';
+import classNames from 'classnames';
 import './LoginForm.css';
-import TextInput from '../../Common/TextInput';
 
 /* beautify preserve:start */
 type Props = {
@@ -45,11 +45,12 @@ class LoginForm extends Component {
     onSubmit({ email, password });
   }
 
-  handleChange(field: string, e: SyntheticInputEvent) {
+  handleChange(e: SyntheticInputEvent) {
+    const field = e.target.name;
+    const value = e.target.value;
     const { onUpdate } = this.props;
-    const { fields } = this.state;
     onUpdate();
-    this.setState({ fields: R.assoc(field, e.target.value, fields) });
+    this.setState({ fields: R.assoc(field, value, this.state.fields) });
   }
 
   render(): ReactComponent {
@@ -61,12 +62,12 @@ class LoginForm extends Component {
       <form className="LoginForm" onSubmit={handleSubmit}>
         <div className="input-container">
           <Icon className="icon" name="envelope" style={{ color: 'darkgrey' }} />
-          <TextInput type="email" value={email} handleChange={handleChange} error={error} />
+          <input className={classNames({ error })} type="email" name="email" value={email} onChange={handleChange} />
         </div>
         { !forgotPassword &&
           <div className="input-container">
             <Icon className="icon" name="key" style={{ color: 'darkgrey' }} />
-            <TextInput type="password" value={password} handleChange={handleChange} error={error} />
+            <input className={classNames({ error })} type="password" name="password" value={password} onChange={handleChange} />
           </div>
         }
         <div className="input-container">

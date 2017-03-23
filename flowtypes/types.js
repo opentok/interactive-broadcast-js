@@ -23,7 +23,7 @@ declare type ActionCreator = (*) => Action;
 declare type Dispatch = (action: Action | Thunk | Array<Action>) => any; // eslint-disable-line flowtype/no-weak-types
 declare type GetState = () => State;
 declare type Thunk = (dispatch: Dispatch, getState: GetState) => any; // eslint-disable-line flowtype/no-weak-types
-declare type ThunkActionCreator = (*) => Thunk;
+declare type ThunkActionCreator = (...*) => Thunk;
 
 
 // React Component

@@ -22,10 +22,23 @@ const setError: ThunkActionCreator = (text: string): Thunk =>
     dispatch(setAlert(options));
   };
 
+const setInfo: ThunkActionCreator = (title: null | string, text: string): Thunk =>
+  (dispatch: Dispatch) => {
+    const options = {
+      show: true,
+      type: 'info',
+      title,
+      text,
+      onConfirm: (): void => dispatch(resetAlert()),
+    };
+    dispatch(setAlert(options));
+  };
+
 
 
 module.exports = {
   setAlert,
   setError,
+  setInfo,
   resetAlert,
 };

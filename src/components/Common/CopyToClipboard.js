@@ -1,17 +1,20 @@
 // @flow
 import React from 'react';
-import ClipboardCopy from 'react-copy-to-clipboard';
+import Copy from 'react-copy-to-clipboard';
+import R from 'ramda';
+import { toastr } from 'react-redux-toastr';
 
 type Props = {
+  children: ReactComponent[],
   text: string,
-  onAfterCopy: Unit
+  onCopyText: string
 };
 
-const CopyToClipboard = ({ text, onAfterCopy }: Props): ReactComponent =>
-  <ClipboardCopy
-    text={text}
-    onCopy={onAfterCopy} >
-    <button className="btn btn-light right-rounded">Copy Url</button>
-  </ClipboardCopy>;
+const onCopy = (text: string): void => toastr.success('Success', `${text} coped to clipboard`, { icon: 'success' });
+
+const CopyToClipboard = ({ children, text, onCopyText }: Props): ReactComponent =>
+  <Copy text={text} onCopy={R.partial(onCopy, [onCopyText])}>
+    { children }
+  </Copy>;
 
 export default CopyToClipboard;

@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import R from 'ramda';
 import Icon from 'react-fontawesome';
-import CopyToClipboard from 'react-copy-to-clipboard';
+import CopyToClipboard from '../../Common/CopyToClipboard';
 import onClickOutside from 'react-onclickoutside';
 import classNames from 'classnames';
 import './CopyEmbedCode.css';
@@ -60,14 +60,14 @@ class CopyEmbedCode extends Component {
           Get Embed Code <Icon name="angle-down" size="lg" />
         </button>
         <div className={classNames('CopyEmbedCode-button-container', { expanded })}>
-          <CopyToClipboard text={fanUrl} onCopy={R.partial(handleCopy, ['Fan code'])} >
-            <button className={buttonClass}>Get fan code</button>
+          <CopyToClipboard text={fanUrl} onCopyText="Fan code" >
+            <button onClick={toggleExpanded} className={buttonClass}>Get fan code</button>
           </CopyToClipboard>
-          <CopyToClipboard text={hostUrl} onCopy={R.partial(handleCopy, ['Host code'])} >
-            <button className={buttonClass}>Get host code</button>
+          <CopyToClipboard text={hostUrl} onCopyText="Host code" >
+            <button onClick={toggleExpanded} className={buttonClass}>Get host code</button>
           </CopyToClipboard>
-          <CopyToClipboard text={celebrityUrl} onCopy={R.partial(handleCopy, ['Celebrity code'])} >
-            <button className={buttonClass} >Get celebrity code</button>
+          <CopyToClipboard text={celebrityUrl} onCopyText="Celebrity code" >
+            <button onClick={toggleExpanded} className={buttonClass} >Get celebrity code</button>
           </CopyToClipboard>
         </div>
       </div>
