@@ -20,7 +20,6 @@ class DashboardHeader extends Component {
   state: {
     embedMenuOpen: boolean
   }
-  onCopy: Unit;
   toggleEmbedMenu: Unit;
 
   constructor(props: Props) {
@@ -37,13 +36,12 @@ class DashboardHeader extends Component {
   }
 
   render(): ReactComponent {
-    const { onCopy } = this;
     const { currentUser } = this.props;
     return (
       <div className="DashboardHeader admin-page-header">
         <h3>Dashboard</h3>
         <div className="DashboardHeader-controls">
-          <CopyEmbedCode onCopy={onCopy} />
+          <CopyEmbedCode />
           <CopyToClipboard text={currentUser.id} onCopyText="User ID" >
             <button className="btn white control">Copy User ID</button>
           </CopyToClipboard>

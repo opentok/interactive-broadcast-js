@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { browserHistory, Link } from 'react-router';
 import { getUsers } from '../../actions/users';
 import UserList from './components/UserList';
-import AddUser from './components/AddUser';
 import './Users.css';
 
 /* beautify preserve:start */

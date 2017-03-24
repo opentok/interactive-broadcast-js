@@ -21,7 +21,8 @@ type Props = InitialProps & BaseProps & DispatchProps;
 class Event extends Component {
   props: Props;
   state: {
-    errors: null | { fields: {[field: string]: string }, text: string },
+    errors: null | { fields: {
+        [field: string]: string }, text: string },
     dateTimeSet: boolean
   };
   onUpdate: string => void;
@@ -75,12 +76,14 @@ class Event extends Component {
     const fieldsToOmit = R.reduce(omitIfEmpty, initialFields, R.keys(data));
 
     // Standard moment formatting for timestamps. Slugs only for urls.
+
     const editTimestamp = (t: string): (string) => moment(new Date(t)).format();
     const formatting = {
+      name: R.compose(R.replace(/  +/g, ' '), R.trim), // eslint-disable-line no-regex-spaces
       dateTimeStart: editTimestamp,
       dateTimeEnd: editTimestamp,
       celebrityUrl: R.compose(R.last, R.split('/')),
-      fanUrl: R.compose(R.nth(-2), R.split('/')),
+      fanUrl: R.compose(R.last, R.split('/')),
       hostUrl: R.compose(R.last, R.split('/')),
     };
 
@@ -89,7 +92,6 @@ class Event extends Component {
       R.evolve(formatting),
       R.omit(R.append('fanAudioUrl', fieldsToOmit)) // eslint-disable-line comma-dangle
     )(data);
-
   }
 
   onSubmit(data: BroadcastEventFormData) {
@@ -99,6 +101,7 @@ class Event extends Component {
     if (!formattedData) {
       return;
     }
+    console.log(formattedData)
 
     if (R.isNil(R.path(['params', 'id'], this.props))) {
       this.props.createEvent(formattedData);

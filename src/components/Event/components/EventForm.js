@@ -8,6 +8,7 @@ import Hashids from 'hashids';
 import classNames from 'classnames';
 import moment from 'moment';
 import Icon from 'react-fontawesome';
+import { remove as removeDiacritics } from 'diacritics';
 import CopyToClipboard from '../../Common/CopyToClipboard';
 import DatePicker from '../../Common/DatePicker';
 import firebase from '../../../services/firebase';
@@ -114,16 +115,17 @@ class EventForm extends Component {
   }
 
   updateURLs() {
-    const { name } = this.state.fields;
+    // eslint-disable-next-line no-regex-spaces
+    const convertName = R.compose(R.replace(/ /g, '-'), R.toLower, R.replace(/  +/g, ' '), removeDiacritics, R.trim);
+    const eventName = convertName(R.path(['fields', 'name'], this.state));
     const { user } = this.props;
     const base = window.location.origin;
-    const adminHash = new Hashids(user.id).encode(1, 2, 3);
-    const eventNameHash = R.isEmpty(name) ? '' : new Hashids(name).encode(1, 2, 3);
+    const eventNameHash = R.isEmpty(eventName) ? '' : new Hashids(eventName).encode(1, 2, 3);
     const update = {
-      fanUrl: `${base}/show/${adminHash}/${name}`,
-      fanAudioUrl: `${base}/post-production/${name}`,
-      hostUrl: `${base}/show-host/${eventNameHash}`,
-      celebrityUrl: `${base}/show-celebrity/${eventNameHash}`,
+      fanUrl: `${base}/show/${user.id}/${eventName}`,
+      fanAudioUrl: `${base}/post-production/${user.id}/${eventName}`,
+      hostUrl: `${base}/show-host/${user.id}/${eventNameHash}`,
+      celebrityUrl: `${base}/show-celebrity/${user.id}/${eventNameHash}`,
     };
 
     this.setState({ fields: R.merge(this.state.fields, update) });
@@ -132,8 +134,7 @@ class EventForm extends Component {
   handleChange(e: SyntheticInputEvent) {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     const field = e.target.name;
-    const formattedValue = R.equals('name', field) ? R.replace(' ', '-', R.toLower(value)) : value;
-    this.setState({ fields: R.assoc(field, formattedValue, this.state.fields) }, this.updateURLs);
+    this.setState({ fields: R.assoc(field, value, this.state.fields) }, this.updateURLs);
     this.props.onUpdate(field);
   }
 

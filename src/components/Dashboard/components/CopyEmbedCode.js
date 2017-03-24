@@ -1,15 +1,13 @@
 // @flow
 import React, { Component } from 'react';
-import R from 'ramda';
 import Icon from 'react-fontawesome';
-import CopyToClipboard from '../../Common/CopyToClipboard';
 import onClickOutside from 'react-onclickoutside';
 import classNames from 'classnames';
+import CopyToClipboard from '../../Common/CopyToClipboard';
+
 import './CopyEmbedCode.css';
 
-type Props = {
-  onCopy: string => void
-};
+type Props = { };
 
 class CopyEmbedCode extends Component {
 
@@ -18,7 +16,6 @@ class CopyEmbedCode extends Component {
     expanded: boolean
   }
   handleClickOutside: Unit;
-  handleCopy: (string) => void;
   toggleExpanded: Unit;
 
   constructor(props: Props) {
@@ -26,14 +23,7 @@ class CopyEmbedCode extends Component {
     this.state = {
       expanded: false,
     };
-    this.handleCopy = this.handleCopy.bind(this);
     this.toggleExpanded = this.toggleExpanded.bind(this);
-  }
-
-  handleCopy(type: string) {
-    const { onCopy } = this.props;
-    this.toggleExpanded();
-    onCopy(type);
   }
 
   handleClickOutside() {
@@ -48,7 +38,7 @@ class CopyEmbedCode extends Component {
 
   render(): ReactComponent {
 
-    const { handleCopy, toggleExpanded } = this;
+    const { toggleExpanded } = this;
     const { expanded } = this.state;
     const fanUrl = 'fan';
     const hostUrl = 'host';
