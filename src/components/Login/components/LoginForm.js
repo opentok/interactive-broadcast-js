@@ -62,12 +62,19 @@ class LoginForm extends Component {
       <form className="LoginForm" onSubmit={handleSubmit}>
         <div className="input-container">
           <Icon className="icon" name="envelope" style={{ color: 'darkgrey' }} />
-          <input className={classNames({ error })} type="email" name="email" value={email} onChange={handleChange} />
+          <input className={classNames({ error })} type="email" name="email" placeholder="Email" value={email} onChange={handleChange} />
         </div>
         { !forgotPassword &&
           <div className="input-container">
             <Icon className="icon" name="key" style={{ color: 'darkgrey' }} />
-            <input className={classNames({ error })} type="password" name="password" value={password} onChange={handleChange} />
+            <input
+              className={classNames({ error })}
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={password}
+              onChange={handleChange}
+            />
           </div>
         }
         <div className="input-container">

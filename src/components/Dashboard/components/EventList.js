@@ -18,7 +18,7 @@ const renderEvent = (e: BroadcastEvent): ReactComponent =>
         {eventStatus(e).text}
       </div>
     </div>
-    <EventActions id={e.id} status={e.status} archiveUrl={e.archiveUrl} />
+    <EventActions event={e} />
   </li>;
 
 type Props = { events: BroadcastEvent[] };
@@ -27,7 +27,7 @@ const EventList = ({ events }: Props): ReactComponent =>
     {
       R.ifElse(
         R.isEmpty,
-        (): null => null,
+        (): null => <div className="EventList-empty">No events available</div>,
         R.map(renderEvent) // eslint-disable-line comma-dangle
       )(events)
     }

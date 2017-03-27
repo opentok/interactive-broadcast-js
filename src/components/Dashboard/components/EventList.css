@@ -1,3 +1,14 @@
+.EventList-empty {
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 300;
+    color: rgb(88, 102, 110);
+}
+
 .EventList-item .event-info {
     display: flex;
     align-items: flex-start;

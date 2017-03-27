@@ -114,6 +114,7 @@ input.error {
 .admin-page-content {
     background: #F5F5F5;
     padding: 20px;
+    height: 100vh;
 }
 
 .admin-page-list {

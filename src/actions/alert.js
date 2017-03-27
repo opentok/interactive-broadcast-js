@@ -10,6 +10,18 @@ const resetAlert: ActionCreator = (): AlertAction => ({
   type: 'RESET_ALERT',
 });
 
+const setSuccess: ThunkActionCreator = (text: string): Thunk =>
+  (dispatch: Dispatch) => {
+    const options = {
+      show: true,
+      type: 'success',
+      title: 'Success',
+      text,
+      onConfirm: (): void => dispatch(resetAlert()),
+    };
+    dispatch(setAlert(options));
+  };
+
 const setError: ThunkActionCreator = (text: string): Thunk =>
   (dispatch: Dispatch) => {
     const options = {
@@ -40,5 +52,6 @@ module.exports = {
   setAlert,
   setError,
   setInfo,
+  setSuccess,
   resetAlert,
 };

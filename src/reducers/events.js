@@ -18,6 +18,8 @@ const events = (state: EventsState = initialState, action: EventsAction): Events
       return R.assoc('map', action.events, state);
     case 'UPDATE_EVENT':
       return R.assocPath(['map', action.event.id], R.merge(R.pathOr({}, ['map', action.event.id], state), action.event), state);
+    case 'REMOVE_EVENT':
+      return R.assoc('map', R.omit([action.id], state.map), state);
     case 'FILTER_EVENTS':
       return R.assoc('filter', action.filter, state);
     case 'SORT_EVENTS':

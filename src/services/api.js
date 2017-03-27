@@ -61,6 +61,15 @@ const post = (route: string, body: * = null, requiresAuth: boolean = true): Prom
       .catch(reject);
   });
 
+const put = (route: string, body: * = null, requiresAuth: boolean = true): Promise =>
+  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
+    fetch(request('put', route, body, requiresAuth))
+      .then(checkStatus)
+      .then(parseResponse)
+      .then(resolve)
+      .catch(reject);
+  });
+
 const patch = (route: string, body: * = null, requiresAuth: boolean = true): Promise =>
   new Promise((resolve: PromiseLike, reject: PromiseLike) => {
     fetch(request('patch', route, body, requiresAuth))
@@ -94,7 +103,8 @@ const getEvents = (adminId: string): Promise => get(`event?adminId=${adminId}`);
 const getEvent = (id: string): Promise => get(`event/${id}`);
 const createEvent = (data: object): Promise => post('event', data);
 const updateEvent = (data: object): Promise => patch(`event/${data.id}`, data);
-const deleteEvent = (id: string): Promise => del(`events/${id}`);
+const updateEventStatus = (id: string, status: EventStatus): Promise => put(`event/change-status/${id}`, { status });
+const deleteEvent = (id: string): Promise => del(`event/${id}`);
 
 /** Exports */
 
@@ -108,6 +118,7 @@ module.exports = {
   getEvents,
   createEvent,
   updateEvent,
+  updateEventStatus,
   deleteEvent,
   deleteUserRecord,
 };

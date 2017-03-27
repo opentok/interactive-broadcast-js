@@ -59,7 +59,7 @@ class Event extends Component {
   validateAndFormat(data: BroadcastEventFormData): (null | BroadcastEventFormData) {
 
     // Ensure valid start and end times
-    if (moment(data.dateTimeStart).isAfter(data.dateTimeEnd)) {
+    if (moment(new Date(data.dateTimeStart)).isAfter(new Date(data.dateTimeEnd))) {
       const errors = {
         fields: { dateTimeStart: true, dateTimeEnd: true },
         message: 'Start time cannot be after end time.',
@@ -101,12 +101,12 @@ class Event extends Component {
     if (!formattedData) {
       return;
     }
-    console.log(formattedData)
 
-    if (R.isNil(R.path(['params', 'id'], this.props))) {
+    const eventId = R.path(['params', 'id'], this.props);
+    if (R.isNil(eventId)) {
       this.props.createEvent(formattedData);
     } else {
-      this.props.updateEvent(formattedData);
+      this.props.updateEvent(R.assoc('id', eventId, formattedData));
     }
   }
 
@@ -136,13 +136,13 @@ const mapStateToProps = (state: State, ownProps: initialProps): BaseProps => ({
 });
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
-    loadEvents: (userId: string, redirect: string) => {
-      dispatch(getBroadcastEvents(userId, redirect));
+    loadEvents: (userId: string) => {
+      dispatch(getBroadcastEvents(userId));
     },
-    createEvent: (data: object) => {
+    createEvent: (data: BroadcastEventFormData) => {
       dispatch(createBroadcastEvent(data));
     },
-    updateEvent: (data: object) => {
+    updateEvent: (data: BroadcastEventFormData) => {
       dispatch(updateBroadcastEvent(data));
     },
   });

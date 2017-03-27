@@ -8,11 +8,12 @@ import Icon from 'react-fontawesome';
 import { deleteBroadcastEvent } from '../../../actions/events';
 
 /** Event Actions */
-type BaseProps = { id: string, status: EventStatus, archiveUrl: string };
-type DispatchProps = { deleteEvent: Unit };
+type BaseProps = { event: BroadcastEvent };
+type DispatchProps = { deleteEvent: BroadcastEvent => void };
 type Props = BaseProps & DispatchProps;
-const EventActions = ({ id, status, archiveUrl = '', deleteEvent }: Props): ReactComponent => {
+const EventActions = ({ event, deleteEvent }: Props): ReactComponent => {
   const style = (color: string): string => classNames('btn', 'action', color);
+  const { id, status, archiveUrl } = event;
 
   const start = (): ReactComponent =>
     <Link to={`events/${id}`} key={`action-start-${id}`} >
@@ -25,7 +26,7 @@ const EventActions = ({ id, status, archiveUrl = '', deleteEvent }: Props): Reac
     </Link>;
 
   const del = (): ReactComponent =>
-    <button className={style('red')} key={`action-remove-${id}`} onClick={R.partial(deleteEvent, [id])} >
+    <button className={style('red')} key={`action-remove-${id}`} onClick={R.partial(deleteEvent, [event])} >
       <Icon name="remove" /> Delete
     </button>;
 
@@ -51,7 +52,7 @@ const EventActions = ({ id, status, archiveUrl = '', deleteEvent }: Props): Reac
 
   const actionButtons = (): ReactComponent[] => {
     switch (status) {
-      case 'N':
+      case 'notStarted':
         return [start(), edit(), del()];
       case 'preshow':
         return [view('preshow'), close()];
@@ -73,8 +74,8 @@ const EventActions = ({ id, status, archiveUrl = '', deleteEvent }: Props): Reac
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
-    deleteEvent: (id: User) => {
-      dispatch(deleteBroadcastEvent(id));
+    deleteEvent: (event: BroadcastEvent) => {
+      dispatch(deleteBroadcastEvent(event));
     },
   });
 

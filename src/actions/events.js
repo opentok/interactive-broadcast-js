@@ -1,8 +1,7 @@
 // @flow
-import R from 'ramda';
 import { browserHistory } from 'react-router';
-import { getEvents, createEvent, updateEvent, deleteEvent } from '../services/api';
-import { setAlert, resetAlert } from './alert';
+import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent } from '../services/api';
+import { setAlert, setSuccess, resetAlert } from './alert';
 
 const setEvents: ActionCreator = (events: BroadcastEventMap): EventsAction => ({
   type: 'SET_EVENTS',
@@ -64,8 +63,12 @@ const getBroadcastEvents: ThunkActionCreator = (userId: string): Thunk =>
 
 const confirmDeleteEvent: ThunkActionCreator = (id: string): Thunk =>
   (dispatch: Dispatch) => {
+    const onDelete = () => {
+      dispatch(removeEvent(id));
+      dispatch(setSuccess('Event deleted.'));
+    };
     deleteEvent(id)
-      .then(dispatch(removeEvent(id)))
+      .then(onDelete)
       .catch((error: Error): void => console.log(error));
   };
 
@@ -76,8 +79,8 @@ const createBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
         const options: AlertOptions = {
           show: true,
           type: 'success',
-          title: 'Your event has been created',
-          text: 'Success! your event is now created.',
+          title: 'Event Creation',
+          text: `${data.name} has been created`,
           onConfirm: browserHistory.push('/admin'),
         };
         dispatch(setAlert(options));
@@ -92,8 +95,8 @@ const updateBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
         const options: AlertOptions = {
           show: true,
           type: 'success',
-          title: 'Your event has been edited',
-          text: 'Success! your event is now created.',
+          title: 'Event Update',
+          text: `${data.name} has been updated`,
           onConfirm: browserHistory.push('/admin'),
         };
         dispatch(setAlert(options));
@@ -101,14 +104,30 @@ const updateBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
       });
   };
 
-const deleteBroadcastEvent: ThunkActionCreator = (id: string): Thunk =>
+const updateBroadcastEventStatus: ThunkActionCreator = (id: string, status: EventStatus): Thunk =>
+  (dispatch: Dispatch) => {
+    updateEventStatus(id, status)
+      .then((event: BroadcastEventMap) => {
+        const options: AlertOptions = {
+          show: true,
+          type: 'success',
+          title: 'Event Status Updated',
+          onConfirm: browserHistory.push('/admin'),
+        };
+        dispatch(setAlert(options));
+        dispatch(setOrUpdateEvent(event));
+      });
+  };
+
+const deleteBroadcastEvent: ThunkActionCreator = ({ id, name }: {id: string, name: string }): Thunk =>
   (dispatch: Dispatch) => {
     const options: AlertOptions = {
       show: true,
       type: 'warning',
-      title: '',
-      text: '',
-      onConfirm: R.partial(confirmDeleteEvent, [id]),
+      title: 'Delete Event',
+      text: `Are you sure you want to delete ${name}?`,
+      onConfirm: (): void => dispatch(confirmDeleteEvent(id)),
+      showCancelButton: true,
     };
     dispatch(setAlert(options));
   };
@@ -119,6 +138,7 @@ module.exports = {
   sortBroadcastEvents,
   createBroadcastEvent,
   updateBroadcastEvent,
+  updateBroadcastEventStatus,
   deleteBroadcastEvent,
   uploadEventImage,
   uploadEventImageSuccess,
