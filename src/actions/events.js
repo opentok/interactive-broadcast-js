@@ -1,4 +1,5 @@
 // @flow
+import R from 'ramda';
 import { browserHistory } from 'react-router';
 import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent } from '../services/api';
 import { setAlert, setSuccess, resetAlert } from './alert';
@@ -108,13 +109,7 @@ const updateBroadcastEventStatus: ThunkActionCreator = (id: string, status: Even
   (dispatch: Dispatch) => {
     updateEventStatus(id, status)
       .then((event: BroadcastEventMap) => {
-        const options: AlertOptions = {
-          show: true,
-          type: 'success',
-          title: 'Event Status Updated',
-          onConfirm: browserHistory.push('/admin'),
-        };
-        dispatch(setAlert(options));
+        R.equals(status, 'closed') && dispatch(setSuccess('Event has been closed'));
         dispatch(setOrUpdateEvent(event));
       });
   };

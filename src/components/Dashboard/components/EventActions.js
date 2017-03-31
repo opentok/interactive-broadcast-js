@@ -5,13 +5,13 @@ import classNames from 'classnames';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import Icon from 'react-fontawesome';
-import { deleteBroadcastEvent } from '../../../actions/events';
+import { deleteBroadcastEvent, updateBroadcastEventStatus } from '../../../actions/events';
 
 /** Event Actions */
 type BaseProps = { event: BroadcastEvent };
 type DispatchProps = { deleteEvent: BroadcastEvent => void };
 type Props = BaseProps & DispatchProps;
-const EventActions = ({ event, deleteEvent }: Props): ReactComponent => {
+const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent => {
   const style = (color: string): string => classNames('btn', 'action', color);
   const { id, status, archiveUrl } = event;
 
@@ -41,7 +41,7 @@ const EventActions = ({ event, deleteEvent }: Props): ReactComponent => {
     </button>;
 
   const close = (): ReactComponent =>
-    <button className={style('grey')} key={`action-close-${id}`} onClick={()=> console.log('closing', id)} >
+    <button className={style('grey')} key={`action-close-${id}`} onClick={R.partial(closeEvent, [id])} >
       <Icon name="times" /> Close Event
     </button>;
 
@@ -76,6 +76,9 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   ({
     deleteEvent: (event: BroadcastEvent) => {
       dispatch(deleteBroadcastEvent(event));
+    },
+    closeEvent: (id: string) => {
+      dispatch(updateBroadcastEventStatus(id, 'closed'));
     },
   });
 
