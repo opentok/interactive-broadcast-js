@@ -89,7 +89,10 @@ const del = (route: string, requiresAuth: boolean = true): Promise =>
   });
 
 /** Auth */
-const getAuthToken = (userId: string): Promise => post('auth/token', { uid: userId }, false);
+const getAuthTokenFan = (userId: string): Promise => post('auth/token-fan', { uid: userId }, false);
+const getAuthTokenCelebrity = (userId: string): Promise => post('auth/token-celebrity', { uid: userId }, false);
+const getAuthTokenHost = (userId: string): Promise => post('auth/token-host', { uid: userId }, false);
+const getAuthToken = (idToken: string): Promise => post('auth/token', { idToken }, false);
 
 /** User */
 const getUser = (userId: string): Promise => get(`admin/${userId}`);
@@ -110,6 +113,9 @@ const deleteEvent = (id: string): Promise => del(`event/${id}`);
 
 module.exports = {
   getAuthToken,
+  getAuthTokenFan,
+  getAuthTokenCelebrity,
+  getAuthTokenHost,
   getUser,
   createUser,
   updateUser,

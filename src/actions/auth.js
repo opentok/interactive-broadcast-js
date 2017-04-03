@@ -17,9 +17,9 @@ const userForgotPassword: ThunkActionCreator = (forgot: boolean): Thunk =>
     dispatch({ type: 'AUTH_FORGOT_PASSWORD', forgot });
   };
 
-const validate: ThunkActionCreator = (uid: string): Thunk =>
+const validate: ThunkActionCreator = (uid: string, idToken: string): Thunk =>
   (dispatch: Dispatch) => {
-    getAuthToken(uid)
+    getAuthToken(idToken)
       .then(({ token }: { token: string }) => {
         saveAuthToken(token);
         dispatch(logIn(uid));
@@ -27,10 +27,14 @@ const validate: ThunkActionCreator = (uid: string): Thunk =>
   };
 
 const signIn: ThunkActionCreator = ({ email, password }: AuthCredentials): Thunk =>
-  (dispatch: Dispatch) => {
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then((data: Response): void => dispatch(validate(R.prop('uid', data))))
-      .catch((error: Error): void => dispatch(authError(error)));
+  async (dispatch: Dispatch): Dispatch => {
+    try {
+      const data = await firebase.auth().signInWithEmailAndPassword(email, password);
+      const idToken = await data.getToken(true);
+      await dispatch(validate(R.prop('uid', data), idToken));
+    } catch (error) {
+      await dispatch(authError(error));
+    }
   };
 
 const signOut: ThunkActionCreator = (): Thunk =>
