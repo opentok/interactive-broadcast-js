@@ -1,0 +1,14 @@
+.Event {
+    display: flex;
+    width: 100vw;
+}
+.Event-main {
+    height: 100vh;
+    width: calc(100% - 320px);
+    transition: width .5s;
+}
+
+.Event-main.full {
+    width: 100%;
+}
+

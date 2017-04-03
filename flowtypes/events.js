@@ -37,9 +37,17 @@ declare type EventFilter = 'all' | 'current' | 'archived';
 declare type EventSortByOption = 'mostRecent' | 'startDate' | 'state';
 declare type EventOrderOption = 'ascending' | 'descending';
 declare type EventSorting = { sortBy: EventSortByOption, order: EventOrderOption }
-declare type EventsState = { map: null | BroadcastEventMap, filter: EventFilter, sorting: EventSorting }
+declare type EventId = string;
+declare type EventsState = {
+  map: null | BroadcastEventMap,
+  mostRecent: null | BroadcastEvent,
+  filter: EventFilter,
+  sorting: EventSorting,
+  active: null | EventId
+};
 declare type EventsAction =
   { type: 'SET_EVENTS', events: BroadcastEventMap } |
+  { type: 'SET_MOST_RECENT_EVENT', event: BroadcastEvent } |
   { type: 'UPDATE_EVENT', event: BroadcastEvent } |
   { type: 'FILTER_EVENTS', filter: EventFilter } |
   { type: 'SORT_EVENTS', sortBy: EventSortByOption } |
@@ -63,3 +71,10 @@ declare type BroadcastEventFormData = {
     redirectUrl?: string,
     composed: boolean
 }
+
+declare type EventUrls = {
+  fanUrl: string,
+  fanAudioUrl: string,
+  hostUrl: string,
+  celebrityUrl: string
+};

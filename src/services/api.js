@@ -2,7 +2,9 @@ import R from 'ramda';
 import { loadAuthToken as jwt } from './localStorage';
 
 /** Constants */
-const url = 'http://localhost:3001/api';
+const origin = window.location.origin;
+const url = R.contains('localhost', origin) ? 'http://localhost:3001' : 'https://ibs-dev-server.herokuapp.com';
+const apiUrl = `${url}/api`;
 const defaultHeaders = { 'Content-Type': 'application/json' };
 type Headers = { 'Content-Type': 'application/json', jwt?: string };
 const headers = (requiresAuth: boolean): Headers => R.merge(defaultHeaders, requiresAuth ? { Authorization: `Bearer ${jwt()}` } : null);
@@ -10,7 +12,7 @@ const headers = (requiresAuth: boolean): Headers => R.merge(defaultHeaders, requ
 /** Helper methods */
 
 // Check for external route containing http/https
-const getURL = (route: string): string => route.includes('http') ? route : `${url}/${route}`;
+const getURL = (route: string): string => route.includes('http') ? route : `${apiUrl}/${route}`;
 
 // Parse response based on type
 const parseResponse = (response: Response): * => {
@@ -108,6 +110,7 @@ const createEvent = (data: object): Promise => post('event', data);
 const updateEvent = (data: object): Promise => patch(`event/${data.id}`, data);
 const updateEventStatus = (id: string, status: EventStatus): Promise => put(`event/change-status/${id}`, { status });
 const deleteEvent = (id: string): Promise => del(`event/${id}`);
+const getMostRecentEvent = (id: string): Promise => get(`event/get-current-admin-event?adminId=${id}`);
 
 /** Exports */
 
@@ -122,9 +125,11 @@ module.exports = {
   getAllUsers,
   getEvent,
   getEvents,
+  getMostRecentEvent,
   createEvent,
   updateEvent,
   updateEventStatus,
   deleteEvent,
   deleteUserRecord,
+  url,
 };

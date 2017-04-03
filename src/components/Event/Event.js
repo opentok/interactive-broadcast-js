@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter, browserHistory } from 'react-router';
+import classNames from 'classnames';
+import EventHeader from './components/EventHeader';
+import EventSidePanel from './components/EventSidePanel';
 import { getBroadcastEvents, updateBroadcastEventStatus } from '../../actions/events';
 import './Event.css';
 
@@ -19,32 +22,58 @@ type Props = InitialProps & BaseProps & DispatchProps;
 
 class Event extends Component {
   props: Props;
-  state: {};
+  state: { preshowStarted: boolean, showingSidePanel: boolean };
+  startPreshow: Unit;
+  toggleSidePanel: Unit;
   constructor(props: Props) {
     super(props);
-    this.state = {};
+    this.state = {
+      preshowStarted: false,
+      showingSidePanel: true,
+    };
+    this.startPreshow = this.startPreshow.bind(this);
+    this.toggleSidePanel = this.toggleSidePanel.bind(this);
+  }
+
+  startPreshow() {
+    const { event } = this.props;
+    if (event) {
+      !R.propEq('status', 'preshow', event) && this.props.startPreshow(event.id);
+      this.setState({ preshowStarted: true });
+    } else {
+      browserHistory.replace('/admin');
+    }
+  }
+
+  toggleSidePanel() {
+    this.setState({ showingSidePanel: !this.state.showingSidePanel });
   }
 
   componentDidMount() {
-    const { eventsLoaded, event, user, startPreshow } = this.props;
-    if (eventsLoaded) {
-      event ? startPreshow(event.id) : browserHistory.push('/admin');
-    } else {
-      this.props.loadEvents(user.id);
-    }
+    const { eventsLoaded, user } = this.props;
+    eventsLoaded ? this.startPreshow() : this.props.loadEvents(user.id);
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const { eventsLoaded, event, startPreshow } = nextProps;
-    if (eventsLoaded && !R.propEq('status', 'preshow', event || {})) {
-      event ? startPreshow(event.id) : browserHistory.push('/admin');
-    }
+  componentDidUpdate() {
+    const { eventsLoaded } = this.props;
+    const { preshowStarted } = this.state;
+    eventsLoaded && !preshowStarted && this.startPreshow();
   }
 
   render(): ReactComponent {
+    const { toggleSidePanel } = this;
+    const { showingSidePanel } = this.state;
+    const event = R.defaultTo({})(this.props.event);
+
     return (
       <div className="Event">
-        The event will occur in this general area.
+        <div className={classNames('Event-main', { full: !showingSidePanel })} >
+          <EventHeader event={event} showingSidePanel={showingSidePanel} toggleSidePanel={toggleSidePanel} />
+          <div className="admin-page-content">
+            { JSON.stringify(event) }
+          </div>
+        </div>
+        <EventSidePanel hidden={!showingSidePanel} />
       </div>
     );
   }

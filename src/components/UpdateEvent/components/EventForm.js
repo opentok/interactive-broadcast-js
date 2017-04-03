@@ -4,14 +4,13 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import R from 'ramda';
 import shortid from 'shortid';
-import Hashids from 'hashids';
 import classNames from 'classnames';
 import moment from 'moment';
 import Icon from 'react-fontawesome';
-import { remove as removeDiacritics } from 'diacritics';
 import CopyToClipboard from '../../Common/CopyToClipboard';
 import DatePicker from '../../Common/DatePicker';
 import firebase from '../../../services/firebase';
+import createUrls from '../../../services/eventUrls';
 import { uploadEventImage, uploadEventImageSuccess } from '../../../actions/events';
 import './EventForm.css';
 
@@ -107,7 +106,7 @@ class EventForm extends Component {
     const field = e.target.name;
     const file = R.head(e.target.files);
     const ref = firebase.storage().ref().child(`eventImages/${shortid.generate()}`);
-    ref.put(file).then((snapshot: *) => {
+    ref.put(file).then((snapshot: * ) => {
       const imageURL = snapshot.downloadURL;
       this.setState({ fields: R.assoc(field, imageURL, this.state.fields) });
       this.props.uploadImageSuccess();
@@ -115,20 +114,9 @@ class EventForm extends Component {
   }
 
   updateURLs() {
-    // eslint-disable-next-line no-regex-spaces
-    const convertName = R.compose(R.replace(/ /g, '-'), R.toLower, R.replace(/  +/g, ' '), removeDiacritics, R.trim);
-    const eventName = convertName(R.path(['fields', 'name'], this.state));
-    const { user } = this.props;
-    const base = window.location.origin;
-    const eventNameHash = R.isEmpty(eventName) ? '' : new Hashids(eventName).encode(1, 2, 3);
-    const update = {
-      fanUrl: `${base}/show/${user.id}/${eventName}`,
-      fanAudioUrl: `${base}/post-production/${user.id}/${eventName}`,
-      hostUrl: `${base}/show-host/${user.id}/${eventNameHash}`,
-      celebrityUrl: `${base}/show-celebrity/${user.id}/${eventNameHash}`,
-    };
-
-    this.setState({ fields: R.merge(this.state.fields, update) });
+    const { fields } = this.state;
+    const update = createUrls({ name: R.prop('name', fields), adminId: this.props.user.id });
+    this.setState({ fields: R.merge(fields, update) });
   }
 
   handleChange(e: SyntheticInputEvent) {
@@ -252,7 +240,7 @@ class EventForm extends Component {
   }
 }
 
-const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
+const mapDispatchToProps: MapDispatchToProps < DispatchProps > = (dispatch: Dispatch): DispatchProps =>
   ({
     uploadImage: () => {
       dispatch(uploadEventImage());

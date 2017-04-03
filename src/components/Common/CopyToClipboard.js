@@ -5,14 +5,14 @@ import R from 'ramda';
 import { toastr } from 'react-redux-toastr';
 
 type Props = {
-  children: ReactComponent[],
+  children?: ReactComponent[],
   text: string,
   onCopyText: string
 };
 
-const onCopy = (text: string): void => toastr.success('Success', `${text} coped to clipboard`, { icon: 'success' });
+const onCopy = (text: string): void => toastr.success('Success', `${text} copied to clipboard`, { icon: 'success' });
 
-const CopyToClipboard = ({ children, text, onCopyText }: Props): ReactComponent =>
+const CopyToClipboard = ({ children, text = '', onCopyText }: Props): ReactComponent =>
   <Copy text={text} onCopy={R.partial(onCopy, [onCopyText])}>
     { children }
   </Copy>;

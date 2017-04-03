@@ -12,7 +12,7 @@ import AuthRoutes from './components/AuthRoutes/AuthRoutes';
 const routes = (
   <Router history={browserHistory}>
     <Route path="/" component={App} >
-      <IndexRedirect to="/login" />
+      <IndexRedirect to="login" />
       <Route path="login" component={Login} />
       <Route component={AuthRoutes}>
         <Route path="admin" component={Dashboard} />

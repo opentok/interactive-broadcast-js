@@ -30,7 +30,7 @@ declare type ThunkActionCreator = (...*) => Thunk;
 declare type ReactComponent = React$Element<*> | React.CElement | null;
 
 // Functions
-declare type Unit = (*) => void;
+declare type Unit = () => void;
 
 // Forms
 declare type FormErrors = null | { fields: { [field: string]: string, message: string } };

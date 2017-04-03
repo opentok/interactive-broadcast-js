@@ -9,7 +9,7 @@ import { deleteBroadcastEvent, updateBroadcastEventStatus } from '../../../actio
 
 /** Event Actions */
 type BaseProps = { event: BroadcastEvent };
-type DispatchProps = { deleteEvent: BroadcastEvent => void };
+type DispatchProps = { deleteEvent: BroadcastEvent => void, closeEvent: string => void };
 type Props = BaseProps & DispatchProps;
 const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent => {
   const style = (color: string): string => classNames('btn', 'action', color);
@@ -59,7 +59,7 @@ const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent
       case 'live':
         return [view('live'), end()];
       case 'closed':
-        return R.isEmpty(archiveUrl) ? [] : [download()];
+        return R.isNil(archiveUrl) ? [] : [download()];
       default:
         return [];
     }

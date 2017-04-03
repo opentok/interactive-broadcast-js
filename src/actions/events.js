@@ -1,12 +1,17 @@
 // @flow
 import R from 'ramda';
 import { browserHistory } from 'react-router';
-import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent } from '../services/api';
+import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent, getMostRecentEvent } from '../services/api';
 import { setAlert, setSuccess, resetAlert } from './alert';
 
 const setEvents: ActionCreator = (events: BroadcastEventMap): EventsAction => ({
   type: 'SET_EVENTS',
   events,
+});
+
+const setMostRecentEvent: ActionCreator = (event: BroadcastEvent): EventsAction => ({
+  type: 'SET_MOST_RECENT_EVENT',
+  event,
 });
 
 const setOrUpdateEvent: ActionCreator = (event: BroadcastEvent): EventsAction => ({
@@ -54,15 +59,17 @@ const sortBroadcastEvents: ActionCreator = (sortBy: EventSortByOption): EventsAc
   sortBy,
 });
 
-const getBroadcastEvents: ThunkActionCreator = (userId: string): Thunk =>
+const getBroadcastEvents: ThunkActionCreator = (adminId: string): Thunk =>
   (dispatch: Dispatch) => {
-    getEvents(userId)
-      .then((events: BroadcastEventMap) => {
+    Promise.all([getEvents(adminId), getMostRecentEvent(adminId)])
+      .then((eventData: [BroadcastEventMap, BroadcastEvent]) => {
+        const [events, mostRecentEvent] = eventData;
         dispatch(setEvents(events));
+        dispatch(setMostRecentEvent(mostRecentEvent));
       });
   };
 
-const confirmDeleteEvent: ThunkActionCreator = (id: string): Thunk =>
+const confirmDeleteEvent: ThunkActionCreator = (id: EventId): Thunk =>
   (dispatch: Dispatch) => {
     const onDelete = () => {
       dispatch(removeEvent(id));
@@ -105,7 +112,7 @@ const updateBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
       });
   };
 
-const updateBroadcastEventStatus: ThunkActionCreator = (id: string, status: EventStatus): Thunk =>
+const updateBroadcastEventStatus: ThunkActionCreator = (id: EventId, status: EventStatus): Thunk =>
   (dispatch: Dispatch) => {
     updateEventStatus(id, status)
       .then((event: BroadcastEventMap) => {
@@ -114,7 +121,7 @@ const updateBroadcastEventStatus: ThunkActionCreator = (id: string, status: Even
       });
   };
 
-const deleteBroadcastEvent: ThunkActionCreator = ({ id, name }: {id: string, name: string }): Thunk =>
+const deleteBroadcastEvent: ThunkActionCreator = ({ id, name }: {id: EventId, name: string }): Thunk =>
   (dispatch: Dispatch) => {
     const options: AlertOptions = {
       show: true,

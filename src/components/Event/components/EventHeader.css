@@ -1,0 +1,64 @@
+.EventHeader {
+    display: flex;
+    justify-content: space-between;
+    padding: 7.5px 20px;
+}
+
+.EventHeader-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 700px;
+}
+
+.EventHeader-info a {
+    color: #00a3e3;
+    font-size: 13px;
+}
+
+.EventHeader-info h3 {
+    color: #37363E;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 300;
+    margin: 5px 0;
+}
+
+.EventHeader-info .post-production-url {
+    display: flex;
+    font-size: 10.5px;
+    color: #58666E;
+    align-items: center;
+}
+
+.EventHeader-info .post-production-url .label {
+    margin-right: 5px;
+}
+
+.EventHeader-info .post-production-url .btn {
+    font-size: 12px;
+    margin-left: 15px;
+    height: 24px;
+}
+
+.EventHeader-controls {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.EventHeader-controls>button {
+    height: 30px;
+    margin: 0 2px;
+}
+
+.EventHeader-controls .btn.go-live {
+    color: #30c06c;
+}
+
+.EventHeader-controls .btn.go-live .icon {
+    margin-right: 5px;
+}

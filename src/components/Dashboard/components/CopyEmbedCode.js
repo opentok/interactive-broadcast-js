@@ -1,13 +1,18 @@
 // @flow
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import R from 'ramda';
 import Icon from 'react-fontawesome';
 import onClickOutside from 'react-onclickoutside';
 import classNames from 'classnames';
 import CopyToClipboard from '../../Common/CopyToClipboard';
+import createUrls from '../../../services/eventUrls';
 
 import './CopyEmbedCode.css';
 
-type Props = { };
+type Props = {
+  currentEvent: BroadcastEvent
+ };
 
 class CopyEmbedCode extends Component {
 
@@ -40,30 +45,29 @@ class CopyEmbedCode extends Component {
 
     const { toggleExpanded } = this;
     const { expanded } = this.state;
-    const fanUrl = 'fan';
-    const hostUrl = 'host';
-    const celebrityUrl = 'celeb';
-    const buttonClass = 'btn white';
+    const { fanUrl, hostUrl, celebrityUrl } = createUrls(this.props.currentEvent);
     return (
       <div className="CopyEmbedCode">
-        <button className={classNames(buttonClass, 'toggle')} onClick={toggleExpanded}>
+        <button className="btn white toggle" onClick={toggleExpanded}>
           Get Embed Code <Icon name="angle-down" size="lg" />
         </button>
         <div className={classNames('CopyEmbedCode-button-container', { expanded })}>
           <CopyToClipboard text={fanUrl} onCopyText="Fan code" >
-            <button onClick={toggleExpanded} className={buttonClass}>Get fan code</button>
+            <button onClick={toggleExpanded} className="btn white">Get fan code</button>
           </CopyToClipboard>
           <CopyToClipboard text={hostUrl} onCopyText="Host code" >
-            <button onClick={toggleExpanded} className={buttonClass}>Get host code</button>
+            <button onClick={toggleExpanded} className="btn white">Get host code</button>
           </CopyToClipboard>
           <CopyToClipboard text={celebrityUrl} onCopyText="Celebrity code" >
-            <button onClick={toggleExpanded} className={buttonClass} >Get celebrity code</button>
+            <button onClick={toggleExpanded} className="btn white" >Get celebrity code</button>
           </CopyToClipboard>
         </div>
       </div>
     );
   }
-
 }
+const mapStateToProps = (state: State): Props => ({
+  currentEvent: R.pathOr({}, ['events', 'mostRecent'], state),
+});
 
-export default onClickOutside(CopyEmbedCode);
+export default connect(mapStateToProps)(onClickOutside(CopyEmbedCode));
