@@ -45,7 +45,7 @@ class UserListItem extends Component {
 }
 
 type BaseProps = { users: User[] };
-type DispatchProps = { delete: Unit };
+type DispatchProps = { delete: UserId => void };
 type Props = BaseProps & DispatchProps;
 const renderUser = (user: User): ReactComponent => <UserListItem key={user.id} user={user} />;
 const UserList = ({ users }: Props): ReactComponent =>
@@ -64,7 +64,7 @@ const UserList = ({ users }: Props): ReactComponent =>
 const mapStateToProps = (state: State): BaseProps => R.pick(['users'], state);
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
-    delete: (userId: string) => {
+    delete: (userId: UserId) => {
       dispatch(deleteUser(userId));
     },
   });

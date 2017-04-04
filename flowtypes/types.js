@@ -3,6 +3,10 @@ import React from 'react';
 /* eslint no-undef: "off" */
 /* beautify preserve:start */
 
+// API
+declare type Headers = { 'Content-Type': 'application/json', jwt?: string };
+declare type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+
 // Redux state(s)
 declare type State = {
   currentUser: CurrentUserState,
@@ -31,6 +35,7 @@ declare type ReactComponent = React$Element<*> | React.CElement | null;
 
 // Functions
 declare type Unit = () => void;
+declare type AsyncVoid = Promise<void>
 
 // Forms
 declare type FormErrors = null | { fields: { [field: string]: string, message: string } };

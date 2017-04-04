@@ -24,8 +24,8 @@ const comparator = (sorting: EventSorting): Comparator => {
 
   const operator = sorting.order === 'descending' ? 'gt' : 'lt';
   const sortByTypeToProp: {[type: EventSortByOption]: string} = {
-    mostRecent: 'updatedAt', // ???
-    startDate: 'dateTimeStart', // ???
+    mostRecent: 'updatedAt',
+    startDate: 'dateTimeStart',
     state: 'status',
   };
 

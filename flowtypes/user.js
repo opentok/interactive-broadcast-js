@@ -2,8 +2,9 @@
 /* eslint no-undef: "off" */
 /* beautify preserve:start */
 
+declare type UserId = string;
 declare type User = {
-  id: string,
+  id: UserId,
   displayName: string,
   email: string,
   otApiKey: string,
@@ -13,18 +14,18 @@ declare type User = {
   httpSupport: boolean
  };
 
-declare type UserMap = {[id: string]: User};
+declare type UserMap = {[id: UserId]: User};
 declare type CurrentUserState = null | User;
 declare type UserAction =
   { type: 'SET_CURRENT_USER', user: User } |
-  { type: 'LOGIN', userId: string } |
+  { type: 'LOGIN', userId: UserId } |
   { type: 'LOGOUT' };
 
 
 declare type ManageUsersAction =
   { type: 'SET_USERS', users: UserMap } |
   { type: 'UPDATE_USER', user: User } |
-  { type: 'REMOVE_USER', userId: string };
+  { type: 'REMOVE_USER', userId: UserId };
 
 
 declare type UserFormData = {

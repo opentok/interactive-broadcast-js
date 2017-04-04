@@ -21,6 +21,15 @@ declare type AlertOptions = {
   showCancelButton?: boolean
 };
 
+declare type AlertPartialOptions = {
+  title?: string,
+  text?: string,
+  onConfirm?: Unit,
+  onCancel?: Unit,
+  showConfirmButton?: boolean,
+  showCancelButton?: boolean
+};
+
 declare type AlertType = 'warning' | 'error' | 'success' | 'info';
 
 declare type AlertAction =

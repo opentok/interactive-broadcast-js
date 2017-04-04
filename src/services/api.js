@@ -6,15 +6,15 @@ const origin = window.location.origin;
 const url = R.contains('localhost', origin) ? 'http://localhost:3001' : 'https://ibs-dev-server.herokuapp.com';
 const apiUrl = `${url}/api`;
 const defaultHeaders = { 'Content-Type': 'application/json' };
-type Headers = { 'Content-Type': 'application/json', jwt?: string };
+/** ********* */
+
+/** Generator headers for a request */
 const headers = (requiresAuth: boolean): Headers => R.merge(defaultHeaders, requiresAuth ? { Authorization: `Bearer ${jwt()}` } : null);
 
-/** Helper methods */
-
-// Check for external route containing http/https
+/** Check for external route containing http/https */
 const getURL = (route: string): string => route.includes('http') ? route : `${apiUrl}/${route}`;
 
-// Parse response based on type
+/** Parse a response based on the type */
 const parseResponse = (response: Response): * => {
   const contentType = R.head(R.split(';')(R.defaultTo('')(response.headers.get('content-type'))));
   if (contentType === 'application/json') {
@@ -24,6 +24,7 @@ const parseResponse = (response: Response): * => {
   }
 };
 
+/** Check for API-level errors */
 const checkStatus = (response: Response): PromiseLike =>
   new Promise((resolve: PromiseLike, reject: PromiseLike): Promise => {
     if (response.status >= 200 && response.status < 300) {
@@ -34,7 +35,8 @@ const checkStatus = (response: Response): PromiseLike =>
       .catch(reject);
   });
 
-const request = (method: string, route: string, data: * = null, requiresAuth: boolean = true): Promise => {
+/** Create a new Request object */
+const request = (method: HttpMethod, route: string, data: * = null, requiresAuth: boolean = true): Request => {
   const body = data && JSON.stringify(data);
   return new Request(getURL(route), {
     method: method.toUpperCase(),
@@ -44,51 +46,24 @@ const request = (method: string, route: string, data: * = null, requiresAuth: bo
   });
 };
 
+/** Execute a request using fetch */
+const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth: boolean = true): Promise =>
+  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
+    fetch(request(method, route, body, requiresAuth))
+      .then(checkStatus)
+      .then(parseResponse)
+      .then(resolve)
+      .catch(reject);
+  });
+
+/** HTTP Methods */
+const get = (route: string, requiresAuth: boolean = true): Promise => execute('get', route, null, requiresAuth);
+const post = (route: string, body: * = null, requiresAuth: boolean = true): Promise => execute('post', route, body, requiresAuth);
+const put = (route: string, body: * = null, requiresAuth: boolean = true): Promise => execute('put', route, body, requiresAuth);
+const patch = (route: string, body: * = null, requiresAuth: boolean = true): Promise => execute('patch', route, body, requiresAuth);
+const del = (route: string, requiresAuth: boolean = true): Promise => execute('delete', route, null, requiresAuth);
+
 /** Exports */
-const get = (route: string, requiresAuth: boolean = true): Promise =>
-  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request('get', route, null, requiresAuth))
-      .then(checkStatus)
-      .then(parseResponse)
-      .then(resolve)
-      .catch(reject);
-  });
-
-const post = (route: string, body: * = null, requiresAuth: boolean = true): Promise =>
-  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request('post', route, body, requiresAuth))
-      .then(checkStatus)
-      .then(parseResponse)
-      .then(resolve)
-      .catch(reject);
-  });
-
-const put = (route: string, body: * = null, requiresAuth: boolean = true): Promise =>
-  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request('put', route, body, requiresAuth))
-      .then(checkStatus)
-      .then(parseResponse)
-      .then(resolve)
-      .catch(reject);
-  });
-
-const patch = (route: string, body: * = null, requiresAuth: boolean = true): Promise =>
-  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request('patch', route, body, requiresAuth))
-      .then(checkStatus)
-      .then(parseResponse)
-      .then(resolve)
-      .catch(reject);
-  });
-
-const del = (route: string, requiresAuth: boolean = true): Promise =>
-  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request('delete', route, null, requiresAuth))
-      .then(checkStatus)
-      .then(parseResponse)
-      .then(resolve)
-      .catch(reject);
-  });
 
 /** Auth */
 const getAuthTokenFan = (userId: string): Promise => post('auth/token-fan', { uid: userId }, false);

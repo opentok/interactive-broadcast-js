@@ -4,7 +4,7 @@ import firebase from '../services/firebase';
 import { getAuthToken } from '../services/api';
 import { saveAuthToken } from '../services/localStorage';
 import { logIn, logOut } from './currentUser';
-import { setAlert, resetAlert, setInfo } from './alert';
+import { setSuccess, resetAlert, setInfo } from './alert';
 
 const authError: ActionCreator = (error: null | Error): AuthAction => ({
   type: 'AUTH_ERROR',
@@ -18,7 +18,7 @@ const userForgotPassword: ThunkActionCreator = (forgot: boolean): Thunk =>
   };
 
 const validate: ThunkActionCreator = (uid: string, idToken: string): Thunk =>
-  async (dispatch: Dispatch): Promise<void> => {
+  async (dispatch: Dispatch): AsyncVoid => {
     try {
       const { token } = await getAuthToken(idToken);
       saveAuthToken(token);
@@ -29,7 +29,7 @@ const validate: ThunkActionCreator = (uid: string, idToken: string): Thunk =>
   };
 
 const signIn: ThunkActionCreator = ({ email, password }: AuthCredentials): Thunk =>
-  async (dispatch: Dispatch): Promise<void> => {
+  async (dispatch: Dispatch): AsyncVoid => {
     try {
       const user = await firebase.auth().signInWithEmailAndPassword(email, password);
       const idToken = await user.getToken(true);
@@ -46,27 +46,17 @@ const signOut: ThunkActionCreator = (): Thunk =>
   };
 
 const resetPassword: ThunkActionCreator = ({ email }: AuthCredentials): Thunk =>
-  async (dispatch: Dispatch): Promise<void> => {
-    const onReset = () => {
-      const onConfirm: Unit = () => {
-        dispatch(resetAlert());
-        dispatch(userForgotPassword(false));
-      };
-      const options: AlertOptions = {
-        show: true,
-        type: 'success',
-        title: 'Password Reset',
-        text: 'Please check your inbox for password reset instructions',
-        onConfirm,
-      };
-      dispatch(setAlert(options));
-    };
-
+  async (dispatch: Dispatch): AsyncVoid => {
     try {
       await firebase.auth().sendPasswordResetEmail(email);
-      onReset();
+      const options: AlertPartialOptions = {
+        title: 'Password Reset',
+        text: 'Please check your inbox for password reset instructions',
+        onConfirm: (): void => dispatch(resetAlert()) && dispatch(userForgotPassword(false)),
+      };
+      dispatch(setSuccess(options));
     } catch (error) {
-      dispatch(setInfo('Password Reset', 'We couldn\'t find an account for that email address.'));
+      dispatch(setInfo({ title: 'Password Reset', text: 'We couldn\'t find an account for that email address.' }));
     }
   };
 

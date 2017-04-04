@@ -1,5 +1,5 @@
 // @flow
-import { setAlert, resetAlert, setError } from './alert';
+import { resetAlert, setError, setWarning, setSuccess } from './alert';
 import { getAllUsers, deleteUserRecord, updateUser as update, createUser } from '../services/api';
 
 const setUsers: ActionCreator = (users: UserMap): ManageUsersAction => ({
@@ -12,90 +12,71 @@ const updateUser: ActionCreator = (user: User): ManageUsersAction => ({
   user,
 });
 
-const removeUser: ActionCreator = (userId: string): ManageUsersAction => ({
+const removeUser: ActionCreator = (userId: UserId): ManageUsersAction => ({
   type: 'REMOVE_USER',
   userId,
 });
 
 const getUsers: ThunkActionCreator = (): Thunk =>
-  (dispatch: Dispatch) => {
-    getAllUsers()
-      .then((users: UserMap): void => dispatch(setUsers(users)))
-      .catch((error: Error): void => console.log(error));
+  async (dispatch: Dispatch): AsyncVoid => {
+    try {
+      const users = await getAllUsers();
+      dispatch(setUsers(users));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-const confirmDeleteUser: ThunkActionCreator = (userId: string): Thunk =>
-  (dispatch: Dispatch) => {
-    deleteUserRecord(userId)
-      .then(dispatch(removeUser(userId)))
-      .catch((error: Error): void => console.log(error));
+const confirmDeleteUser: ThunkActionCreator = (userId: UserId): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    try {
+      await deleteUserRecord(userId);
+      dispatch(removeUser(userId));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-const deleteUser: ThunkActionCreator = (userId: string): Thunk =>
+const deleteUser: ThunkActionCreator = (userId: UserId): Thunk =>
   (dispatch: Dispatch) => {
-    const onConfirm: Unit = () => {
-      dispatch(resetAlert());
-      dispatch(confirmDeleteUser(userId));
-    };
-    const onCancel: Unit = (): void => dispatch(resetAlert());
-    const options: AlertOptions = {
-      show: true,
-      type: 'warning',
+    const options: AlertPartialOptions = {
       title: 'Delete User',
       text: 'Are you sure you wish to delete this user?  All events associated with the user will also be deleted.',
       showCancelButton: true,
-      onConfirm,
-      onCancel,
+      onConfirm: (): void => dispatch(resetAlert()) && dispatch(confirmDeleteUser(userId)),
+      onCancel: (): void => dispatch(resetAlert()),
     };
-    dispatch(setAlert(options));
+    dispatch(setWarning(options));
   };
 
 const updateUserRecord: ThunkActionCreator = (userData: UserFormData): Thunk =>
-  (dispatch: Dispatch) => {
-
-    const onSuccess = () => {
-      const onConfirm: Unit = () => {
-        dispatch(resetAlert());
-        dispatch(updateUser(userData));
-      };
-      const options: AlertOptions = {
-        show: true,
-        type: 'success',
+  async (dispatch: Dispatch): AsyncVoid => {
+    try {
+      await update(userData);
+      const options: AlertPartialOptions = {
         title: 'User Updated',
         text: `The user record for ${userData.displayName} has been updated.`,
-        onConfirm,
+        onConfirm: (): void => dispatch(resetAlert()) && dispatch(updateUser(userData)),
       };
-      dispatch(setAlert(options));
-    };
-    const onError = (): void => dispatch(setError('Failed to update user. Please check credentials and try again.'));
-
-    update(userData)
-      .then(onSuccess)
-      .catch(onError);
+      dispatch(setSuccess(options));
+    } catch (error) {
+      dispatch(setError('Failed to update user. Please check credentials and try again.'));
+    }
   };
 
 const createNewUser: ThunkActionCreator = (user: UserFormData): Thunk =>
-  (dispatch: Dispatch) => {
-
-    const onSuccess = () => {
-      const onConfirm: Unit = () => {
-        dispatch(resetAlert());
-        dispatch(updateUser(user));
-      };
-      const options: AlertOptions = {
-        show: true,
-        type: 'success',
+  async (dispatch: Dispatch): AsyncVoid => {
+    try {
+      await createUser(user);
+      const options: AlertPartialOptions = {
         title: 'User Created',
         text: `${user.displayName} has been created as a new user.`,
-        onConfirm,
+        onConfirm: (): void => dispatch(resetAlert()) && dispatch(updateUser(user)),
       };
-      dispatch(setAlert(options));
-    };
-    const onError = (): void => dispatch(setError('Failed to create user. Please check credentials and try again.'));
-
-    createUser(user)
-      .then(onSuccess)
-      .catch(onError);
+      dispatch(setSuccess(options));
+    } catch (error) {
+      dispatch(setError('Failed to create user. Please check credentials and try again.'));
+    }
   };
 
 module.exports = {

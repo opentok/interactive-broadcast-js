@@ -1,5 +1,5 @@
 // @flow
-
+import R from 'ramda';
 
 const setAlert: ActionCreator = (options: AlertState): AlertAction => ({
   type: 'SET_ALERT',
@@ -10,16 +10,28 @@ const resetAlert: ActionCreator = (): AlertAction => ({
   type: 'RESET_ALERT',
 });
 
-const setSuccess: ThunkActionCreator = (text: string): Thunk =>
+const setWarning: ThunkActionCreator = (options: AlertPartialOptions): Thunk =>
   (dispatch: Dispatch) => {
-    const options = {
+    const defaultOptions = {
+      show: true,
+      type: 'warning',
+      title: 'Warning',
+      text: '',
+      onConfirm: (): void => dispatch(resetAlert()),
+      showCancelButton: true,
+    };
+    dispatch(setAlert(R.merge(defaultOptions, options)));
+  };
+const setSuccess: ThunkActionCreator = (options: AlertPartialOptions): Thunk =>
+  (dispatch: Dispatch) => {
+    const defaultOptions = {
       show: true,
       type: 'success',
       title: 'Success',
-      text,
+      text: null,
       onConfirm: (): void => dispatch(resetAlert()),
     };
-    dispatch(setAlert(options));
+    dispatch(setAlert(R.merge(defaultOptions, options)));
   };
 
 const setError: ThunkActionCreator = (text: string): Thunk =>
@@ -34,16 +46,16 @@ const setError: ThunkActionCreator = (text: string): Thunk =>
     dispatch(setAlert(options));
   };
 
-const setInfo: ThunkActionCreator = (title: null | string, text: string): Thunk =>
+const setInfo: ThunkActionCreator = (options: AlertPartialOptions): Thunk =>
   (dispatch: Dispatch) => {
-    const options = {
+    const defaultOptions = {
       show: true,
       type: 'info',
-      title,
-      text,
+      title: null,
+      text: null,
       onConfirm: (): void => dispatch(resetAlert()),
     };
-    dispatch(setAlert(options));
+    dispatch(setAlert(R.merge(defaultOptions, options)));
   };
 
 
@@ -53,5 +65,6 @@ module.exports = {
   setError,
   setInfo,
   setSuccess,
+  setWarning,
   resetAlert,
 };
