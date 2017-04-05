@@ -14,6 +14,8 @@ declare type User = {
   httpSupport: boolean
  };
 
+declare type UserRole = 'producer' | 'host' | 'celebrity' | 'fan';
+
 declare type UserMap = {[id: UserId]: User};
 declare type CurrentUserState = null | User;
 declare type UserAction =
@@ -29,6 +31,7 @@ declare type ManageUsersAction =
 
 
 declare type UserFormData = {
+  id?: UserId,
   displayName: string,
   email: string,
   otApiKey: string,

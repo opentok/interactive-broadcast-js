@@ -58,14 +58,14 @@ class EditUser extends Component {
     this.setState({ submissionAttemped: true });
     if (this.hasErrors()) { return; }
     const userData = R.prop('fields', this.state);
-    const { newUser, toggleEditPanel, createUser, updateUser } = this.props;
+    const { newUser, user, toggleEditPanel, createUser, updateUser } = this.props;
     const initial = R.pick(formFields, this.props.user);
 
     if (!R.equals(initial, userData)) {
       if (newUser) {
         createUser(R.assoc('password', uuid(), userData));
       } else {
-        updateUser(userData);
+        updateUser(R.assoc('id', user.id, userData));
         toggleEditPanel();
       }
     } else {

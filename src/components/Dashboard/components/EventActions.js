@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import Icon from 'react-fontawesome';
-import { deleteBroadcastEvent, updateBroadcastEventStatus } from '../../../actions/events';
+import { deleteBroadcastEvent, updateStatus } from '../../../actions/events';
 
 /** Event Actions */
 type BaseProps = { event: BroadcastEvent };
@@ -78,7 +78,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
       dispatch(deleteBroadcastEvent(event));
     },
     closeEvent: (id: string) => {
-      dispatch(updateBroadcastEventStatus(id, 'closed'));
+      dispatch(updateStatus(id, 'closed'));
     },
   });
 

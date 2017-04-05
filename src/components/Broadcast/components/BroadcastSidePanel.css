@@ -1,4 +1,4 @@
-.EventSidePanel {
+.BroadcastSidePanel {
     position: absolute;
     height: 100%;
     background: white;
@@ -7,14 +7,14 @@
     transition: right .5s;
 }
 
-.EventSidePanel.hidden {
+.BroadcastSidePanel.hidden {
     right: -320px;
 }
 
-.EventSidePanel-header {
+.BroadcastSidePanel-header {
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-.EventSidePanel-fan-list {
+.BroadcastSidePanel-fan-list {
     width: 320px;
 }

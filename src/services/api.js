@@ -86,6 +86,7 @@ const updateEvent = (data: object): Promise => patch(`event/${data.id}`, data);
 const updateEventStatus = (id: string, status: EventStatus): Promise => put(`event/change-status/${id}`, { status });
 const deleteEvent = (id: string): Promise => del(`event/${id}`);
 const getMostRecentEvent = (id: string): Promise => get(`event/get-current-admin-event?adminId=${id}`);
+const getAdminCredentials = (eventId: eventId): Promise => post(`event/create-token-producer/${eventId}`);
 
 /** Exports */
 
@@ -105,6 +106,7 @@ module.exports = {
   updateEvent,
   updateEventStatus,
   deleteEvent,
+  getAdminCredentials,
   deleteUserRecord,
   url,
 };

@@ -9,7 +9,7 @@ import './Dashboard.css';
 
 /* beautify preserve:start */
 type BaseProps = { currentUser: User, events: EventsState };
-type DispatchProps = { loadEvents: Unit };
+type DispatchProps = { loadEvents: UserId => void };
 type Props = BaseProps & DispatchProps;
 /* beautify preserve:end */
 
@@ -17,8 +17,8 @@ class Dashboard extends Component {
   props: Props;
 
   componentDidMount() {
-    const { currentUser, events, loadEvents } = this.props;
-    R.isNil(events.map) && loadEvents(currentUser.id);
+    const { currentUser, loadEvents } = this.props;
+    loadEvents(currentUser.id);
   }
 
   render(): ReactComponent {

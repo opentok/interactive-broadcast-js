@@ -13,7 +13,7 @@ import './Login.css';
 type BaseProps = { auth: AuthState, currentUser: User };
 type DispatchProps = {
   authenticateUser: (credentials: AuthCredentials) => void,
-  onForgotPassword: Unit,
+  onForgotPassword: boolean => void,
   sendResetEmail: (email: AuthCredentials) => void
  };
 type Props = BaseProps & DispatchProps;

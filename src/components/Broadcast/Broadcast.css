@@ -1,14 +1,15 @@
-.Event {
+.Broadcast {
     display: flex;
+    position: relative;
     width: 100vw;
 }
-.Event-main {
+.Broadcast-main {
     height: 100vh;
     width: calc(100% - 320px);
     transition: width .5s;
 }
 
-.Event-main.full {
+.Broadcast-main.full {
     width: 100%;
 }
 

@@ -5,22 +5,24 @@ import { connect } from 'react-redux';
 import Icon from 'react-fontawesome';
 import CopyToClipboard from '../../Common/CopyToClipboard';
 import createUrls from '../../../services/eventUrls';
-import './EventHeader.css';
+import './BroadcastHeader.css';
 
 type Props = {
-  event: BroadcastEvent,
+  broadcast: BroadcastState,
   currentUser: User,
   showingSidePanel: boolean,
   toggleSidePanel: Unit
 };
-const EventHeader = ({ event, showingSidePanel, toggleSidePanel, currentUser }: Props): ReactComponent => {
-  const { fanAudioUrl } = createUrls(event);
+const BroadcastHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentUser }: Props): ReactComponent => {
+  const event = R.defaultTo({})(broadcast.event);
   const { status } = event;
+  const { connected } = broadcast;
+  const { fanAudioUrl } = createUrls(event);
 
   return (
-    <div className="EventHeader admin-page-header">
-      <div className="EventHeader-info">
-        <Link to="admin">Back to Events</Link>
+    <div className="BroadcastHeader admin-page-header">
+      <div className="BroadcastHeader-info">
+        <Link to="/admin">Back to Events</Link>
         <h3>{ event.name }</h3>
         <div className="post-production-url">
           <span className="label">POST-PRODUCTION URL:</span>
@@ -30,9 +32,12 @@ const EventHeader = ({ event, showingSidePanel, toggleSidePanel, currentUser }: 
           </CopyToClipboard>
         </div>
       </div>
-      <div className="EventHeader-controls">
+      <div className="BroadcastHeader-controls">
         { status === 'preshow' &&
-          <button className="btn white go-live"><Icon className="icon" name="circle" />GO LIVE</button>
+          <button className="btn white go-live">
+            <Icon className="icon" name={connected ? 'circle' : 'spinner'} />
+            { connected ? 'GO LIVE' : 'CONNECTING' }
+          </button>
         }
         <CopyToClipboard text={currentUser.id} onCopyText="Admin ID" >
           <button className="btn white">COPY ADMIN ID</button>
@@ -44,5 +49,5 @@ const EventHeader = ({ event, showingSidePanel, toggleSidePanel, currentUser }: 
     </div>);
 };
 
-const mapStateToProps = (state: State): Props => R.pick(['currentUser'], state);
-export default connect(mapStateToProps)(EventHeader);
+const mapStateToProps = (state: State): Props => R.pick(['currentUser', 'broadcast'], state);
+export default connect(mapStateToProps)(BroadcastHeader);

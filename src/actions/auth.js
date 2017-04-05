@@ -52,7 +52,7 @@ const resetPassword: ThunkActionCreator = ({ email }: AuthCredentials): Thunk =>
       const options: AlertPartialOptions = {
         title: 'Password Reset',
         text: 'Please check your inbox for password reset instructions',
-        onConfirm: (): void => dispatch(resetAlert()) && dispatch(userForgotPassword(false)),
+        onConfirm: (): void => R.forEach(dispatch, [resetAlert(), userForgotPassword(false)]),
       };
       dispatch(setSuccess(options));
     } catch (error) {

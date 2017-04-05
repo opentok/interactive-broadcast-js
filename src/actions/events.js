@@ -2,7 +2,7 @@
 import R from 'ramda';
 import { browserHistory } from 'react-router';
 import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent, getMostRecentEvent } from '../services/api';
-import { setAlert, setSuccess, setWarning, resetAlert } from './alert';
+import { setInfo, setSuccess, setWarning, resetAlert } from './alert';
 
 const setEvents: ActionCreator = (events: BroadcastEventMap): EventsAction => ({
   type: 'SET_EVENTS',
@@ -21,14 +21,12 @@ const setOrUpdateEvent: ActionCreator = (event: BroadcastEvent): EventsAction =>
 
 const uploadEventImage: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
-    const options: AlertOptions = {
-      show: true,
-      type: 'info',
+    const options: AlertPartialOptions = {
       title: 'Event Image Upload',
       text: 'This may take a few seconds . . .',
       showConfirmButton: false,
     };
-    dispatch(setAlert(options));
+    dispatch(setInfo(options));
   };
 
 const uploadEventImageSuccess: ThunkActionCreator = (): Thunk =>
@@ -71,8 +69,7 @@ const confirmDeleteEvent: ThunkActionCreator = (id: EventId): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
       await deleteEvent(id);
-      dispatch(removeEvent(id));
-      dispatch(setSuccess({ text: 'Event deleted.' }));
+      R.forEach(dispatch, [removeEvent(id), setSuccess({ text: 'Event deleted.' })]);
     } catch (error) {
       console.log(error);
     }
@@ -87,8 +84,7 @@ const createBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
         text: `${data.name} has been created`,
         onConfirm: browserHistory.push('/admin'),
       };
-      dispatch(setSuccess(options));
-      dispatch(setOrUpdateEvent(event));
+      R.forEach(dispatch, [setSuccess(options), setOrUpdateEvent(event), setMostRecentEvent(event)]);
     } catch (error) {
       console.log(error);
     }
@@ -103,15 +99,13 @@ const updateBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
         text: `${data.name} has been updated`,
         onConfirm: browserHistory.push('/admin'),
       };
-      dispatch(setSuccess(options));
-      dispatch(setOrUpdateEvent(event));
-
+      R.forEach(dispatch, [setSuccess(options), setOrUpdateEvent(event)]);
     } catch (error) {
       console.log(error);
     }
   };
 
-const updateBroadcastEventStatus: ThunkActionCreator = (id: EventId, status: EventStatus): Thunk =>
+const updateStatus: ThunkActionCreator = (id: EventId, status: EventStatus): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
       const event: BroadcastEvent = await updateEventStatus(id, status);
@@ -132,13 +126,14 @@ const deleteBroadcastEvent: ThunkActionCreator = ({ id, name }: { id: EventId, n
     dispatch(setWarning(options));
   };
 
+
 module.exports = {
   getBroadcastEvents,
   filterBroadcastEvents,
   sortBroadcastEvents,
   createBroadcastEvent,
   updateBroadcastEvent,
-  updateBroadcastEventStatus,
+  updateStatus,
   deleteBroadcastEvent,
   uploadEventImage,
   uploadEventImageSuccess,

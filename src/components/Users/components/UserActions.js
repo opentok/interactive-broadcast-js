@@ -8,7 +8,7 @@ import './UserActions.css';
 
 /** Event Actions */
 type BaseProps = { user: User, toggleEditPanel: Unit };
-type DispatchProps = { deleteUser: Unit };
+type DispatchProps = { deleteUser: UserId => void };
 type Props = BaseProps & DispatchProps;
 const UserActions = ({ user, deleteUser, toggleEditPanel }: Props): ReactComponent =>
   <div className="UserActions">
@@ -18,7 +18,7 @@ const UserActions = ({ user, deleteUser, toggleEditPanel }: Props): ReactCompone
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
-    deleteUser: (userId: string) => {
+    deleteUser: (userId: UserId) => {
       dispatch(removeUser(userId));
     },
   });

@@ -1,4 +1,5 @@
 // @flow
+import R from 'ramda';
 import { resetAlert, setError, setWarning, setSuccess } from './alert';
 import { getAllUsers, deleteUserRecord, updateUser as update, createUser } from '../services/api';
 
@@ -43,7 +44,7 @@ const deleteUser: ThunkActionCreator = (userId: UserId): Thunk =>
       title: 'Delete User',
       text: 'Are you sure you wish to delete this user?  All events associated with the user will also be deleted.',
       showCancelButton: true,
-      onConfirm: (): void => dispatch(resetAlert()) && dispatch(confirmDeleteUser(userId)),
+      onConfirm: (): void => R.forEach(dispatch, [resetAlert(), confirmDeleteUser(userId)]),
       onCancel: (): void => dispatch(resetAlert()),
     };
     dispatch(setWarning(options));
@@ -71,7 +72,7 @@ const createNewUser: ThunkActionCreator = (user: UserFormData): Thunk =>
       const options: AlertPartialOptions = {
         title: 'User Created',
         text: `${user.displayName} has been created as a new user.`,
-        onConfirm: (): void => dispatch(resetAlert()) && dispatch(updateUser(user)),
+        onConfirm: (): void => R.forEach(dispatch, [resetAlert(), updateUser(user)]),
       };
       dispatch(setSuccess(options));
     } catch (error) {
