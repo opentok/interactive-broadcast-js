@@ -4,10 +4,11 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import classNames from 'classnames';
-import BroadcastHeader from './components/BroadcastHeader';
-import BroadcastSidePanel from './components/BroadcastSidePanel';
+import ProducerHeader from './components/ProducerHeader';
+import ProducerSidePanel from './components/ProducerSidePanel';
+import ProducerPrimary from './components/ProducerPrimary';
 import { setBroadcastEvent, resetBroadcastEvent } from '../../actions/broadcast';
-import './Broadcast.css';
+import './Producer.css';
 
 /* beautify preserve:start */
 type InitialProps = { params: { id?: string } };
@@ -24,7 +25,7 @@ type DispatchProps = {
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
 
-class Broadcast extends Component {
+class Producer extends Component {
   props: Props;
   state: { preshowStarted: boolean, showingSidePanel: boolean };
   startPreshow: Unit;
@@ -54,17 +55,13 @@ class Broadcast extends Component {
   render(): ReactComponent {
     const { toggleSidePanel } = this;
     const { showingSidePanel } = this.state;
-    const event = R.defaultTo({})(R.path(['broadcast', 'event'], this.props));
-
     return (
-      <div className="Broadcast">
-        <div className={classNames('Broadcast-main', { full: !showingSidePanel })} >
-          <BroadcastHeader showingSidePanel={showingSidePanel} toggleSidePanel={toggleSidePanel} />
-          <div className="admin-page-content">
-            { JSON.stringify(event) }
-          </div>
+      <div className="Producer">
+        <div className={classNames('Producer-main', { full: !showingSidePanel })} >
+          <ProducerHeader showingSidePanel={showingSidePanel} toggleSidePanel={toggleSidePanel} />
+          <ProducerPrimary />
         </div>
-        <BroadcastSidePanel hidden={!showingSidePanel} />
+        <ProducerSidePanel hidden={!showingSidePanel} />
       </div>
     );
   }
@@ -86,4 +83,4 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
     },
   });
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Broadcast));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Producer));

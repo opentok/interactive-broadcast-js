@@ -1,15 +1,15 @@
-.Broadcast {
+.Producer {
     display: flex;
     position: relative;
     width: 100vw;
 }
-.Broadcast-main {
+.Producer-main {
     height: 100vh;
     width: calc(100% - 320px);
     transition: width .5s;
 }
 
-.Broadcast-main.full {
+.Producer-main.full {
     width: 100%;
 }
 

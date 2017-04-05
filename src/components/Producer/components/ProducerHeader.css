@@ -1,10 +1,10 @@
-.BroadcastHeader {
+.ProducerHeader {
     display: flex;
     justify-content: space-between;
     padding: 7.5px 20px;
 }
 
-.BroadcastHeader-info {
+.ProducerHeader-info {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -12,12 +12,12 @@
     min-width: 700px;
 }
 
-.BroadcastHeader-info a {
+.ProducerHeader-info a {
     color: #00a3e3;
     font-size: 13px;
 }
 
-.BroadcastHeader-info h3 {
+.ProducerHeader-info h3 {
     color: #37363E;
     font-family: 'Montserrat', sans-serif;
     font-size: 22px;
@@ -25,24 +25,24 @@
     margin: 5px 0;
 }
 
-.BroadcastHeader-info .post-production-url {
+.ProducerHeader-info .post-production-url {
     display: flex;
     font-size: 10.5px;
     color: #58666E;
     align-items: center;
 }
 
-.BroadcastHeader-info .post-production-url .label {
+.ProducerHeader-info .post-production-url .label {
     margin-right: 5px;
 }
 
-.BroadcastHeader-info .post-production-url .btn {
+.ProducerHeader-info .post-production-url .btn {
     font-size: 12px;
     margin-left: 15px;
     height: 24px;
 }
 
-.BroadcastHeader-controls {
+.ProducerHeader-controls {
     display: flex;
     flex-direction: row;
     height: 100%;
@@ -50,15 +50,15 @@
     justify-content: center;
 }
 
-.BroadcastHeader-controls>button {
+.ProducerHeader-controls>button {
     height: 30px;
     margin: 0 2px;
 }
 
-.BroadcastHeader-controls .btn.go-live {
+.ProducerHeader-controls .btn.go-live {
     color: #30c06c;
 }
 
-.BroadcastHeader-controls .btn.go-live .icon {
+.ProducerHeader-controls .btn.go-live .icon {
     margin-right: 5px;
 }

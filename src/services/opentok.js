@@ -7,7 +7,7 @@ let otSDK;
 const coreOptions = (credentials: SessionCredentials): CoreOptions => ({
   credentials,
   packages: ['textChat'],
-  streamContainers: (pubSub: PubSub, source: PubSubSource, { userType }: { userType: UserRole }): string => `#${userType}`,
+  streamContainers: (pubSub: PubSub, source: PubSubSource, { userType }: { userType: UserRole }): string => `#video${userType}`,
   controlsContainer: null,
 });
 

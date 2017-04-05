@@ -6,6 +6,8 @@ declare type BroadcastState = {
   connected: boolean
 };
 
+declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
+
 
 declare type BroadcastAction =
   { type: 'SET_BROADCAST_EVENT', event: BroadcastEvent } |

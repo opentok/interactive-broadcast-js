@@ -1,4 +1,4 @@
-.BroadcastSidePanel {
+.ProducerSidePanel {
     position: absolute;
     height: 100%;
     background: white;
@@ -7,14 +7,18 @@
     transition: right .5s;
 }
 
-.BroadcastSidePanel.hidden {
+.ProducerSidePanel.hidden {
     right: -320px;
 }
 
-.BroadcastSidePanel-header {
+.ProducerSidePanel-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 55px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-.BroadcastSidePanel-fan-list {
+.ProducerSidePanel-fan-list {
     width: 320px;
 }

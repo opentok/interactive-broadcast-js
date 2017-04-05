@@ -1,0 +1,87 @@
+.Participant {
+    display: flex;
+    flex-direction: column;
+    width: 24%;
+    height: 28%;
+}
+
+.Participant>div {
+    width: 100%;
+}
+
+.Participant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5px;
+    font-size: 13px;
+    color: #58666E;
+}
+
+.Participant-header .label {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+}
+
+.Participant-header .icon {
+    margin-right: 5px;
+}
+
+.Participant-video {
+    height: 200px;
+    background-color: #e6e6e6;
+}
+
+.Participant-url,
+.Participant-move-fan,
+.Participant-feed-controls {
+    margin-top: 5px;
+    background-color: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+}
+
+.Participant-url,
+.Participant-move-fan,
+.Participant-feed-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 40px;
+    padding: 0 5px;
+    font-size: 12px;
+}
+
+.Participant-move-fan .move.btn {
+    font-size: 12px;
+    padding: 0;
+    transition: color .75s;
+}
+
+.Participant-move-fan .move.btn:hover{
+    background: transparent;
+    color: #23527c;
+}
+
+.Participant-url .url {
+    width: 75%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+}
+
+.Participant-feed-controls .controls {
+    display: flex;
+    align-items: center;
+}
+
+.Participant-feed-controls .controls .control {
+    width: 28px;
+    height: 28px;
+    margin-left: 2px;
+}
+
+.Participant-feed-controls .controls .control .icon {
+    color: #939ca1;
+}

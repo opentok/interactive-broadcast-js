@@ -6,7 +6,7 @@ import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import Users from './components/Users/Users';
 import UpdateEvent from './components/UpdateEvent/UpdateEvent';
-import Broadcast from './components/Broadcast/Broadcast';
+import Producer from './components/Producer/Producer';
 import AuthRoutes from './components/AuthRoutes/AuthRoutes';
 
 const routes = (
@@ -19,7 +19,7 @@ const routes = (
         <Route path="users" component={Users} />
         <Route path="events/new" component={UpdateEvent} />
         <Route path="events/:id/edit" component={UpdateEvent} />
-        <Route path="events/:id" component={Broadcast} />
+        <Route path="events/:id" component={Producer} />
       </Route>
     </Route>
   </Router>);

@@ -1,0 +1,20 @@
+.ProducerPrimary {
+  padding: 30px;
+}
+
+.ProducerPrimary-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: left;
+  color: #58666E;
+  font-size: 12px;
+}
+
+.ProducerPrimary-participants {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 0;
+}
