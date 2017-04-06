@@ -39,8 +39,3 @@ const events = (state: EventsState = initialState, action: EventsAction): Events
 };
 
 export default events;
-
-
-
-
-

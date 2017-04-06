@@ -36,7 +36,7 @@ const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent
     </Link>;
 
   const end = (): ReactComponent =>
-    <button className={style('grey')} key={`action-end-${id}`} onClick={()=> console.log('ending', id)} >
+    <button className={style('grey')} key={`action-end-${id}`} onClick={(): void => console.log('ending', id)} >
       <Icon name="times" /> End Event
     </button>;
 
@@ -46,7 +46,7 @@ const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent
     </button>;
 
   const download = (): ReactComponent =>
-    <button className={style('download')} key={`action-download-${id}`} onClick={()=> console.log('downloading', id)} >
+    <button className={style('download')} key={`action-download-${id}`} onClick={(): void => console.log('downloading', id)} >
       <Icon name="cloud-download" /> Download
     </button>;
 

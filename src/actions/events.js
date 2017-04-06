@@ -1,7 +1,7 @@
 // @flow
 import R from 'ramda';
 import { browserHistory } from 'react-router';
-import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent, getMostRecentEvent } from '../services/api';
+import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent } from '../services/api';
 import { setInfo, setSuccess, setWarning, resetAlert } from './alert';
 
 const setEvents: ActionCreator = (events: BroadcastEventMap): EventsAction => ({
@@ -57,9 +57,8 @@ const sortBroadcastEvents: ActionCreator = (sortBy: EventSortByOption): EventsAc
 const getBroadcastEvents: ThunkActionCreator = (adminId: string): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
-      const [events, mostRecentEvent]: [BroadcastEventMap, BroadcastEvent] = await Promise.all([getEvents(adminId), getMostRecentEvent(adminId)]);
+      const events: BroadcastEventMap = await getEvents(adminId);
       dispatch(setEvents(events));
-      dispatch(setMostRecentEvent(mostRecentEvent));
     } catch (error) {
       console.log(error);
     }

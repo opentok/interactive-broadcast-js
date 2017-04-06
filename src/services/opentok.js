@@ -1,5 +1,4 @@
 // @flow
-import R from 'ramda';
 import otCore from 'opentok-accelerator-core';
 
 let otSDK;
@@ -42,7 +41,6 @@ const disconnect: Unit = () => {
     console.log('ok');
   }
 };
-
 
 
 module.exports = {

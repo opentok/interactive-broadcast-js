@@ -23,7 +23,7 @@ const SortEvents = ({ sorting, setSorting }: Props): ReactComponent => {
       <button className={classNames('btn', { active: sortBy === 'mostRecent' })} onClick={R.partial(setSorting, ['mostRecent'])}>
         <Icon name={iconName} /> Most Recent
       </button>
-      <button className={classNames('btn', { active: sortBy === 'startDate' })} onClick={R.partial(setSorting, ['startDate'])}>
+      <button className={classNames('btn', { active: sortBy === 'dateTimeStart' })} onClick={R.partial(setSorting, ['dateTimeStart'])}>
         <Icon name={iconName} /> Start Date
       </button>
       <button className={classNames('btn', { active: sortBy === 'state' })} onClick={R.partial(setSorting, ['state'])}>
@@ -42,4 +42,3 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SortEvents);
-

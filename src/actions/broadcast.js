@@ -16,7 +16,7 @@ const connectBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
     dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
   };
 
-const resetBroadcastEvent: ThunkActionCreator = (): Thunk  =>
+const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
     disconnect();
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
