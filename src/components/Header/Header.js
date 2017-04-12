@@ -1,14 +1,25 @@
 // @flow
 import React from 'react';
+import { withRouter } from 'react-router';
 import Logout from '../Logout/Logout';
 import './Header.css';
 
+type Props = {
+  routes: array
+};
+
 const DefaultLogo = (): ReactComponent => <div className="Header-logo">Interactive Broadcasting Syndrome</div>;
 
-const Header = (): ReactComponent =>
-  <div className="Header">
-    <DefaultLogo />
-    <Logout />
-  </div>;
+const Header = ({ routes }: Props): ReactComponent => {
+  const currentRoute = routes[routes.length - 1];
+  if (currentRoute.hideHeader) return null;
+  return (
+    <div className="Header">
+      <DefaultLogo />
+      <Logout />
+    </div>
+  );
+};
 
-export default Header;
+
+export default withRouter(Header);

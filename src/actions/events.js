@@ -1,7 +1,7 @@
 // @flow
 import R from 'ramda';
 import { browserHistory } from 'react-router';
-import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent } from '../services/api';
+import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent, getEventWithCredentials } from '../services/api';
 import { setInfo, setSuccess, setWarning, resetAlert } from './alert';
 
 const setEvents: ActionCreator = (events: BroadcastEventMap): EventsAction => ({
@@ -16,6 +16,11 @@ const setMostRecentEvent: ActionCreator = (event: BroadcastEvent): EventsAction 
 
 const setOrUpdateEvent: ActionCreator = (event: BroadcastEvent): EventsAction => ({
   type: 'UPDATE_EVENT',
+  event,
+});
+
+const setEventWithCredentials: ActionCreator = (event: Event): EventsAction => ({
+  type: 'SET_EVENT_WITH_CREDENTIALS',
   event,
 });
 
@@ -125,6 +130,17 @@ const deleteBroadcastEvent: ThunkActionCreator = ({ id, name }: { id: EventId, n
     dispatch(setWarning(options));
   };
 
+const getEventData: ThunkActionCreator = (adminId: string, userType: string, slug: string): Thunk =>
+  async (dispatch: Dispatch, getState: State): AsyncVoid => {
+    try {
+      const data = { adminId, userType };
+      data[`${userType}Url`] = slug;
+      const eventData = await getEventWithCredentials(data, getState().auth.authToken);
+      dispatch(setEventWithCredentials(eventData));
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
 module.exports = {
   getBroadcastEvents,
@@ -136,4 +152,5 @@ module.exports = {
   deleteBroadcastEvent,
   uploadEventImage,
   uploadEventImageSuccess,
+  getEventData,
 };

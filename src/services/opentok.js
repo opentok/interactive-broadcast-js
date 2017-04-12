@@ -1,12 +1,14 @@
 // @flow
-import otCore from 'opentok-accelerator-core';
+import Core from 'opentok-accelerator-core';
 
-let otSDK;
+let coreStage;
+let coreBackstage;
 
-const coreOptions = (credentials: SessionCredentials): CoreOptions => ({
+const coreOptions = (credentials: SessionCredentials, publisherRole: string): CoreOptions => ({
   credentials,
   packages: ['textChat'],
-  streamContainers: (pubSub: PubSub, source: PubSubSource, { userType }: { userType: UserRole }): string => `#video${userType}`,
+  streamContainers: (pubSub: PubSub, source: PubSubSource, data: object, stream: object): string =>
+      `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`,
   controlsContainer: null,
 });
 
@@ -24,9 +26,27 @@ const connect = async ({ apiKey, backstageToken, stageToken, event }: ProducerCr
   try {
     // Core and SDK Wrapper should have 'connected' properties returned by state
     // They should also wrap disconnect in try/catch in case a user tries to disconnect before connecting
-    otCore.init(coreOptions(stageCredentials));
-    otSDK = new otCore.OpenTokSDK(backstageCredentials);
-    await Promise.all([otCore.connect(), otSDK.connect()]);
+    coreStage = new Core(coreOptions(stageCredentials));
+    coreBackstage = new Core(coreOptions(backstageCredentials));
+    await Promise.all([coreStage.connect(), coreBackstage.connect()]);
+    coreStage.startCall({ name: 'aaron' });
+    return;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const connectCelebHost = async ({ apiKey, stageSessionId, stageToken, userType }: CelebHostCredentials): AsyncVoid => {
+  const stageCredentials = {
+    apiKey,
+    sessionId: stageSessionId,
+    token: stageToken,
+  };
+
+  try {
+    coreStage = new Core(coreOptions(stageCredentials, userType));
+    await coreStage.connect();
+    await coreStage.startCall();
     return;
   } catch (error) {
     throw error;
@@ -35,15 +55,15 @@ const connect = async ({ apiKey, backstageToken, stageToken, event }: ProducerCr
 
 const disconnect: Unit = () => {
   try {
-    otCore.disconnect();
-    otSDK.disconnect();
+    coreStage.disconnect();
+    coreBackstage.disconnect();
   } catch (error) {
     console.log('ok');
   }
 };
 
-
 module.exports = {
   connect,
   disconnect,
+  connectCelebHost,
 };

@@ -118,7 +118,7 @@ class UpdateEvent extends Component {
     return (
       <div className="UpdateEvent">
         <div className="UpdateEvent-header admin-page-header">
-          <Link to="admin">Back to Events</Link>
+          <Link to="/admin">Back to Events</Link>
           <h3>{ eventId ? 'Edit Event' : 'Add New Event' }</h3>
         </div>
         <div className="admin-page-content">

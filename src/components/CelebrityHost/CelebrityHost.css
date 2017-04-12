@@ -1,0 +1,46 @@
+body {
+  background: #F5F5F5;
+  color: #58666E;
+  margin: 0;
+  line-height: 1.7em;
+  font-size: 13px;
+  font-family: 'Open Sans', sans-serif;
+  outline: 0;
+}
+
+.CelebrityHost {
+  background-color: #F5F5F5;
+  min-height: 100%;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 20px;
+  color: #58666E;
+}
+
+.CelebrityHost .Container {
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+  width: 100%;
+  position: relative;
+  min-height: 1px;
+}
+
+@media screen and (min-width: 768px) {
+  .CelebrityHost .Container {
+    width: 750px;
+  }
+}
+
+@media screen and (min-width: 992px) {
+  .CelebrityHost .Container {
+    width: 970px;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .CelebrityHost .Container {
+    width: 1170px;
+  }
+}

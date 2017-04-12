@@ -1,7 +1,7 @@
 // @flow
 import R from 'ramda';
 import firebase from '../services/firebase';
-import { getAuthToken } from '../services/api';
+import { getAuthToken, getAuthTokenUser } from '../services/api';
 import { saveAuthToken } from '../services/localStorage';
 import { logIn, logOut } from './currentUser';
 import { setSuccess, resetAlert, setInfo } from './alert';
@@ -23,6 +23,16 @@ const validate: ThunkActionCreator = (uid: string, idToken: string): Thunk =>
       const { token } = await getAuthToken(idToken);
       saveAuthToken(token);
       dispatch(logIn(uid));
+    } catch (error) {
+      await dispatch(authError(error));
+    }
+  };
+
+const validateUser: ThunkActionCreator = (adminId: string, userType: UserType, userUrl: string): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    try {
+      const { token } = await getAuthTokenUser(adminId, userType, userUrl);
+      dispatch({ type: 'SET_AUTH_TOKEN', token });
     } catch (error) {
       await dispatch(authError(error));
     }
@@ -65,4 +75,5 @@ module.exports = {
   signOut,
   userForgotPassword,
   resetPassword,
+  validateUser,
 };

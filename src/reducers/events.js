@@ -14,6 +14,8 @@ const reverseOrder = (current: EventOrderOption): EventOrderOption => current ==
 
 const events = (state: EventsState = initialState, action: EventsAction): EventsState => {
   switch (action.type) {
+    case 'SET_EVENT_WITH_CREDENTIALS':
+      return R.assoc('eventData', action.event, state);
     case 'ADD_EVENT':
       return R.assocPath(['map', action.event.id], action.event, state);
     case 'SET_EVENTS':

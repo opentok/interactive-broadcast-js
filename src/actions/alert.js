@@ -58,8 +58,6 @@ const setInfo: ThunkActionCreator = (options: AlertPartialOptions): Thunk =>
     dispatch(setAlert(R.merge(defaultOptions, options)));
   };
 
-
-
 module.exports = {
   setAlert,
   setError,

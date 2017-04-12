@@ -9,7 +9,8 @@ const defaultHeaders = { 'Content-Type': 'application/json' };
 /** ********* */
 
 /** Generator headers for a request */
-const headers = (requiresAuth: boolean): Headers => R.merge(defaultHeaders, requiresAuth ? { Authorization: `Bearer ${jwt()}` } : null);
+const headers = (requiresAuth: boolean, authToken: string): Headers =>
+  R.merge(defaultHeaders, requiresAuth ? { Authorization: `Bearer ${authToken || jwt()}` } : null);
 
 /** Check for external route containing http/https */
 const getURL = (route: string): string => route.includes('http') ? route : `${apiUrl}/${route}`;
@@ -22,6 +23,7 @@ const parseResponse = (response: Response): * => {
   } else if (contentType === 'text/html') {
     return response.text();
   }
+  return null;
 };
 
 /** Check for API-level errors */
@@ -33,23 +35,24 @@ const checkStatus = (response: Response): PromiseLike =>
     parseResponse(response)
       .then(({ message }: { message: string }): PromiseLike => reject(new Error(message)))
       .catch(reject);
+    return null;
   });
 
 /** Create a new Request object */
-const request = (method: HttpMethod, route: string, data: * = null, requiresAuth: boolean = true): Request => {
+const request = (method: HttpMethod, route: string, data: * = null, requiresAuth: boolean = true, authToken: string = null): Request => {
   const body = data && JSON.stringify(data);
   return new Request(getURL(route), {
     method: method.toUpperCase(),
     mode: 'cors',
-    headers: new Headers(headers(requiresAuth)),
+    headers: new Headers(headers(requiresAuth, authToken)),
     body,
   });
 };
 
 /** Execute a request using fetch */
-const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth: boolean = true): Promise =>
+const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth: boolean = true, authToken: string = null): Promise =>
   new Promise((resolve: PromiseLike, reject: PromiseLike) => {
-    fetch(request(method, route, body, requiresAuth))
+    fetch(request(method, route, body, requiresAuth, authToken))
       .then(checkStatus)
       .then(parseResponse)
       .then(resolve)
@@ -57,8 +60,9 @@ const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth
   });
 
 /** HTTP Methods */
-const get = (route: string, requiresAuth: boolean = true): Promise => execute('get', route, null, requiresAuth);
-const post = (route: string, body: * = null, requiresAuth: boolean = true): Promise => execute('post', route, body, requiresAuth);
+const get = (route: string, requiresAuth: boolean = true, authToken: string = null): Promise => execute('get', route, null, requiresAuth, authToken);
+const post = (route: string, body: * = null, requiresAuth: boolean = true, authToken: string = null): Promise =>
+  execute('post', route, body, requiresAuth, authToken);
 const put = (route: string, body: * = null, requiresAuth: boolean = true): Promise => execute('put', route, body, requiresAuth);
 const patch = (route: string, body: * = null, requiresAuth: boolean = true): Promise => execute('patch', route, body, requiresAuth);
 const del = (route: string, requiresAuth: boolean = true): Promise => execute('delete', route, null, requiresAuth);
@@ -66,9 +70,8 @@ const del = (route: string, requiresAuth: boolean = true): Promise => execute('d
 /** Exports */
 
 /** Auth */
-const getAuthTokenFan = (userId: string): Promise => post('auth/token-fan', { uid: userId }, false);
-const getAuthTokenCelebrity = (userId: string): Promise => post('auth/token-celebrity', { uid: userId }, false);
-const getAuthTokenHost = (userId: string): Promise => post('auth/token-host', { uid: userId }, false);
+const getAuthTokenUser = (adminId: string, userType: string, userUrl: string): Promise =>
+  post(`auth/token-${userType}`, R.assoc(`${userType}Url`, userUrl, { adminId }), false);
 const getAuthToken = (idToken: string): Promise => post('auth/token', { idToken }, false);
 
 /** User */
@@ -87,14 +90,12 @@ const updateEventStatus = (id: string, status: EventStatus): Promise => put(`eve
 const deleteEvent = (id: string): Promise => del(`event/${id}`);
 const getMostRecentEvent = (id: string): Promise => get(`event/get-current-admin-event?adminId=${id}`);
 const getAdminCredentials = (eventId: eventId): Promise => post(`event/create-token-producer/${eventId}`);
-
+const getEventWithCredentials = (data: object, authToken: string): Promise => post(`event/create-token-${data.userType}`, data, true, authToken);
 /** Exports */
 
 module.exports = {
   getAuthToken,
-  getAuthTokenFan,
-  getAuthTokenCelebrity,
-  getAuthTokenHost,
+  getAuthTokenUser,
   getUser,
   createUser,
   updateUser,
@@ -109,4 +110,5 @@ module.exports = {
   getAdminCredentials,
   deleteUserRecord,
   url,
+  getEventWithCredentials,
 };

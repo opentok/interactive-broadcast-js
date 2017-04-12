@@ -8,12 +8,15 @@ import Users from './components/Users/Users';
 import UpdateEvent from './components/UpdateEvent/UpdateEvent';
 import Producer from './components/Producer/Producer';
 import AuthRoutes from './components/AuthRoutes/AuthRoutes';
+import CelebrityHost from './components/CelebrityHost/CelebrityHost';
 
 const routes = (
   <Router history={browserHistory}>
     <Route path="/" component={App} >
       <IndexRedirect to="login" />
       <Route path="login" component={Login} />
+      <Route path="/show-host/:adminId/:hostUrl" component={CelebrityHost} hideHeader userType={'host'} />
+      <Route path="/show-celebrity/:adminId/:celebrityUrl" component={CelebrityHost} hideHeader userType={'celebrity'} />
       <Route component={AuthRoutes}>
         <Route path="admin" component={Dashboard} />
         <Route path="users" component={Users} />

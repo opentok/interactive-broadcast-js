@@ -15,8 +15,3 @@ const users = (state: UserMap = {}, action: ManageUsersAction): UserMap => {
 };
 
 export default users;
-
-
-
-
-

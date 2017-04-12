@@ -10,8 +10,3 @@ const user = (state: CurrentUserState = null, action: UserAction): CurrentUserSt
 };
 
 export default user;
-
-
-
-
-
