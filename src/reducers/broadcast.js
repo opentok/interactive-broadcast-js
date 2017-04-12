@@ -4,6 +4,7 @@ import R from 'ramda';
 const initialState: BroadcastState = {
   event: null,
   connected: false,
+  presenceConnected: false,
 };
 
 const broadcast = (state: BroadcastState = initialState, action: BroadcastAction): BroadcastState => {
@@ -12,6 +13,8 @@ const broadcast = (state: BroadcastState = initialState, action: BroadcastAction
       return R.assoc('event', action.event, state);
     case 'BROADCAST_CONNECTED':
       return R.assoc('connected', action.connected, state);
+    case 'BROADCAST_PRESENCE_CONNECTED':
+      return R.assoc('presenceConnected', action.connected, state);
     case 'RESET_BROADCAST_EVENT':
       return initialState;
     default:

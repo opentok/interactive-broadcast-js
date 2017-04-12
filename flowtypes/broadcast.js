@@ -3,7 +3,8 @@
 /* beautify preserve:start */
 declare type BroadcastState = {
   event: null | BroadcastEvent,
-  connected: boolean
+  connected: boolean,
+  presenceConnected: boolean
 };
 
 declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
@@ -12,4 +13,5 @@ declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
 declare type BroadcastAction =
   { type: 'SET_BROADCAST_EVENT', event: BroadcastEvent } |
   { type: 'RESET_BROADCAST_EVENT' } |
-  { type: 'BROADCAST_CONNECTED', connected: boolean };
+  { type: 'BROADCAST_CONNECTED', connected: boolean } |
+  { type: 'BROADCAST_PRESENCE_CONNECTED', connected: boolean };

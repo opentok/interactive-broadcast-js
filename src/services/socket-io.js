@@ -1,3 +1,4 @@
+// @flow
 import io from 'socket.io-client';
 import { url } from './api';
 

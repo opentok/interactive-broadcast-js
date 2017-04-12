@@ -9,7 +9,7 @@
     "hashids": "^1.1.1",
     "lodash.throttle": "^4.1.1",
     "moment": "^2.17.1",
-    "opentok-accelerator-core": "^2.0.0",
+    "opentok-accelerator-core": "^2.0.3",
     "opentok-text-chat": "^1.0.29",
     "ramda": "^0.23.0",
     "react": "^15.4.2",
@@ -37,7 +37,7 @@
     "eslint-plugin-flowtype": "^2.30.3",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-react": "^6.10.0",
-    "flow-bin": "^0.41.0",
+    "flow-bin": "*",
     "react-scripts": "0.9.4"
   },
   "scripts": {

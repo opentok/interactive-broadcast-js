@@ -3,7 +3,7 @@
 /* beautify preserve:start */
 
 declare type PubSub = 'publisher' | 'subscriber';
-declare type PubSubSource = 'camera' | 'screen';
+declare type VideoType = 'camera' | 'screen';
 declare type SessionCredentials = {
   apiKey: string,
   sessionId: string,
@@ -19,6 +19,23 @@ declare type ProducerCredentials = {
 declare type CoreOptions = {
   credentials: SessionCredentials,
   packages: [string],
-  streamContainers: (PubSub, PubSubSource, {userType: UserRole}) => string,
+  streamContainers: (PubSub, VideoType, {userType: UserRole}, Stream) => string,
   controlsContainer: null | string
 };
+
+declare type Connection = {
+  connectionId: string,
+  creationTime: number,
+  data: string
+}
+
+declare type Stream = {
+  connection: Connection,
+  creationTime: number,
+  frameRate: number,
+  hasAudio: boolean,
+  hasVideo: boolean,
+  name: string,
+  videoDimensions: { width: number, height: number },
+  videoType: VideoType
+}

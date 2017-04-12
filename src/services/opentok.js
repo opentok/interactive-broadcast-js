@@ -4,11 +4,12 @@ import Core from 'opentok-accelerator-core';
 let coreStage;
 let coreBackstage;
 
-const coreOptions = (credentials: SessionCredentials, publisherRole: string): CoreOptions => ({
+const coreOptions = (credentials: SessionCredentials, publisherRole: UserRole): CoreOptions => ({
   credentials,
   packages: ['textChat'],
-  streamContainers: (pubSub: PubSub, source: PubSubSource, data: object, stream: object): string =>
-      `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`,
+  streamContainers(pubSub: PubSub, source: VideoType, data: { userType: UserRole }, stream: Stream): string {
+    return `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`;
+  },
   controlsContainer: null,
 });
 
@@ -29,7 +30,6 @@ const connect = async ({ apiKey, backstageToken, stageToken, event }: ProducerCr
     coreStage = new Core(coreOptions(stageCredentials));
     coreBackstage = new Core(coreOptions(backstageCredentials));
     await Promise.all([coreStage.connect(), coreBackstage.connect()]);
-    coreStage.startCall({ name: 'aaron' });
     return;
   } catch (error) {
     throw error;
@@ -47,6 +47,7 @@ const connectCelebHost = async ({ apiKey, stageSessionId, stageToken, userType }
     coreStage = new Core(coreOptions(stageCredentials, userType));
     await coreStage.connect();
     await coreStage.startCall();
+>>>>>>> ee128fe2bb89b895b8daa151781b89f4426b040a
     return;
   } catch (error) {
     throw error;

@@ -5,14 +5,25 @@ import { updateStatus } from './events';
 import { setInfo } from './alert';
 import { getEvent, getAdminCredentials } from '../services/api';
 import { connect, disconnect } from '../services/opentok';
+import io from '../services/socket-io';
 
 const notStarted = R.propEq('status', 'notStarted');
 const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' ? 'preshow' : s };
+
+
+const connectToPresence: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch) => {
+    const onConnect = () => {
+      dispatch({ type: 'BROADCAST_PRESENCE_CONNECTED', connected: true });
+    };
+    io.connected ? onConnect() : io.on('connect', onConnect);
+  };
 
 const connectBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const credentials = await getAdminCredentials(eventId);
     await connect(credentials);
+    dispatch(connectToPresence());
     dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
   };
 
