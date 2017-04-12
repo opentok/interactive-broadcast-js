@@ -47,7 +47,6 @@ const connectCelebHost = async ({ apiKey, stageSessionId, stageToken, userType }
     coreStage = new Core(coreOptions(stageCredentials, userType));
     await coreStage.connect();
     await coreStage.startCall();
->>>>>>> ee128fe2bb89b895b8daa151781b89f4426b040a
     return;
   } catch (error) {
     throw error;
