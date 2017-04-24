@@ -2,6 +2,7 @@
     display: flex;
     justify-content: space-between;
     padding: 7.5px 20px;
+    background: #ffffff;
 }
 
 .ProducerHeader-info {
@@ -61,4 +62,13 @@
 
 .ProducerHeader-controls .btn.go-live .icon {
     margin-right: 5px;
+}
+
+.ProducerHeader-controls .btn.go-live:hover {
+    background: #30c06c;
+    color:#ffffff;
+}
+
+.ProducerHeader-controls .btn.end-show .icon {
+  padding-right: 3px;
 }

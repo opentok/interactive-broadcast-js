@@ -2,16 +2,16 @@
 import React from 'react';
 import classNames from 'classnames';
 import VideoHolder from './VideoHolder';
-import './CelebrityHostBody.css';
+import './FanBody.css';
 import defaultImg from '../../../images/TAB_VIDEO_PREVIEW_LS.jpg';
 
 const userTypes = ['host', 'celebrity', 'fan'];
 
-const CelebrityHostBody = (props: Props): ReactComponent => {
+const FanBody = (props: Props): ReactComponent => {
   const { status, endImage, participants, totalStreams } = props;
   const VideoWrap = classNames('VideoWrap', `streams-${totalStreams}`);
   return (
-    <div className="CelebrityHostBody">
+    <div className="FanBody">
       { status === 'closed' &&
         <div className="closeImageHolder">
           <img src={endImage || defaultImg} alt="event ended" className="closeImage" />
@@ -29,4 +29,4 @@ const CelebrityHostBody = (props: Props): ReactComponent => {
   );
 };
 
-export default CelebrityHostBody;
+export default FanBody;

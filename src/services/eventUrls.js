@@ -22,4 +22,3 @@ const createUrls = ({ name, adminId }: { name?: string, adminId: string}): Event
 };
 
 export default createUrls;
-

@@ -6,16 +6,17 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from '../../actions/auth';
-import { initCelebHost, setBroadcastState, startCountdown, publishOnly, setBroadcastEventWithCredentials } from '../../actions/broadcast';
+import { getEventData, setEventWithCredentials } from '../../actions/events';
+import { initCelebHost, setBroadcastState, startCountdown, publishOnly, initFan } from '../../actions/broadcast';
 import { setInfo, resetAlert } from '../../actions/alert';
-import CelebrityHostHeader from './components/CelebrityHostHeader';
-import CelebrityHostBody from './components/CelebrityHostBody';
+import FanHeader from './components/FanHeader';
+import FanBody from './components/FanBody';
 import Loading from '../../components/Common/Loading';
 import { toggleLocalVideo, toggleLocalAudio, disconnect, changeVolume } from '../../services/opentok';
-import './CelebrityHost.css';
+import './Fan.css';
 
 /* beautify preserve:start */
-type InitialProps = { params: { hostUrl: string, celebrityUrl: string, adminId: string } };
+type InitialProps = { params: { hostUrl: string, fanUrl: string, adminId: string } };
 type DispatchProps = {
   init: () => void,
   changeEventStatus: (event: BroadcastEvent) => void,
@@ -26,7 +27,7 @@ type Props = InitialProps & BaseProps & DispatchProps;
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
-class CelebrityHost extends Component {
+class Fan extends Component {
 
   props: Props;
   init: Unit;
@@ -70,9 +71,6 @@ class CelebrityHost extends Component {
       case 'signal:privateCall': // @TODO
       case 'signal:endPrivateCall': // @TODO
       case 'signal:openChat': // @TODO
-      case 'signal:newBackstageFan':
-        fromProducer && newBackstageFan();
-        break;
       case 'signal:finishEvent':
         fromProducer && this.changeStatus('closed');
         break;
@@ -94,18 +92,18 @@ class CelebrityHost extends Component {
     if (!eventData) return <Loading />;
     const totalStreams = broadcastState && broadcastState.meta ? parseInt(broadcastState.meta.subscriber.total, 0) + 1 : 1;
     return (
-      <div className="CelebrityHost">
+      <div className="Fan">
         <div className="Container">
-          <CelebrityHostHeader
+          <FanHeader
             name={eventData.name}
             status={status}
             userType={userType}
             togglePublishOnly={togglePublishOnly}
             publishOnlyEnabled={publishOnlyEnabled}
           />
-          <CelebrityHostBody
+          <FanBody
             endImage={eventData.endImage}
-            participants={!publishOnlyEnabled && participants}
+            participants={participants}
             totalStreams={totalStreams}
             status={status}
             userType={userType}
@@ -117,11 +115,12 @@ class CelebrityHost extends Component {
 }
 
 const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
-  const { hostUrl, celebrityUrl } = ownProps.params;
+  const { hostUrl, fanUrl } = ownProps.params;
+  console.log('state', state);
   return {
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),
-    userUrl: hostUrl || celebrityUrl,
+    userUrl: fanUrl,
     eventData: R.path(['broadcast', 'event'], state),
     status: R.path(['broadcast', 'event', 'status'], state),
     broadcastState: R.path(['broadcast', 'state'], state),
@@ -132,10 +131,10 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
 ({
-  init: (options: initOptions): void => dispatch(initCelebHost(options)),
-  changeEventStatus: (event: BroadcastEvent): void => dispatch(setBroadcastEventWithCredentials(event)),
+  init: (options: initOptions): void => dispatch(initFan(options)),
+  changeEventStatus: (event: BroadcastEvent): void => dispatch(setEventWithCredentials(event)),
   showCountdown: (): void => dispatch(startCountdown()),
   togglePublishOnly: (enable: boolean): void => dispatch(publishOnly()),
 });
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(CelebrityHost));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Fan));

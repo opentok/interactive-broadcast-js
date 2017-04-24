@@ -8,6 +8,7 @@ import ProducerHeader from './components/ProducerHeader';
 import ProducerSidePanel from './components/ProducerSidePanel';
 import ProducerPrimary from './components/ProducerPrimary';
 import { setBroadcastEvent, resetBroadcastEvent } from '../../actions/broadcast';
+import { changeVolume } from '../../services/opentok';
 import './Producer.css';
 
 /* beautify preserve:start */
@@ -37,15 +38,29 @@ class Producer extends Component {
       showingSidePanel: true,
     };
     this.toggleSidePanel = this.toggleSidePanel.bind(this);
+    this.signalListener = this.signalListener.bind(this);
+  }
+
+  signalListener({ type, data, from }: OTSignal) {
+    const signalData = data ? JSON.parse(data) : {};
+    const fromData = JSON.parse(from.data);
+    const fromProducer = fromData.userType === 'producer';
+    switch (type) {
+      case 'signal:changeVolume':
+        fromProducer && changeVolume(signalData.userType, signalData.volume, true);
+        break;
+      default:
+        break;
+    }
   }
 
   toggleSidePanel() {
     this.setState({ showingSidePanel: !this.state.showingSidePanel });
   }
 
-  componentWillMount() {
+  componentDidMount() {
     const { setEvent, eventId } = this.props;
-    setEvent(eventId);
+    setEvent(eventId, this.signalListener);
   }
 
   componentWillUnmount() {
@@ -75,8 +90,8 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => ({
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
-    setEvent: (eventId: EventId) => {
-      dispatch(setBroadcastEvent(eventId));
+    setEvent: (eventId: EventId, onSignal: Listener) => {
+      dispatch(setBroadcastEvent(eventId, onSignal));
     },
     resetEvent: () => {
       dispatch(resetBroadcastEvent());

@@ -1,11 +1,11 @@
-.CelebrityHostBody {
+.FanBody {
   padding: 0;
   color: inherit;
   background-color: transparent;
   border-radius: 0 0 3px 3px;
 }
 
-.CelebrityHostBody .VideoWrap {
+.FanBody .VideoWrap {
   height: 0;
   position: relative;
   float: left;
@@ -14,7 +14,7 @@
   border-bottom-right-radius: 4px;
 }
 
-.CelebrityHostBody .closeImageHolder {
+.FanBody .closeImageHolder {
   width: 100%;
   border: 1px solid #ddd;
   border-bottom-left-radius: 4px;
@@ -23,33 +23,33 @@
   min-height: 200px;
 }
 
-.CelebrityHostBody .closeImageHolder .closeImage {
+.FanBody .closeImageHolder .closeImage {
   width: 100%;
   vertical-align: middle;
 }
 
-.CelebrityHostBody .VideoWrap.streams-1 {
+.FanBody .VideoWrap.streams-1 {
   width: 100%;
   padding-bottom: 56.25%;
 }
 
-.CelebrityHostBody .VideoWrap.streams-2 {
+.FanBody .VideoWrap.streams-2 {
   width: 50%;
   padding-bottom: 29.25%;
   border: none;
 }
 
-.CelebrityHostBody .VideoWrap.streams-3 {
+.FanBody .VideoWrap.streams-3 {
   width: 33.33%;
   padding-bottom: 29.25%;
   border: none;
 }
 
-.CelebrityHostBody .VideoWrap.hide {
+.FanBody .VideoWrap.hide {
   display:none;
 }
 
-.CelebrityHostBody .VideoWindow {
+.FanBody .VideoWindow {
   position: absolute;
   height: 100%;
   min-height: 0px;

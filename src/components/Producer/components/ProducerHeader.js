@@ -5,15 +5,24 @@ import { connect } from 'react-redux';
 import Icon from 'react-fontawesome';
 import CopyToClipboard from '../../Common/CopyToClipboard';
 import createUrls from '../../../services/eventUrls';
+import { changeStatus } from '../../../actions/broadcast';
 import './ProducerHeader.css';
 
-type Props = {
+type BaseProps = {
   broadcast: BroadcastState,
   currentUser: User,
   showingSidePanel: boolean,
   toggleSidePanel: Unit
 };
-const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentUser }: Props): ReactComponent => {
+
+type DispatchProps = {
+  goLive: string => void,
+  endShow: string => void
+};
+
+type Props = BaseProps & DispatchProps;
+
+const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentUser, goLive, endShow }: Props): ReactComponent => {
   const event = R.defaultTo({})(broadcast.event);
   const { status } = event;
   const { connected } = broadcast;
@@ -34,9 +43,15 @@ const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentU
       </div>
       <div className="ProducerHeader-controls">
         { status === 'preshow' &&
-          <button className="btn white go-live">
+          <button className="btn white go-live" onClick={R.partial(goLive, [event.id])}>
             <Icon className="icon" name={connected ? 'circle' : 'spinner'} />
             { connected ? 'GO LIVE' : 'CONNECTING' }
+          </button>
+        }
+        { status === 'live' &&
+          <button className="btn red end-show" onClick={R.partial(endShow, [event.id])}>
+            <Icon className="icon" name="times" />
+            END SHOW
           </button>
         }
         <CopyToClipboard text={currentUser.id} onCopyText="Admin ID" >
@@ -48,6 +63,14 @@ const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentU
       </div>
     </div>);
 };
-
+const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
+  ({
+    goLive: (id: string) => {
+      dispatch(changeStatus(id, 'live'));
+    },
+    endShow: (id: string) => {
+      dispatch(changeStatus(id, 'closed'));
+    },
+  });
 const mapStateToProps = (state: State): Props => R.pick(['currentUser', 'broadcast'], state);
-export default connect(mapStateToProps)(ProducerHeader);
+export default connect(mapStateToProps, mapDispatchToProps)(ProducerHeader);

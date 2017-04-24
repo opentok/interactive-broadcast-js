@@ -1,13 +1,13 @@
 // @flow
 import React from 'react';
 import classNames from 'classnames';
-import './CelebrityHostHeader.css';
+import './FanHeader.css';
 
-const CelebrityHostHeader = (props: Props): ReactComponent => {
+const FanHeader = (props: Props): ReactComponent => {
   const { userType, name, status, togglePublishOnly, publishOnlyEnabled } = props;
   const btnClass = classNames('btn action', { red: !publishOnlyEnabled }, { green: publishOnlyEnabled });
   return (
-    <div className="CelebrityHostHeader">
+    <div className="FanHeader">
       <div className="Title">
         <h4>{name}<sup>{status === 'notStarted' ? 'NOT STARTED' : status}</sup></h4>
         { status !== 'closed' &&
@@ -25,4 +25,4 @@ const CelebrityHostHeader = (props: Props): ReactComponent => {
   );
 };
 
-export default CelebrityHostHeader;
+export default FanHeader;

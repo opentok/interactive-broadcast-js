@@ -1,30 +1,46 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import R from 'ramda';
-import Icon from 'react-fontawesome';
 import classNames from 'classnames';
+import Icon from 'react-fontawesome';
 import CopyToClipboard from '../../Common/CopyToClipboard';
 import createUrls from '../../../services/eventUrls';
+import ControlIcon from './ControlIcon';
+import { toggleParticipantProperty } from '../../../actions/broadcast';
 import './Participant.css';
 
 const isBackstageFan = R.equals('backstageFan');
 const getHeaderLabel = (type: ParticipantType): string =>
   R.toUpper(isBackstageFan(type) ? 'backstage fan' : type);
 
-type Props = {
+type BaseProps = {
   type: ParticpantType,
   broadcast: BroadcastState
 };
 
-const Participant = ({ type, broadcast }: Props): ReactComponent => {
+type DispatchProps = {
+  toggleAudio: () => void,
+  toggleVideo: () => void,
+  toggleVolume: () => void
+};
+
+type Props = BaseProps & DispatchProps;
+
+const Participant = ({ type, broadcast, toggleAudio, toggleVideo, toggleVolume }: Props): ReactComponent => {
   const url = R.prop(`${type}Url`, createUrls(broadcast.event || {}));
+  const me = R.prop(`${type}`, broadcast.participants);
+  const statusIconClass = classNames('icon', { green: me.connected });
+  const controlIconClass = classNames('icon', { active: me.connected });
+  const status = me.connected ? 'Online' : 'Offline';
   return (
     <div className="Participant">
+      { !me.audio && me.connected && <div className="Participant-muted">MUTED</div> }
       <div className="Participant-header">
         <span className="label" >{ getHeaderLabel(type) } </span>
-        <span><Icon className="icon" name="circle" />Offline</span>
+        <span><Icon className={statusIconClass} name="circle" />{status}</span>
       </div>
-      <div className="Participant-video" id={`${type}Video`} />
+      <div className="Participant-video" id={`video${type}`} />
+
       { isBackstageFan(type) ?
         <div className="Participant-move-fan">
           <button className="move btn transparent">Move to fan feed</button>
@@ -39,13 +55,13 @@ const Participant = ({ type, broadcast }: Props): ReactComponent => {
       <div className="Participant-feed-controls">
         <span className="label">Alter Feed</span>
         <div className="controls">
-          <button className="btn white control"><Icon className="icon" name="volume-up" /></button>
-          <button className="btn white control"><Icon className="icon" name="phone" /></button>
-          <button className="btn white control"><Icon className="icon" name="microphone" /></button>
-          <button className="btn white control"><Icon className="icon" name="video-camera" /></button>
+          <ControlIcon name={me.volume ? 'volume-up' : 'volume-down'} className={controlIconClass} disabled={!me.connected} onClick={toggleVolume} />
+          <ControlIcon name="phone" className={controlIconClass} disabled={!me.connected} />
+          <ControlIcon name={me.audio ? 'microphone' : 'microphone-slash'} disabled={!me.connected} className={controlIconClass} onClick={toggleAudio} />
+          <ControlIcon name="video-camera" className={controlIconClass} onClick={toggleVideo} disabled={!me.connected} />
           { R.contains('fan', R.toLower(type)) ?
-            <button className="btn white control"><Icon className="icon" name="ban" /></button> :
-            <button className="btn white control"><Icon className="icon" name="comment" /></button>
+            <ControlIcon name="ban" className={controlIconClass} disabled={!me.connected} /> :
+            <ControlIcon name="comment" className={controlIconClass} disabled={!me.connected} />
           }
         </div>
       </div>
@@ -53,6 +69,17 @@ const Participant = ({ type, broadcast }: Props): ReactComponent => {
   );
 };
 
-const mapStateToProps = (state: State): BaseProps => R.pick(['broadcast'], state);
+const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch, ownProps: Props): DispatchProps =>
+({
+  toggleAudio: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'audio')),
+  toggleVideo: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'video')),
+  toggleVolume: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'volume')),
+});
 
-export default connect(mapStateToProps)(Participant);
+const mapStateToProps = (state: State): BaseProps => (
+  {
+    broadcast: R.path(['broadcast'], state),
+  }
+);
+
+export default connect(mapStateToProps, mapDispatchToProps)(Participant);

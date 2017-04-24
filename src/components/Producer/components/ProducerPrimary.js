@@ -4,7 +4,6 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import Icon from 'react-fontawesome';
-import classNames from 'classnames';
 import Particpant from './Participant';
 import './ProducerPrimary.css';
 
@@ -29,8 +28,6 @@ class ProducerPrimary extends Component {
   }
 
   render(): ReactComponent {
-    const event = R.defaultTo({})(R.path(['broadcast', 'event'], this.props));
-
     return (
       <div className="ProducerPrimary admin-page-content">
         <div className="ProducerPrimary-info">

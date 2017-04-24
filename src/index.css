@@ -60,6 +60,16 @@ input.error {
     background-color: rgb(249, 249, 249);
 }
 
+.btn.red {
+    color: #ffffff;
+    background-color: #EF4836;
+    border: 1px solid rgb(232, 235, 237);
+}
+
+.btn.red:hover {
+    background-color: #f15949;
+}
+
 .btn.transparent {
     color: #00a3e3;
     background-color: transparent;
