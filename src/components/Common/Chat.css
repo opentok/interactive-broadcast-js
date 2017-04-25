@@ -1,0 +1,56 @@
+.Chat {
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid lightgrey;
+    border-radius: 1px;
+}
+
+.ChatHeader {
+    display: flex;
+    justify-content: space-between;
+    background-color: #00a3e3;
+    height: 25px;
+}
+
+.ChatHeader .btn,
+.ChatHeader .icon {
+    color: white;
+    background-color: transparent;
+}
+
+.ChatHeader .btn.minimize:hover {
+    text-decoration: underline;
+}
+
+.ChatMain {
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ChatForm {
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ChatForm * {
+  border-radius: 0 !important;
+}
+
+.ChatForm input {
+  width: 85%;
+}
+
+.ChatForm .btn {
+  width: 15%;
+
+}
+
+.ChatForm .btn.red {
+  background-color: crimson;
+}
+
+

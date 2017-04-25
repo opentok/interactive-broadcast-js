@@ -17,7 +17,6 @@ const otStreamEvents = [
 
 const coreOptions = (credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = true): CoreOptions => ({
   credentials,
-  packages: ['textChat'],
   streamContainers(pubSub: PubSub, source: VideoType, data: { userType: UserRole }): string {
     return `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`;
   },
@@ -30,17 +29,17 @@ const coreOptions = (credentials: SessionCredentials, publisherRole: UserRole, a
   controlsContainer: null,
 });
 
-const unsubscribeAll: Unit = (stage: boolean): object => {
+const unsubscribeAll = (stage: boolean): Object => { // eslint-disable-line flowtype/no-weak-types
   const core = stage ? coreStage : coreBackstage;
   const subscribers = core.internalState.subscribers.camera;
   Object.values(subscribers).forEach(core.communication.unsubscribe);
   return core.internalState.getPubSub();
 };
 
-const subscribeAll: Unit = (stage: boolean): object => {
+const subscribeAll = (stage: boolean): Object => { // eslint-disable-line flowtype/no-weak-types
   const core = stage ? coreStage : coreBackstage;
   const streams = core.internalState.getStreams();
-  Object.values(streams).forEach(core.communication.subscribe);
+  Object.values(streams).forEach(core.subscribe);
   return core.internalState.getPubSub();
 };
 
@@ -63,13 +62,13 @@ const connect = async ({ apiKey, backstageToken, stageToken, stageSessionId, ses
   // Connect the listeners with the OTCore object
   const connectListeners = (otCore: Core) => {
     // Assign listener for state changes
-    otEvents.forEach((e: Event): void => otCore.on(e, ({ publishers, subscribers, meta }: State) => {
+    otEvents.forEach((e: OTEvent): void => otCore.on(e, ({ publishers, subscribers, meta }: CoreState) => {
       onStateChanged({ publishers, subscribers, meta });
     }));
 
     // Assign listener for stream changes
-    otStreamEvents.forEach((e: Event): void => otCore.on(e, ({ stream }: Stream) => {
-      e === 'streamCreated' && !isFan && coreStage.communication.subscribe(stream);
+    otStreamEvents.forEach((e: OTStreamEvent): void => otCore.on(e, ({ stream }: { stream: Stream }) => {
+      e === 'streamCreated' && coreStage.subscribe(stream);
       const connectionData = JSON.parse(stream.connection.data);
       onStreamChanged(connectionData.userType, e, stream);
     }));
@@ -113,7 +112,7 @@ const disconnect: Unit = () => {
   }
 };
 
-const getStreamByUserType: Unit = (userType: string, core: Core): Stream => {
+const getStreamByUserType = (userType: string, core: Core): Stream => {
   let stream;
   const printKeyConcatValue = (value: object) => {
     const connectionData = JSON.parse(R.path(['connection', 'data'], value));
@@ -121,30 +120,30 @@ const getStreamByUserType: Unit = (userType: string, core: Core): Stream => {
       stream = value;
     }
   };
-  R.forEachObjIndexed(printKeyConcatValue, core.internalState.getStreams());
+  R.forEachObjIndexed(printKeyConcatValue, core.state().streams);
   return stream;
 };
 
-const changeVolume: Unit = (userType: string, volume: int, stage: boolean) => {
+const changeVolume = (userType: string, volume: number, stage: boolean) => {
   const core = stage ? coreStage : coreBackstage;
   const stream = getStreamByUserType(userType, core);
   if (stream) {
     const subscribers = core.getSubscribersForStream(stream);
-    subscribers.forEach((subscriber: Subscriber): void => subscriber.setAudioVolume(volume));
+    subscribers.forEach((subscriber: Subscriber): Subscriber => subscriber.setAudioVolume(volume));
   }
 };
 
-const signal: Unit = ({ type, signalData, to }: Signal, stage: boolean) => {
+const signal = ({ type, data, to }: Signal, stage: boolean) => {
   try {
     const core = stage ? coreStage : coreBackstage;
-    core.signal(type, signalData, to);
+    core.signal(type, data, to);
   } catch (error) {
     console.log('error coreStage', error);
   }
 };
 
-const toggleLocalVideo: Unit = (enable: booelan): void => coreStage.toggleLocalVideo(enable);
-const toggleLocalAudio: Unit = (enable: booelan): void => coreStage.toggleLocalAudio(enable);
+const toggleLocalVideo = (enable: boolean): void => coreStage.toggleLocalVideo(enable);
+const toggleLocalAudio = (enable: boolean): void => coreStage.toggleLocalAudio(enable);
 
 module.exports = {
   connect,

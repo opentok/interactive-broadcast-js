@@ -48,13 +48,13 @@ const toggleParticipantProperty: ThunkActionCreator = (user: userType, prop: Pro
     let signalObj;
     switch (prop) {
       case 'audio':
-        signalObj = { type: 'muteAudio', to, signalData: { mute: newValue ? 'off' : 'on' } };
+        signalObj = { type: 'muteAudio', to, data: { mute: newValue ? 'off' : 'on' } };
         break;
       case 'video':
-        signalObj = { type: 'videoOnOff', to, signalData: { video: newValue ? 'on' : 'off' } };
+        signalObj = { type: 'videoOnOff', to, data: { video: newValue ? 'on' : 'off' } };
         break;
       case 'volume':
-        signalObj = { type: 'changeVolume', signalData: { userType: user, volume: newValue ? 100 : 50 } };
+        signalObj = { type: 'changeVolume', data: { userType: user, volume: newValue ? 100 : 50 } };
         break;
       default: // Do Nothing
     }

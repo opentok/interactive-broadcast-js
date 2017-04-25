@@ -14,6 +14,14 @@ declare type User = {
   httpSupport: boolean
  };
 
+declare type UserCredentials = {
+  apiKey: string,
+  backstageToken: string,
+  stageToken: string,
+  stageSessionId: string,
+  sessionId: string
+};
+
 declare type UserRole = 'producer' | 'host' | 'celebrity' | 'fan';
 
 declare type UserMap = {[id: UserId]: User};
