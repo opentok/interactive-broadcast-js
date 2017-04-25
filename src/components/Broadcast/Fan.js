@@ -116,7 +116,6 @@ class Fan extends Component {
 
 const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
   const { hostUrl, fanUrl } = ownProps.params;
-  console.log('state', state);
   return {
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),

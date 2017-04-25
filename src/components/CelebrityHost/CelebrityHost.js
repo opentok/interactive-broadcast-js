@@ -92,7 +92,6 @@ class CelebrityHost extends Component {
   render(): ReactComponent {
     const { eventData, userType, status, broadcastState, togglePublishOnly, publishOnlyEnabled, participants } = this.props;
     if (!eventData) return <Loading />;
-    const totalStreams = broadcastState && broadcastState.meta ? parseInt(broadcastState.meta.subscriber.total, 0) + 1 : 1;
     return (
       <div className="CelebrityHost">
         <div className="Container">
@@ -106,7 +105,6 @@ class CelebrityHost extends Component {
           <CelebrityHostBody
             endImage={eventData.endImage}
             participants={!publishOnlyEnabled && participants}
-            totalStreams={totalStreams}
             status={status}
             userType={userType}
           />
