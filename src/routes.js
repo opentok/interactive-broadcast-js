@@ -6,10 +6,10 @@ import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import Users from './components/Users/Users';
 import UpdateEvent from './components/UpdateEvent/UpdateEvent';
-import Producer from './components/Producer/Producer';
+import Producer from './components/Broadcast/Producer/Producer';
 import AuthRoutes from './components/AuthRoutes/AuthRoutes';
-import CelebrityHost from './components/CelebrityHost/CelebrityHost';
-import Fan from './components/Broadcast/Fan';
+import CelebrityHost from './components/Broadcast/CelebrityHost/CelebrityHost';
+import Fan from './components/Broadcast/Fan/Fan';
 
 const routes = (
   <Router history={browserHistory}>

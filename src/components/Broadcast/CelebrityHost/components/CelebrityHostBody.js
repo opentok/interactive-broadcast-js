@@ -1,8 +1,12 @@
 // @flow
 import React from 'react';
+<<<<<<< HEAD:src/components/Broadcast/CelebrityHost/components/CelebrityHostBody.js
+import VideoHolder from '../../../Common/VideoHolder';
+=======
 import VideoHolder from './VideoHolder';
+>>>>>>> af6e9c96e4f0d949cb4be8c7b2b9124b50f4a49a:src/components/CelebrityHost/components/CelebrityHostBody.js
 import './CelebrityHostBody.css';
-import defaultImg from '../../../images/TAB_VIDEO_PREVIEW_LS.jpg';
+import defaultImg from '../../../../images/TAB_VIDEO_PREVIEW_LS.jpg';
 
 const userTypes = ['host', 'celebrity', 'fan'];
 

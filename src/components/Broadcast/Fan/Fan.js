@@ -5,22 +5,21 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
-import { validateUser } from '../../actions/auth';
-import { getEventData, setEventWithCredentials } from '../../actions/events';
-import { initCelebHost, setBroadcastState, startCountdown, publishOnly, initFan } from '../../actions/broadcast';
-import { setInfo, resetAlert } from '../../actions/alert';
+import { validateUser } from '../../../actions/auth';
+import { getEventData, setEventWithCredentials } from '../../../actions/events';
+import { initCelebHost, setBroadcastState, startCountdown, publishOnly, initFan } from '../../../actions/broadcast';
+import { setInfo, resetAlert } from '../../../actions/alert';
 import FanHeader from './components/FanHeader';
 import FanBody from './components/FanBody';
-import Loading from '../../components/Common/Loading';
-import { toggleLocalVideo, toggleLocalAudio, disconnect, changeVolume } from '../../services/opentok';
+import Loading from '../../../components/Common/Loading';
+import { toggleLocalVideo, toggleLocalAudio, disconnect, changeVolume } from '../../../services/opentok';
 import './Fan.css';
 
 /* beautify preserve:start */
 type InitialProps = { params: { hostUrl: string, fanUrl: string, adminId: string } };
 type DispatchProps = {
   init: () => void,
-  changeEventStatus: (event: BroadcastEvent) => void,
-  togglePublishOnly: (enable: boolean) => void
+  changeEventStatus: (event: BroadcastEvent) => void
 };
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
@@ -81,32 +80,32 @@ class Fan extends Component {
 
   changeStatus(newStatus: EventStatus) {
     const { eventData, changeEventStatus, showCountdown } = this.props;
-    newStatus === 'live' && showCountdown();
     newStatus === 'closed' && disconnect();
     eventData.status = newStatus;
     changeEventStatus(eventData);
   }
 
   render(): ReactComponent {
-    const { eventData, userType, status, broadcastState, togglePublishOnly, publishOnlyEnabled, participants } = this.props;
+    const { eventData, status, broadcastState, participants } = this.props;
     if (!eventData) return <Loading />;
-    const totalStreams = broadcastState && broadcastState.meta ? parseInt(broadcastState.meta.subscriber.total, 0) + 1 : 1;
+
+    const totalStreams = broadcastState && broadcastState.meta ? parseInt(broadcastState.meta.subscriber.total, 0) : 0;
+    const isClosed = R.equals(status, 'closed');
+    const isLive = R.equals(status, 'live');
     return (
       <div className="Fan">
         <div className="Container">
           <FanHeader
             name={eventData.name}
             status={status}
-            userType={userType}
-            togglePublishOnly={togglePublishOnly}
-            publishOnlyEnabled={publishOnlyEnabled}
           />
           <FanBody
-            endImage={eventData.endImage}
+            hasStreams={totalStreams > 0}
+            showImage={!isLive || totalStreams === 0}
+            image={isClosed ? eventData.endImage : eventData.startImage}
             participants={participants}
-            totalStreams={totalStreams}
-            status={status}
-            userType={userType}
+            isClosed={isClosed}
+            isLive={isLive}
           />
         </div>
       </div>
@@ -124,7 +123,6 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     status: R.path(['broadcast', 'event', 'status'], state),
     broadcastState: R.path(['broadcast', 'state'], state),
     participants: R.path(['broadcast', 'participants'], state),
-    publishOnlyEnabled: R.path(['broadcast', 'publishOnlyEnabled'], state),
   };
 };
 
@@ -133,7 +131,6 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   init: (options: initOptions): void => dispatch(initFan(options)),
   changeEventStatus: (event: BroadcastEvent): void => dispatch(setEventWithCredentials(event)),
   showCountdown: (): void => dispatch(startCountdown()),
-  togglePublishOnly: (enable: boolean): void => dispatch(publishOnly()),
 });
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Fan));

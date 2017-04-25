@@ -234,7 +234,6 @@ const publishOnly: ThunkActionCreator = (): Thunk =>
     const state = getState();
     const enabled = !R.path(['broadcast', 'publishOnlyEnabled'], state);
     const newBroadcastState = enabled ? unsubscribeAll(true) : subscribeAll(true);
-    console.log('newBroadcastState', newBroadcastState);
     const actions = [
       setBroadcastState(newBroadcastState),
       setPublishOnly(enabled),

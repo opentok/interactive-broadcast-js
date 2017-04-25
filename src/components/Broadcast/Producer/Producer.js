@@ -7,8 +7,8 @@ import classNames from 'classnames';
 import ProducerHeader from './components/ProducerHeader';
 import ProducerSidePanel from './components/ProducerSidePanel';
 import ProducerPrimary from './components/ProducerPrimary';
-import { setBroadcastEvent, resetBroadcastEvent } from '../../actions/broadcast';
-import { changeVolume } from '../../services/opentok';
+import { setBroadcastEvent, resetBroadcastEvent } from '../../../actions/broadcast';
+import { changeVolume } from '../../../services/opentok';
 import './Producer.css';
 
 /* beautify preserve:start */

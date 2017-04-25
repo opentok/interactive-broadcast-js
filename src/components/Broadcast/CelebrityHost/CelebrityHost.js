@@ -5,13 +5,13 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
-import { validateUser } from '../../actions/auth';
-import { initCelebHost, setBroadcastState, startCountdown, publishOnly, setBroadcastEventWithCredentials } from '../../actions/broadcast';
-import { setInfo, resetAlert } from '../../actions/alert';
+import { validateUser } from '../../../actions/auth';
+import { initCelebHost, setBroadcastState, startCountdown, publishOnly, setBroadcastEventWithCredentials } from '../../../actions/broadcast';
+import { setInfo, resetAlert } from '../../../actions/alert';
 import CelebrityHostHeader from './components/CelebrityHostHeader';
 import CelebrityHostBody from './components/CelebrityHostBody';
-import Loading from '../../components/Common/Loading';
-import { toggleLocalVideo, toggleLocalAudio, disconnect, changeVolume } from '../../services/opentok';
+import Loading from '../../../components/Common/Loading';
+import { toggleLocalVideo, toggleLocalAudio, disconnect, changeVolume } from '../../../services/opentok';
 import './CelebrityHost.css';
 
 /* beautify preserve:start */

@@ -3,10 +3,10 @@ import { connect } from 'react-redux';
 import R from 'ramda';
 import classNames from 'classnames';
 import Icon from 'react-fontawesome';
-import CopyToClipboard from '../../Common/CopyToClipboard';
-import createUrls from '../../../services/eventUrls';
+import CopyToClipboard from '../../../Common/CopyToClipboard';
+import createUrls from '../../../../services/eventUrls';
 import ControlIcon from './ControlIcon';
-import { toggleParticipantProperty } from '../../../actions/broadcast';
+import { toggleParticipantProperty } from '../../../../actions/broadcast';
 import './Participant.css';
 
 const isBackstageFan = R.equals('backstageFan');

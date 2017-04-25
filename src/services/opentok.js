@@ -58,6 +58,7 @@ const connect = async ({ apiKey, backstageToken, stageToken, stageSessionId, ses
 
   const { onStateChanged, onStreamChanged, onSignal } = listeners;
   const isCelebHost = R.equals('celebrity', userType) || R.equals('host', userType);
+  const isFan = R.equals('fan', userType);
 
   // Connect the listeners with the OTCore object
   const connectListeners = (otCore: Core) => {
@@ -68,7 +69,7 @@ const connect = async ({ apiKey, backstageToken, stageToken, stageSessionId, ses
 
     // Assign listener for stream changes
     otStreamEvents.forEach((e: Event): void => otCore.on(e, ({ stream }: Stream) => {
-      e === 'streamCreated' && coreStage.communication.subscribe(stream);
+      e === 'streamCreated' && !isFan && coreStage.communication.subscribe(stream);
       const connectionData = JSON.parse(stream.connection.data);
       onStreamChanged(connectionData.userType, e, stream);
     }));

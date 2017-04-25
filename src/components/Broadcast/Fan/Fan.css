@@ -26,21 +26,3 @@ body {
   position: relative;
   min-height: 1px;
 }
-
-@media screen and (min-width: 768px) {
-  .Fan .Container {
-    width: 750px;
-  }
-}
-
-@media screen and (min-width: 992px) {
-  .Fan .Container {
-    width: 970px;
-  }
-}
-
-@media screen and (min-width: 1200px) {
-  .Fan .Container {
-    width: 1170px;
-  }
-}
