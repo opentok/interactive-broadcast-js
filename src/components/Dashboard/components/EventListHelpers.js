@@ -44,7 +44,7 @@ const eventStatus = ({ status }: { status: EventStatus }): { style: string, text
     case 'closed':
       return { style: 'closed', text: 'Closed' };
     case 'preshow':
-      return { style: 'preshow', text: 'Event preshow' };
+      return { style: 'preshow', text: 'Preshow' };
     default:
       return { style: '', text: '' };
   }

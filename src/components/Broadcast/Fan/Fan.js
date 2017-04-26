@@ -5,10 +5,7 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
-import { validateUser } from '../../../actions/auth';
-import { getEventData, setEventWithCredentials } from '../../../actions/events';
-import { initCelebHost, setBroadcastState, startCountdown, publishOnly, initFan } from '../../../actions/broadcast';
-import { setInfo, resetAlert } from '../../../actions/alert';
+import { initFan, setBroadcastEventStatus } from '../../../actions/broadcast';
 import FanHeader from './components/FanHeader';
 import FanBody from './components/FanBody';
 import Loading from '../../../components/Common/Loading';
@@ -81,8 +78,7 @@ class Fan extends Component {
   changeStatus(newStatus: EventStatus) {
     const { eventData, changeEventStatus, showCountdown } = this.props;
     newStatus === 'closed' && disconnect();
-    eventData.status = newStatus;
-    changeEventStatus(eventData);
+    changeEventStatus(newStatus);
   }
 
   render(): ReactComponent {
@@ -129,8 +125,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
 ({
   init: (options: initOptions): void => dispatch(initFan(options)),
-  changeEventStatus: (event: BroadcastEvent): void => dispatch(setEventWithCredentials(event)),
-  showCountdown: (): void => dispatch(startCountdown()),
+  changeEventStatus: (status: EventStatus): void => dispatch(setBroadcastEventStatus(status)),
 });
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Fan));

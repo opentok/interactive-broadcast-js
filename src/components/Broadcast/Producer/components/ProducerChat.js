@@ -6,7 +6,7 @@ import './ProducerChat.css';
 const ProducerChat = (): ReactComponent => {
   return (
     <div className="ProducerChat">
-      <Chat />
+
     </div>
   );
 };

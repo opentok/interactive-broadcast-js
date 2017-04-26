@@ -251,4 +251,5 @@ module.exports = {
   changeStatus,
   initFan,
   setBroadcastEventWithCredentials,
+  setBroadcastEventStatus,
 };

@@ -32,7 +32,7 @@ const coreOptions = (credentials: SessionCredentials, publisherRole: UserRole, a
 const unsubscribeAll = (stage: boolean): Object => { // eslint-disable-line flowtype/no-weak-types
   const core = stage ? coreStage : coreBackstage;
   const subscribers = core.internalState.subscribers.camera;
-  Object.values(subscribers).forEach(core.communication.unsubscribe);
+  Object.values(subscribers).forEach(core.unsubscribe);
   return core.internalState.getPubSub();
 };
 
@@ -67,8 +67,8 @@ const connect = async ({ apiKey, backstageToken, stageToken, stageSessionId, ses
     }));
 
     // Assign listener for stream changes
-    otStreamEvents.forEach((e: OTStreamEvent): void => otCore.on(e, ({ stream }: { stream: Stream }) => {
-      e === 'streamCreated' && coreStage.subscribe(stream);
+    otStreamEvents.forEach((e: Event): void => otCore.on(e, ({ stream }: Stream) => {
+      e === 'streamCreated' && !isFan && coreStage.subscribe(stream);
       const connectionData = JSON.parse(stream.connection.data);
       onStreamChanged(connectionData.userType, e, stream);
     }));
@@ -93,7 +93,7 @@ const connect = async ({ apiKey, backstageToken, stageToken, stageSessionId, ses
     await Promise.all([coreStage && coreStage.connect(), coreBackstage && coreBackstage.connect()]);
 
     // Start subscribing and publishing
-    isCelebHost && coreStage.communication.publish();
+    isCelebHost && coreStage.startCall();
 
     return;
   } catch (error) {

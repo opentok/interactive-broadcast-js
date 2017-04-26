@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from '../../../actions/auth';
-import { initCelebHost, setBroadcastState, startCountdown, publishOnly, setBroadcastEventWithCredentials } from '../../../actions/broadcast';
+import { initCelebHost, setBroadcastState, startCountdown, publishOnly, setBroadcastEventStatus } from '../../../actions/broadcast';
 import { setInfo, resetAlert } from '../../../actions/alert';
 import CelebrityHostHeader from './components/CelebrityHostHeader';
 import CelebrityHostBody from './components/CelebrityHostBody';
@@ -85,8 +85,7 @@ class CelebrityHost extends Component {
     const { eventData, changeEventStatus, showCountdown } = this.props;
     newStatus === 'live' && showCountdown();
     newStatus === 'closed' && disconnect();
-    eventData.status = newStatus;
-    changeEventStatus(eventData);
+    changeEventStatus(newStatus);
   }
 
   render(): ReactComponent {
@@ -131,7 +130,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
 ({
   init: (options: initOptions): void => dispatch(initCelebHost(options)),
-  changeEventStatus: (event: BroadcastEvent): void => dispatch(setBroadcastEventWithCredentials(event)),
+  changeEventStatus: (status: EventStatus): void => dispatch(setBroadcastEventStatus(status)),
   showCountdown: (): void => dispatch(startCountdown()),
   togglePublishOnly: (enable: boolean): void => dispatch(publishOnly()),
 });
