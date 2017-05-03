@@ -1,22 +1,20 @@
 // @flow
 import R from 'ramda';
-import { browserHistory } from 'react-router';
 import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
-import { validateUser } from './auth';
-import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import { connect, disconnect, unsubscribeAll, subscribeAll, signal } from '../services/opentok';
+import opentok2 from '../services/opentok2';
 import io from '../services/socket-io';
 
-const notStarted = R.propEq('status', 'notStarted');
-const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' ? 'preshow' : s };
+// const notStarted = R.propEq('status', 'notStarted');
+// const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' ? 'preshow' : s };
 
-const setBroadcastEventStatus: ActionCreator = (status: string): BroadcastAction => ({
+const setBroadcastEventStatus: ActionCreator = (status: EventStatus): BroadcastAction => ({
   type: 'SET_BROADCAST_EVENT_STATUS',
   status,
 });
 
-const setBroadcastState: ActionCreator = (state: BroadcastState): BroadcastAction => ({
+const setBroadcastState: ActionCreator = (state: CoreState): BroadcastAction => ({
   type: 'SET_BROADCAST_STATE',
   state,
 });
@@ -26,57 +24,149 @@ const setPublishOnly: ActionCreator = (publishOnlyEnabled: boolean): BroadcastAc
   publishOnlyEnabled,
 });
 
-const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, userType: string, slug: string): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    try {
-      const data = { adminId, userType };
-      data[`${userType}Url`] = slug;
-      const eventData = await getEventWithCredentials(data, getState().auth.authToken);
-      dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
-    } catch (error) {
-      console.log(error);
-    }
+const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => {
+
+  const { userCredentials, userType, listeners } = options;
+  const broadcast = R.defaultTo({})(R.prop('broadcast', options));
+  // Set common listeners for all user types here
+  const eventListeners: CoreInstanceListener = (instance: Core) => {
+    const { onStateChanged, onStreamChanged, onSignal } = listeners;
+
+    // Assign listener for state changes
+    const subscribeEvents: SubscribeEventType[] = ['subscribeToCamera', 'unsubscribeFromCamera'];
+    const handleSubscribeEvent = (state: CoreState) => {
+      console.log('STATE event', state);
+      onStateChanged(state);
+    };
+    R.forEach((event: SubscribeEventType): void => instance.on(event, handleSubscribeEvent), subscribeEvents);
+
+
+    // Assign listener for stream changes
+    const otStreamEvents: StreamEventType[] = ['streamCreated', 'streamDestroyed'];
+    const handleStreamEvent: StreamEventHandler = ({ type, stream }: OTStreamEvent) => {
+      const isStage = R.propEq('name', 'stage', instance);
+      const streamCreated = R.equals(type, 'streamCreated');
+      const isNotFan = R.not(R.equals(userType, 'fan'));
+      const shouldSubscribe = R.all(R.equals(true), [isStage, streamCreated, isNotFan]);
+      shouldSubscribe && instance.subscribe(stream);
+      const connectionData: { userType: UserRole } = JSON.parse(stream.connection.data);
+      onStreamChanged(connectionData.userType, type, stream);
+    };
+
+    R.forEach((event: StreamEventType): void => instance.on(event, handleStreamEvent), otStreamEvents);
+
+    // Assign signal listener
+    instance.on('signal', onSignal);
   };
 
-const toggleParticipantProperty: ThunkActionCreator = (user: userType, prop: Prop): Thunk =>
+  const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = false): CoreOptions => ({
+    name,
+    credentials,
+    streamContainers(pubSub: PubSub, source: VideoType, data: { userType: UserRole }): string {
+      return `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`;
+    },
+    communication: {
+      autoSubscribe,
+      callProperties: {
+        fitMode: 'contain',
+      },
+    },
+    controlsContainer: null,
+  });
+
+  const stage = (): CoreInstanceOptions => {
+    const { apiKey, stageSessionId, stageToken } = userCredentials;
+    const credentials = {
+      apiKey,
+      sessionId: stageSessionId,
+      token: stageToken,
+    };
+    const isHostOrCeleb: boolean = R.contains(userType, ['host', 'celebrity']);
+    const isFanAndBroadcastLive: boolean = R.and(R.equals('fan', userType), R.propEq('status', 'live', broadcast));
+    const autoPublish: boolean = isHostOrCeleb; // May need to check more expressions here
+    const autoSubscribe: boolean = isFanAndBroadcastLive; // May need to check more expressions here
+    return {
+      name: 'stage',
+      coreOptions: coreOptions('stage', credentials, userType, autoSubscribe),
+      eventListeners,
+      opentokOptions: { autoPublish },
+    };
+  };
+
+  const backstage = (): CoreInstanceOptions => {
+    const { apiKey, sessionId, backstageToken } = userCredentials;
+    const credentials = {
+      apiKey,
+      sessionId,
+      token: backstageToken,
+    };
+
+    return { name: 'backstage', coreOptions: coreOptions('backstage', credentials, userType), eventListeners };
+  };
+
+  switch (userType) {
+    case 'producer':
+      return [stage(), backstage()];
+    case 'host':
+      return [stage()];
+    case 'celebrity':
+      return [stage()];
+    case 'fan':
+      return [stage(), backstage()];
+    default:
+      return [];
+  }
+};
+
+const toggleParticipantProperty: ThunkActionCreator = (participantType: ParticipantType, property: ParticipantAVProperty): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const participants = R.path(['broadcast', 'participants'], getState());
-    const to = participants[user].stream.connection;
-    const newValue = !participants[user][prop];
-    const stage = user !== 'backstageFan';
-    participants[user][prop] = newValue;
-    let signalObj;
-    switch (prop) {
+    const to = participants[participantType].stream.connection;
+    const currentValue = participants[participantType][property];
+
+    const computeUpdate = (): ParticipantAVPropertyUpdate => {
+      const currentValue = participants[participantType][property];
+      switch (property) {
+        case 'volume':
+          return { property, value: currentValue === 100 ? 50 : 100 };
+        case 'audio':
+          return { property, value: !currentValue };
+        case 'video':
+          return { property, value: !currentValue };
+        default:
+          break;
+      }
+    };
+    const update = computeUpdate();
+    const { value } = update;
+    const instance = R.equals('backstageFan', participantType) ? 'backstage' : 'stage'; // For moving to OT2
+    const stage = participantType !== 'backstageFan';
+    // participants[participantType][property] = value;
+    switch (property) {
       case 'audio':
-        signalObj = { type: 'muteAudio', to, data: { mute: newValue ? 'off' : 'on' } };
+        signal({ type: 'muteAudio', to, data: { mute: value ? 'off' : 'on' } }, stage);
         break;
       case 'video':
-        signalObj = { type: 'videoOnOff', to, data: { video: newValue ? 'on' : 'off' } };
+        signal({ type: 'videoOnOff', to, data: { video: value ? 'on' : 'off' } }, stage);
         break;
       case 'volume':
-        signalObj = { type: 'changeVolume', data: { userType: user, volume: newValue ? 100 : 50 } };
+        signal({ type: 'changeVolume', data: { userType: participantType, volume: value ? 100 : 50 } }, stage);
         break;
       default: // Do Nothing
     }
-    signalObj && signal(signalObj, stage);
-    dispatch({ type: 'SET_BROADCAST_PARTICIPANTS', participants });
+    dispatch({ type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType, update });
   };
 
-const setParticipants: ThunkActionCreator = (user: userType, otEvent: string, stream: Stream): Thunk =>
-  (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const participants = R.path(['broadcast', 'participants'], getState());
-    const connected = otEvent === 'streamCreated';
-    participants[user].connected = connected;
-    participants[user].stream = connected ? stream : null;
-    if (!connected) {
-      participants[user].audio = false;
-      participants[user].video = false;
-      participants[user].volume = 100;
-    } else {
-      participants[user].audio = stream.hasAudio;
-      participants[user].video = stream.hasVideo;
+const updateParticipants: ThunkActionCreator = (participantType: ParticipantType, event: StreamEventType, stream: Stream): Thunk =>
+  (dispatch: Dispatch): void => {
+    switch (event) {
+      case 'streamCreated':
+        return dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
+      case 'streamDestroyed':
+        return dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+      default:
+        break;
     }
-    dispatch({ type: 'SET_BROADCAST_PARTICIPANTS', participants });
   };
 
 const connectToPresence: ThunkActionCreator = (): Thunk =>
@@ -87,55 +177,29 @@ const connectToPresence: ThunkActionCreator = (): Thunk =>
     io.connected ? onConnect() : io.on('connect', onConnect);
   };
 
-const connectToInteractive: ThunkActionCreator = (credentials: UserCredentials, userType: UserType, onSignal: Listener): Thunk =>
+const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials, userType: UserRole, onSignal: SignalListener, broadcast?: BroadcastEvent): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
-    const listeners = {
-      onStateChanged: (state: object): void => dispatch(setBroadcastState(state)),
-      onStreamChanged: (user: string, otEvent: string, stream: Stream): void => dispatch(setParticipants(user, otEvent, stream)),
+    const listeners: OTListeners = {
+      onStateChanged: (state: CoreState): void => dispatch(setBroadcastState(state)),
+      onStreamChanged: (user: UserRole, event: StreamEventType, stream: Stream): void => dispatch(updateParticipants(user, event, stream)),
       onSignal,
     };
-    await connect(credentials, userType, listeners);
+    const instances: CoreInstanceOptions[] = opentokConfig({ userCredentials, userType, listeners, broadcast });
+    opentok2.init(instances, 'stage');
+    await opentok2.connect(userCredentials, userType, listeners);
   };
 
-const connectToPresenceWithToken: ThunkActionCreator = (adminId: string, fanUrl: string, onSignal: Listener): Thunk =>
-  (dispatch: Dispatch, getState: GetState) => {
-
-    // get the Auth Token
-    const { auth } = getState();
-
-    const onAuthenticated = () => {
-      io.emit('joinInteractive', { fanUrl, adminId });
-      io.on('ableToJoin', ({ ableToJoin, broadcastData, eventData }: BroadcastData) => {
-        if (ableToJoin) {
-          dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
-          dispatch(connectToInteractive(eventData, 'fan', onSignal));
-        } else {
-          // @TODO: Should display the HLS version or a message.
-        }
-      });
-    };
-
-    const onUnauthorized = (msg: string): void => console.log('unauthorized', msg);
-
-    const onConnect = () => {
-      dispatch({ type: 'BROADCAST_PRESENCE_CONNECTED', connected: true });
-      io
-      .emit('authenticate', { token: auth.authToken })
-      .on('authenticated', onAuthenticated)
-      .on('unauthorized', onUnauthorized);
-    };
-
-    // Connect to the signaling server
-    io.connected ? onConnect() : io.on('connect', onConnect);
-  };
-
-const connectBroadcast: ThunkActionCreator = (eventId: EventId, onSignal: Listener): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
-    const credentials = await getAdminCredentials(eventId);
-    await dispatch(connectToInteractive(credentials, 'producer', onSignal));
-    dispatch(connectToPresence());
-    dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
-  };
+// const connectToInteractiveOld: ThunkActionCreator = (credentials: UserCredentials, userType: UserRole, onSignal: SignalListener): Thunk =>
+//   async (dispatch: Dispatch): AsyncVoid => {
+//     const listeners = {
+//       onStateChanged: (state: CoreState): void => dispatch(setBroadcastState(state)),
+//       onStreamChanged: (participantType: UserRole, eventType: string, stream: Stream) => {
+//         dispatch(updateParticipants(participantType, eventType, stream));
+//       },
+//       onSignal,
+//     };
+//     await connect(credentials, userType, listeners);
+//   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
@@ -143,56 +207,6 @@ const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };
 
-const initCelebHost: ThunkActionCreator = ({ adminId, userType, userUrl, onSignal }: initOptions): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    try {
-      // Get an Auth Token
-      await dispatch(validateUser(adminId, userType, userUrl));
-      // Get the event data + OT credentials
-      await dispatch(setBroadcastEventWithCredentials(adminId, userType, userUrl));
-
-      // Connect to the session
-      const eventData = R.path(['broadcast', 'event'], getState());
-      const { apiKey, stageToken, stageSessionId, status } = eventData;
-      const credentials = {
-        apiKey,
-        stageSessionId,
-        stageToken,
-      };
-      status !== 'closed' && await dispatch(connectToInteractive(credentials, userType, onSignal));
-    } catch (error) {
-      console.log('error', error);
-    }
-  };
-
-const initFan: ThunkActionCreator = ({ adminId, userType, userUrl, onSignal }: initOptions): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    try {
-      // Get an Auth Token
-      await dispatch(validateUser(adminId, userType, userUrl));
-      // Connect to socket.io and OT sessions if the fan is able to join
-      await dispatch(connectToPresenceWithToken(adminId, userUrl, onSignal));
-
-    } catch (error) {
-      console.log('error', error);
-    }
-  };
-
-const setBroadcastEvent: ThunkActionCreator = (eventId: EventId, onSignal: Listener): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    try {
-      const event = R.path(['events', 'map', eventId], getState()) || await getEvent(eventId);
-      const actions = [
-        updateStatus(eventId, 'preshow'),
-        connectBroadcast(eventId, onSignal),
-        { type: 'SET_BROADCAST_EVENT', event: R.evolve(setStatus, event) },
-      ];
-      R.forEach(dispatch, notStarted(event) ? actions : R.tail(actions));
-    } catch (error) {
-      browserHistory.replace('/admin');
-      dispatch(setInfo({ title: 'Event Not Found', text: `Could not find event with the ID ${eventId}` }));
-    }
-  };
 
 const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStatus): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
@@ -211,7 +225,7 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
 
 const startCountdown: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
-    const options = (counter: string): AlertPartialOptions => ({
+    const options = (counter ? : number = 1): AlertPartialOptions => ({
       title: 'GOING LIVE IN',
       text: `<h1>${counter}</h1>`,
       showConfirmButton: false,
@@ -219,7 +233,7 @@ const startCountdown: ThunkActionCreator = (): Thunk =>
     });
     let counter = 5;
     const interval = setInterval(() => {
-      dispatch(setInfo(options(counter || 1)));
+      dispatch(setInfo(options(counter)));
       if (counter >= 1) {
         counter -= 1;
       } else {
@@ -242,14 +256,16 @@ const publishOnly: ThunkActionCreator = (): Thunk =>
   };
 
 module.exports = {
-  setBroadcastEvent,
+  setBroadcastState,
+  opentokConfig,
+  connectToInteractive,
+  connectToPresence,
+  setPublishOnly,
   resetBroadcastEvent,
-  initCelebHost,
   startCountdown,
   publishOnly,
   toggleParticipantProperty,
   changeStatus,
-  initFan,
-  setBroadcastEventWithCredentials,
   setBroadcastEventStatus,
+  updateParticipants,
 };

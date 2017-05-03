@@ -2,6 +2,7 @@
 import React from 'react';
 import './FanHeader.css';
 
+type Props = { name: string, status: EventStatus };
 const FanHeader = (props: Props): ReactComponent => {
   const { name, status } = props;
   return (
@@ -10,7 +11,7 @@ const FanHeader = (props: Props): ReactComponent => {
         <h4>{name}<sup>{status === 'notStarted' ? 'NOT STARTED' : status}</sup></h4>
         <ul>
           <li>
-            <span>GET IN THE LINE</span>
+            <span>GET IN LINE</span>
           </li>
         </ul>
       </div>

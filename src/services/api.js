@@ -50,7 +50,7 @@ const request = (method: HttpMethod, route: string, data: * = null, requiresAuth
 };
 
 /** Execute a request using fetch */
-const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth: boolean = true, authToken: string = null): Promise =>
+const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth: boolean = true, authToken: string | null = null): Promise<*> =>
   new Promise((resolve: PromiseLike, reject: PromiseLike) => {
     fetch(request(method, route, body, requiresAuth, authToken))
       .then(checkStatus)
@@ -60,37 +60,39 @@ const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth
   });
 
 /** HTTP Methods */
-const get = (route: string, requiresAuth: boolean = true, authToken: string = null): Promise => execute('get', route, null, requiresAuth, authToken);
-const post = (route: string, body: * = null, requiresAuth: boolean = true, authToken: string = null): Promise =>
+const get = (route: string, requiresAuth: boolean = true, authToken: string = null): Promise<*> =>
+  execute('get', route, null, requiresAuth, authToken);
+const post = (route: string, body: * = null, requiresAuth: boolean = true, authToken: string = null): Promise<*> =>
   execute('post', route, body, requiresAuth, authToken);
-const put = (route: string, body: * = null, requiresAuth: boolean = true): Promise => execute('put', route, body, requiresAuth);
-const patch = (route: string, body: * = null, requiresAuth: boolean = true): Promise => execute('patch', route, body, requiresAuth);
-const del = (route: string, requiresAuth: boolean = true): Promise => execute('delete', route, null, requiresAuth);
+const put = (route: string, body: * = null, requiresAuth: boolean = true): Promise<*> => execute('put', route, body, requiresAuth);
+const patch = (route: string, body: * = null, requiresAuth: boolean = true): Promise<*> => execute('patch', route, body, requiresAuth);
+const del = (route: string, requiresAuth: boolean = true): Promise<*> => execute('delete', route, null, requiresAuth);
 
 /** Exports */
 
 /** Auth */
-const getAuthTokenUser = (adminId: string, userType: string, userUrl: string): Promise =>
+const getAuthTokenUser = (adminId: string, userType: string, userUrl: string): Promise<AuthToken> =>
   post(`auth/token-${userType}`, R.assoc(`${userType}Url`, userUrl, { adminId }), false);
-const getAuthToken = (idToken: string): Promise => post('auth/token', { idToken }, false);
+const getAuthToken = (idToken: string): Promise<AuthToken> => post('auth/token', { idToken }, false);
 
 /** User */
-const getUser = (userId: string): Promise => get(`admin/${userId}`);
-const createUser = (userData: UserFormData): Promise => post('admin', userData);
-const updateUser = (userData: UserFormData): Promise => patch(`admin/${userData.id}`, userData);
-const getAllUsers = (): Users[] => get('admin');
-const deleteUserRecord = (userId: string): Promise => del(`admin/${userId}`);
+const getUser = (userId: string): Promise<User> => get(`admin/${userId}`);
+const createUser = (userData: UserFormData): Promise<User> => post('admin', userData);
+const updateUser = (userData: UserUpdateFormData): Promise<User> => patch(`admin/${userData.id}`, userData);
+const getAllUsers = (): Promise<[User]> => get('admin');
+const deleteUserRecord = (userId: string): Promise<boolean> => del(`admin/${userId}`);
 
 /** Events */
-const getEvents = (adminId: string): Promise => get(`event?adminId=${adminId}`);
-const getEvent = (id: string): Promise => get(`event/${id}`);
-const createEvent = (data: object): Promise => post('event', data);
-const updateEvent = (data: object): Promise => patch(`event/${data.id}`, data);
-const updateEventStatus = (id: string, status: EventStatus): Promise => put(`event/change-status/${id}`, { status });
-const deleteEvent = (id: string): Promise => del(`event/${id}`);
-const getMostRecentEvent = (id: string): Promise => get(`event/get-current-admin-event?adminId=${id}`);
-const getAdminCredentials = (eventId: eventId): Promise => post(`event/create-token-producer/${eventId}`);
-const getEventWithCredentials = (data: object, authToken: string): Promise => post(`event/create-token-${data.userType}`, data, true, authToken);
+const getEvents = (adminId: string): Promise<BroadcastEventMap> => get(`event?adminId=${adminId}`);
+const getEvent = (id: string): Promise<BroadcastEvent> => get(`event/${id}`);
+const createEvent = (data: BroadcastEventFormData): Promise<BroadcastEvent> => post('event', data);
+const updateEvent = (data: BroadcastEventFormData): Promise<BroadcastEvent> => patch(`event/${data.id}`, data);
+const updateEventStatus = (id: string, status: EventStatus): Promise<BroadcastEvent> => put(`event/change-status/${id}`, { status });
+const deleteEvent = (id: string): Promise<boolean> => del(`event/${id}`);
+const getMostRecentEvent = (id: string): Promise<BroadcastEvent> => get(`event/get-current-admin-event?adminId=${id}`);
+const getAdminCredentials = (eventId: EventId): Promise<UserCredentials> => post(`event/create-token-producer/${eventId}`);
+const getEventWithCredentials = (data: { adminId: UserId, userType: UserRole, slug: string }, authToken: AuthToken): Promise<HostCelebEventData> =>
+  post(`event/create-token-${data.userType}`, data, true, authToken);
 /** Exports */
 
 module.exports = {

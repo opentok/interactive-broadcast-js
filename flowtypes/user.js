@@ -14,6 +14,14 @@ declare type User = {
   httpSupport: boolean
  };
 
+declare type HostCelebCredentials = {
+  apiKey: string,
+  stageToken: string,
+  httpSupport: boolean
+};
+
+declare type HostCelebEventData = BroadcastEvent & HostCelebCredentials;
+
 declare type UserCredentials = {
   apiKey: string,
   backstageToken: string,
@@ -39,7 +47,6 @@ declare type ManageUsersAction =
 
 
 declare type UserFormData = {
-  id?: UserId,
   displayName: string,
   email: string,
   otApiKey: string,
@@ -47,5 +54,9 @@ declare type UserFormData = {
   broadcastEnabled: boolean,
   httpSupport: boolean
 };
+
+declare type UserUpdateFormData = {id: UserId } & UserFormData;
+
+
 
 

@@ -5,12 +5,12 @@ import R from 'ramda';
 let coreStage;
 let coreBackstage;
 
-const otEvents = [
+const otEvents: SubscribeEventType[] = [
   'subscribeToCamera',
   'unsubscribeFromCamera',
 ];
 
-const otStreamEvents = [
+const otStreamEvents: StreamEventType[] = [
   'streamCreated',
   'streamDestroyed',
 ];
@@ -43,7 +43,8 @@ const subscribeAll = (stage: boolean): Object => { // eslint-disable-line flowty
   return core.internalState.getPubSub();
 };
 
-const connect = async ({ apiKey, backstageToken, stageToken, stageSessionId, sessionId }: UserCredentials, userType: UserType, listeners: Listeners): AsyncVoid => {
+const connect = async (userCredentials: UserCredentials, userType: UserRole, listeners: OTListeners): AsyncVoid => {
+  const { apiKey, backstageToken, stageToken, stageSessionId, sessionId } = userCredentials;
   const stageCredentials = {
     apiKey,
     sessionId: stageSessionId,
@@ -62,12 +63,12 @@ const connect = async ({ apiKey, backstageToken, stageToken, stageSessionId, ses
   // Connect the listeners with the OTCore object
   const connectListeners = (otCore: Core) => {
     // Assign listener for state changes
-    otEvents.forEach((e: OTEvent): void => otCore.on(e, ({ publishers, subscribers, meta }: CoreState) => {
-      onStateChanged({ publishers, subscribers, meta });
+    otEvents.forEach((e: SubscribeEvent): void => otCore.on(e, (state: CoreState) => {
+      onStateChanged(state);
     }));
 
     // Assign listener for stream changes
-    otStreamEvents.forEach((e: Event): void => otCore.on(e, ({ stream }: Stream) => {
+    otStreamEvents.forEach((e: StreamEvent): void => otCore.on(e, ({ stream }: StreamEvent) => {
       e === 'streamCreated' && !isFan && coreStage.subscribe(stream);
       const connectionData = JSON.parse(stream.connection.data);
       onStreamChanged(connectionData.userType, e, stream);
@@ -133,9 +134,9 @@ const changeVolume = (userType: string, volume: number, stage: boolean) => {
   }
 };
 
-const signal = ({ type, data, to }: Signal, stage: boolean) => {
+const signal = ({ type, data, to }: SignalParams, stage: boolean) => {
   try {
-    const core = stage ? coreStage : coreBackstage;
+    const core: Core = stage ? coreStage : coreBackstage;
     core.signal(type, data, to);
   } catch (error) {
     console.log('error coreStage', error);

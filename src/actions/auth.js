@@ -28,7 +28,7 @@ const validate: ThunkActionCreator = (uid: string, idToken: string): Thunk =>
     }
   };
 
-const validateUser: ThunkActionCreator = (adminId: string, userType: UserType, userUrl: string): Thunk =>
+const validateUser: ThunkActionCreator = (adminId: string, userType: UserRole, userUrl: string): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
       const { token } = await getAuthTokenUser(adminId, userType, userUrl);

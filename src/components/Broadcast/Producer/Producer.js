@@ -7,9 +7,9 @@ import classNames from 'classnames';
 import ProducerHeader from './components/ProducerHeader';
 import ProducerSidePanel from './components/ProducerSidePanel';
 import ProducerPrimary from './components/ProducerPrimary';
-import ProducerChat from './components/ProducerChat';
-import { setBroadcastEvent, resetBroadcastEvent } from '../../../actions/broadcast';
-import { changeVolume } from '../../../services/opentok';
+// import ProducerChat from './components/ProducerChat';
+import { initializeBroadcast, resetBroadcastEvent } from '../../../actions/producer';
+// import { changeVolume } from '../../../services/opentok';
 import './Producer.css';
 
 /* beautify preserve:start */
@@ -40,21 +40,6 @@ class Producer extends Component {
       showingSidePanel: true,
     };
     this.toggleSidePanel = this.toggleSidePanel.bind(this);
-    this.signalListener = this.signalListener.bind(this);
-  }
-
-  signalListener({ type, data, from }: Signal) {
-    const signalData = data ? JSON.parse(data) : {};
-    console.log('get me some signal data here', signalData);
-    const fromData = JSON.parse(from.data);
-    const fromProducer = fromData.userType === 'producer';
-    switch (type) {
-      case 'signal:changeVolume':
-        fromProducer && changeVolume(signalData.userType, signalData.volume, true);
-        break;
-      default:
-        break;
-    }
   }
 
   toggleSidePanel() {
@@ -63,7 +48,7 @@ class Producer extends Component {
 
   componentDidMount() {
     const { setEvent, eventId } = this.props;
-    setEvent(eventId, this.signalListener);
+    setEvent(eventId);
   }
 
   componentWillUnmount() {
@@ -80,7 +65,7 @@ class Producer extends Component {
           <ProducerPrimary />
         </div>
         <ProducerSidePanel hidden={!showingSidePanel} />
-        <ProducerChat />
+        { /* <ProducerChat />*/ }
       </div>
     );
   }
@@ -94,8 +79,8 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => ({
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
-    setEvent: (eventId: EventId, onSignal: Listener) => {
-      dispatch(setBroadcastEvent(eventId, onSignal));
+    setEvent: (eventId: EventId) => {
+      dispatch(initializeBroadcast(eventId, 'producer'));
     },
     resetEvent: () => {
       dispatch(resetBroadcastEvent());

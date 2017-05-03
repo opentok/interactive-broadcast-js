@@ -5,13 +5,14 @@ import React from 'react';
 
 // API
 declare type Headers = { 'Content-Type': 'application/json', jwt?: string };
-declare type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+declare type HttpMethod = 'get' | 'GET' | 'post' | 'POST' | 'put' | 'PUT' | 'patch' | 'PATCH' | 'delete' | 'DELETE';
 
 // Redux state(s)
 declare type State = {
   currentUser: CurrentUserState,
   users: UserMap,
-  events: BroadcastEventMap
+  events: BroadcastEventMap,
+  auth: AuthState
 };
 
 // What persists in local storage
@@ -29,9 +30,20 @@ declare type GetState = () => State;
 declare type Thunk = (dispatch: Dispatch, getState: GetState) => any; // eslint-disable-line flowtype/no-weak-types
 declare type ThunkActionCreator = (...*) => Thunk;
 
-
 // React Component
 declare type ReactComponent = React$Element<*> | React.CElement | null;
+
+declare type Route = {
+  props: {
+    component?: ReactClass<*>,
+    render?: (router: Object) => React$Element<*>, // eslint-disable-line flowtype/no-weak-types
+    children?: (router: Object) => React$Element<*>, // eslint-disable-line flowtype/no-weak-types
+    path?: string,
+    exact?: boolean,
+    strict?: boolean
+  }
+}
+
 
 // Functions
 declare type Unit = () => void;

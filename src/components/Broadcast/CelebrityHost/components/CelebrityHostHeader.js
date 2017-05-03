@@ -3,6 +3,13 @@ import React from 'react';
 import classNames from 'classnames';
 import './CelebrityHostHeader.css';
 
+type Props = {
+  userType: 'host' | 'celebrity',
+  name: string,
+  status: EventStatus,
+  togglePublishOnly: boolean => void,
+  publishOnlyEnabled: boolean
+};
 const CelebrityHostHeader = (props: Props): ReactComponent => {
   const { userType, name, status, togglePublishOnly, publishOnlyEnabled } = props;
   const btnClass = classNames('btn action', { red: !publishOnlyEnabled }, { green: publishOnlyEnabled });

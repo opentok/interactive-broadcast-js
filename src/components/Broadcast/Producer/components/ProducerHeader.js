@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import R from 'ramda';
 import { Link } from 'react-router';
@@ -5,7 +6,7 @@ import { connect } from 'react-redux';
 import Icon from 'react-fontawesome';
 import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
-import { changeStatus } from '../../../../actions/broadcast';
+import { changeStatus } from '../../../../actions/producer';
 import './ProducerHeader.css';
 
 type BaseProps = {

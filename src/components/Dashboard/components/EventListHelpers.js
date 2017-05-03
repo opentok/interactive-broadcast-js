@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import R from 'ramda';
 import { Link } from 'react-router';
@@ -13,7 +14,7 @@ const eventName = ({ id, status, name }: NameProps): ReactComponent =>  // eslin
 
 /** Event Timestamp */
 type TimeProps = { id: string, status: EventStatus, dateTimeStart: string, dateTimeEnd: string, showStartedAt: string, showEndedAt: string };
-const eventTime = ({ id, status, dateTimeStart = '', dateTimeEnd = '', showStartedAt = '', showEndedAt = '' }: TimeProps): ReactElement => {
+const eventTime = ({ id, status, dateTimeStart = '', dateTimeEnd = '', showStartedAt = '', showEndedAt = '' }: TimeProps): ReactComponent => {
 
   const formattedDate = (d: string): string => moment(d).format('MMM DD, YYYY hh:mm A');
   const formattedDuration = (start: string, end: string): string => moment.utc(moment(end).diff(moment(start))).format('HH:mm:ss');

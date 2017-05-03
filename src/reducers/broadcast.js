@@ -1,34 +1,32 @@
 // @flow
 import R from 'ramda';
 
-const initialParticipantState = {
-  connected: false,
-  stream: null,
+const participantState = (stream?: Stream | null = null): ParticipantState => ({
+  connected: !!stream,
+  stream,
   networkQuality: null,
-  video: false,
-  audio: false,
-  volume: true,
-};
+  video: !!R.prop('hasVideo', stream || {}),
+  audio: !!R.prop('hasAudio', stream || {}),
+  volume: 100,
+});
 
 const initialState = (): BroadcastState => ({
   event: null,
   connected: false,
   presenceConnected: false,
   publishOnlyEnabled: false,
-  state: {
-    publishers: {
-      camera: null,
-    },
-    subscribers: {
-      camera: null,
-    },
-    meta: null,
+  publishers: {
+    camera: null,
   },
+  subscribers: {
+    camera: null,
+  },
+  meta: null,
   participants: {
-    fan: R.clone(initialParticipantState),
-    celebrity: R.clone(initialParticipantState),
-    host: R.clone(initialParticipantState),
-    backstageFan: R.clone(initialParticipantState),
+    fan: participantState(),
+    celebrity: participantState(),
+    host: participantState(),
+    backstageFan: participantState(),
   },
 });
 
@@ -36,16 +34,21 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
   switch (action.type) {
     case 'SET_PUBLISH_ONLY_ENABLED':
       return R.assoc('publishOnlyEnabled', action.publishOnlyEnabled, state);
-    case 'SET_BROADCAST_PARTICIPANTS':
-      return R.assoc('participants', action.participants, state);
+    case 'BROADCAST_PARTICIPANT_JOINED':
+      return R.assocPath(['participants', action.participantType], participantState(action.stream), state);
+    case 'BROADCAST_PARTICIPANT_LEFT':
+      return R.assocPath(['participants', action.participantType], null, state);
+    case 'PARTICIPANT_PROPERTY_CHANGED':
+      return R.assocPath(['participants', action.participantType, action.update.property], action.update.value, state);
     case 'SET_BROADCAST_STATE':
       return R.assoc('state', action.state, state);
     case 'SET_BROADCAST_EVENT':
       return R.assoc('event', action.event, state);
-    case 'SET_BROADCAST_EVENT_STATUS': {
-      const event = R.assoc('status', action.status, state.event);
-      return R.assoc('event', event, state);
-    }
+    case 'SET_BROADCAST_EVENT_STATUS':
+      {
+        const event = R.assoc('status', action.status, state.event);
+        return R.assoc('event', event, state);
+      }
     case 'BROADCAST_CONNECTED':
       return R.assoc('connected', action.connected, state);
     case 'BROADCAST_PRESENCE_CONNECTED':

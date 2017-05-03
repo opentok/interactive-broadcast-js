@@ -5,10 +5,19 @@ import VideoHolder from '../../../Common/VideoHolder';
 import './FanBody.css';
 import defaultImg from '../../../../images/TAB_VIDEO_PREVIEW_LS.jpg';
 
-const userTypes = ['host', 'celebrity', 'fan'];
+const userTypes: ParticipantType[] = ['host', 'celebrity', 'fan'];
 
+type Props = {
+  isClosed: boolean,
+  isLive: boolean,
+  image?: string,
+  participants: BroadcastParticipants,
+  showImage: boolean,
+  hasStreams: boolean
+};
 const FanBody = (props: Props): ReactComponent => {
   const { isClosed, isLive, image, participants, showImage, hasStreams } = props;
+  console.log('fan body props', props);
   const imgClass = classNames('FanBody', { withStreams: hasStreams && isLive });
   return (
     <div className={imgClass}>
@@ -17,11 +26,11 @@ const FanBody = (props: Props): ReactComponent => {
           <img src={image || defaultImg} alt="event" />
         </div>
       }
-      { !isClosed && userTypes.map((userType: string): ReactComponent =>
+      { !isClosed && userTypes.map((type: ParticipantType): ReactComponent =>
         <VideoHolder
-          key={`videoStream${userType}`}
-          connected={participants && isLive ? participants[userType].connected : false}
-          userType={userType}
+          key={`videoStream${type}`}
+          connected={participants && isLive ? participants[type].connected : false}
+          userType={type}
         />)}
     </div>
   );

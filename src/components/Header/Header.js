@@ -5,7 +5,7 @@ import Logout from '../Logout/Logout';
 import './Header.css';
 
 type Props = {
-  routes: array
+  routes: Route[]
 };
 
 const DefaultLogo = (): ReactComponent => <div className="Header-logo">Interactive Broadcasting Syndrome</div>;
