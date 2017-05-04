@@ -109,6 +109,14 @@ const unsubscribeAll = (instance: string): Object => { // eslint-disable-line fl
   return core.internalState.getPubSub();
 };
 
+/**
+ * subscribe a stream
+ */
+const subscribe = (stream: Stream, instance: string) => {
+  const core = instances[instance];
+  core.subscribe(stream);
+};
+
 
 module.exports = {
   init,
@@ -120,4 +128,5 @@ module.exports = {
   toggleLocalAudio,
   toggleLocalVideo,
   unsubscribeAll,
+  subscribe,
 };

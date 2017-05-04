@@ -27,7 +27,7 @@ const CelebrityHostBody = (props: Props): ReactComponent => {
       { !isClosed && userTypes.map((type: ParticipantType): ReactComponent =>
         <VideoHolder
           key={`videoStream${type}`}
-          connected={participants ? participants[type].connected : false}
+          connected={participants && participants[type] ? participants[type].connected : false}
           isMe={userType === type}
           userType={type}
         />)}

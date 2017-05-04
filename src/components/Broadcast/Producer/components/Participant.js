@@ -56,7 +56,7 @@ const Participant = ({ type, broadcast, toggleAudio, toggleVideo, toggleVolume }
       <div className="Participant-feed-controls">
         <span className="label">Alter Feed</span>
         <div className="controls">
-          <ControlIcon name={me.volume ? 'volume-up' : 'volume-down'} className={controlIconClass} disabled={!me.connected} onClick={toggleVolume} />
+          <ControlIcon name={me.volume === 100 ? 'volume-up' : 'volume-down'} className={controlIconClass} disabled={!me.connected} onClick={toggleVolume} />
           <ControlIcon name="phone" className={controlIconClass} disabled={!me.connected} />
           <ControlIcon name={me.audio ? 'microphone' : 'microphone-slash'} disabled={!me.connected} className={controlIconClass} onClick={toggleAudio} />
           <ControlIcon name="video-camera" className={controlIconClass} onClick={toggleVideo} disabled={!me.connected} />

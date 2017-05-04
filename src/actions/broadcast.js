@@ -2,7 +2,6 @@
 import R from 'ramda';
 import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
-import { connect, disconnect, unsubscribeAll, subscribeAll, signal } from '../services/opentok';
 import opentok2 from '../services/opentok2';
 import io from '../services/socket-io';
 
@@ -121,8 +120,6 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const participants = R.path(['broadcast', 'participants'], getState());
     const to = participants[participantType].stream.connection;
-    const currentValue = participants[participantType][property];
-
     const computeUpdate = (): ParticipantAVPropertyUpdate => {
       const currentValue = participants[participantType][property];
       switch (property) {
@@ -139,21 +136,20 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
     const update = computeUpdate();
     const { value } = update;
     const instance = R.equals('backstageFan', participantType) ? 'backstage' : 'stage'; // For moving to OT2
-    const stage = participantType !== 'backstageFan';
-    // participants[participantType][property] = value;
     switch (property) {
       case 'audio':
-        signal({ type: 'muteAudio', to, data: { mute: value ? 'off' : 'on' } }, stage);
+        opentok2.signal(instance, { type: 'muteAudio', to, data: { mute: value ? 'off' : 'on' } });
         break;
       case 'video':
-        signal({ type: 'videoOnOff', to, data: { video: value ? 'on' : 'off' } }, stage);
+        opentok2.signal(instance, { type: 'videoOnOff', to, data: { video: value ? 'on' : 'off' } });
         break;
       case 'volume':
-        signal({ type: 'changeVolume', data: { userType: participantType, volume: value ? 100 : 50 } }, stage);
+        opentok2.signal(instance, { type: 'changeVolume', data: { userType: participantType, volume: value ? 100 : 50 } });
         break;
       default: // Do Nothing
     }
-    dispatch({ type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType, update });
+    console.log(update)
+    dispatch({ type: 'PARTICIPANT_PROPERTY_CHANGED', participantType, update });
   };
 
 const updateParticipants: ThunkActionCreator = (participantType: ParticipantType, event: StreamEventType, stream: Stream): Thunk =>
@@ -185,8 +181,6 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
         dispatch(setBroadcastState(state));
       },
       onStreamChanged: (user: UserRole, event: StreamEventType, stream: Stream) => {
-        console.log('stream changed in broadcast', user);
-        console.log('have on changed listener???', onStreamChanged)
         onStreamChanged && dispatch(onStreamChanged(user, event, stream));
         dispatch(updateParticipants(user, event, stream));
       },
@@ -211,7 +205,7 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
-    disconnect();
+    opentok2.disconnect();
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };
 
@@ -225,7 +219,7 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
       ];
       R.forEach(dispatch, actions);
       const type = newStatus === 'live' ? 'goLive' : 'finishEvent';
-      signal({ type }, true);
+      opentok2.signal('stage', { type });
     } catch (error) {
       console.log('error on change status ==>', error);
     }
@@ -255,7 +249,7 @@ const publishOnly: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const state = getState();
     const enabled = !R.path(['broadcast', 'publishOnlyEnabled'], state);
-    const newBroadcastState = enabled ? unsubscribeAll(true) : subscribeAll(true);
+    const newBroadcastState = enabled ? opentok2.unsubscribeAll('stage') : opentok2.subscribeAll('stage');
     const actions = [
       setBroadcastState(newBroadcastState),
       setPublishOnly(enabled),
