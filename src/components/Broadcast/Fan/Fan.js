@@ -57,9 +57,9 @@ class Fan extends Component {
 
   render(): ReactComponent {
     const { eventData, status, broadcastState, participants } = this.props;
+    console.log('PPPP', participants);
     if (!eventData) return <Loading />;
-    console.log('broadcast state in fan', broadcastState);
-    const totalStreams = parseInt(R.pathOr(0, ['meta', 'subscribers', 'total'], broadcastState), 0);
+    const totalStreams = parseInt(R.pathOr(0, ['meta', 'subscriber', 'total'], broadcastState), 0);
     const isClosed = R.equals(status, 'closed');
     const isLive = R.equals(status, 'live');
     return (

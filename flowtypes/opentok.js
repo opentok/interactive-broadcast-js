@@ -203,6 +203,12 @@ declare type OTListeners = {
   onSignal: SignalListener
 };
 
+declare type OptionalOTListeners = {
+  onStreamChanged?: ThunkActionCreator,
+  onStateChanged?: ThunkActionCreator,
+  onSignal: SignalListener
+};
+
 declare class Core {
   connect: () => Promise<{connections: number}>,
   disconnect: () => Promise<void>,

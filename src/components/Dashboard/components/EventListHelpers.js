@@ -6,14 +6,14 @@ import moment from 'moment';
 import Icon from 'react-fontawesome';
 
 /** Event Name */
-type NameProps = { id: string, status: string, name: string };
+type NameProps = { id: string, status: EventStatus, name: string };
 const eventName = ({ id, status, name }: NameProps): ReactComponent =>  // eslint-disable-line no-confusing-arrow
   status === 'closed' ?
     <span>{name}</span> :
     <Link to={`events/${id}/edit`}>{name}</Link>;
 
 /** Event Timestamp */
-type TimeProps = { id: string, status: EventStatus, dateTimeStart: string, dateTimeEnd: string, showStartedAt: string, showEndedAt: string };
+type TimeProps = { id: string, status: EventStatus, dateTimeStart?: string, dateTimeEnd?: string, showStartedAt: string, showEndedAt: string };
 const eventTime = ({ id, status, dateTimeStart = '', dateTimeEnd = '', showStartedAt = '', showEndedAt = '' }: TimeProps): ReactComponent => {
 
   const formattedDate = (d: string): string => moment(d).format('MMM DD, YYYY hh:mm A');

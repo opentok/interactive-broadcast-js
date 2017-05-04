@@ -40,7 +40,6 @@ const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => 
     };
     R.forEach((event: SubscribeEventType): void => instance.on(event, handleSubscribeEvent), subscribeEvents);
 
-
     // Assign listener for stream changes
     const otStreamEvents: StreamEventType[] = ['streamCreated', 'streamDestroyed'];
     const handleStreamEvent: StreamEventHandler = ({ type, stream }: OTStreamEvent) => {
@@ -59,7 +58,7 @@ const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => 
     instance.on('signal', onSignal);
   };
 
-  const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = false): CoreOptions => ({
+  const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = true): CoreOptions => ({
     name,
     credentials,
     streamContainers(pubSub: PubSub, source: VideoType, data: { userType: UserRole }): string {
@@ -177,11 +176,20 @@ const connectToPresence: ThunkActionCreator = (): Thunk =>
     io.connected ? onConnect() : io.on('connect', onConnect);
   };
 
-const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials, userType: UserRole, onSignal: SignalListener, broadcast?: BroadcastEvent): Thunk =>
+const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials, userType: UserRole, roleSpecificListeners: OptionalOTListeners, broadcast?: BroadcastEvent): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
+    const { onStateChanged, onStreamChanged, onSignal } = roleSpecificListeners;
     const listeners: OTListeners = {
-      onStateChanged: (state: CoreState): void => dispatch(setBroadcastState(state)),
-      onStreamChanged: (user: UserRole, event: StreamEventType, stream: Stream): void => dispatch(updateParticipants(user, event, stream)),
+      onStateChanged: (state: CoreState) => {
+        onStateChanged && dispatch(onStateChanged(state));
+        dispatch(setBroadcastState(state));
+      },
+      onStreamChanged: (user: UserRole, event: StreamEventType, stream: Stream) => {
+        console.log('stream changed in broadcast', user);
+        console.log('have on changed listener???', onStreamChanged)
+        onStreamChanged && dispatch(onStreamChanged(user, event, stream));
+        dispatch(updateParticipants(user, event, stream));
+      },
       onSignal,
     };
     const instances: CoreInstanceOptions[] = opentokConfig({ userCredentials, userType, listeners, broadcast });

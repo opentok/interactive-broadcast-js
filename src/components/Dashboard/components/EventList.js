@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import R from 'ramda';
 import classNames from 'classnames';
@@ -27,7 +28,7 @@ const EventList = ({ events }: Props): ReactComponent =>
     {
       R.ifElse(
         R.isEmpty,
-        (): null => <div className="EventList-empty">No events available</div>,
+        (): ReactComponent => <div className="EventList-empty">No events available</div>,
         R.map(renderEvent) // eslint-disable-line comma-dangle
       )(events)
     }

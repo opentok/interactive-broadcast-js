@@ -37,6 +37,15 @@ const onSignal = ({ type, data, from }: Signal) => {
   }
 };
 
+const onStreamChanged: ThunkActionCreator = (user: UserRole, event: StreamEventType, stream: Stream): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const status = R.path(['broadcast', 'event', 'status'], getState());
+    if (R.equals(status, 'live')) {
+      opentok2.subscribeAll('stage');
+    }
+  };
+
+
 const connectToPresenceWithToken: ThunkActionCreator = (adminId: string, fanUrl: string): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
 
@@ -50,7 +59,7 @@ const connectToPresenceWithToken: ThunkActionCreator = (adminId: string, fanUrl:
           dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
           const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
           const credentials = R.pick(credentialProps, eventData);
-          dispatch(connectToInteractive(credentials, 'fan', onSignal, eventData));
+          dispatch(connectToInteractive(credentials, 'fan', { onSignal, onStreamChanged }, eventData));
         } else {
           // @TODO: Should display the HLS version or a message.
         }
@@ -77,7 +86,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
       // Get an Auth Token
       await dispatch(validateUser(adminId, 'fan', userUrl));
       // Connect to socket.io and OT sessions if the fan is able to join
-      await dispatch(connectToPresenceWithToken(adminId, userUrl, onSignal));
+      await dispatch(connectToPresenceWithToken(adminId, userUrl));
 
     } catch (error) {
       console.log('error', error);
