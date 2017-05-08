@@ -29,7 +29,7 @@ type Props = BaseProps & DispatchProps;
 
 const Participant = ({ type, broadcast, toggleAudio, toggleVideo, toggleVolume }: Props): ReactComponent => {
   const url = R.prop(`${type}Url`, createUrls(broadcast.event || {}));
-  const me = R.prop(`${type}`, broadcast.participants);
+  const me = R.prop(`${type}`, broadcast.participants) || {};
   const statusIconClass = classNames('icon', { green: me.connected });
   const controlIconClass = classNames('icon', { active: me.connected });
   const status = me.connected ? 'Online' : 'Offline';

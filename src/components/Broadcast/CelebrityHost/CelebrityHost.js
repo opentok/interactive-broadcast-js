@@ -12,7 +12,7 @@ import { setInfo, resetAlert } from '../../../actions/alert';
 import CelebrityHostHeader from './components/CelebrityHostHeader';
 import CelebrityHostBody from './components/CelebrityHostBody';
 import Loading from '../../../components/Common/Loading';
-import { toggleLocalVideo, toggleLocalAudio, disconnect, changeVolume } from '../../../services/opentok';
+import { disconnect } from '../../../services/opentok';
 import './CelebrityHost.css';
 
 /* beautify preserve:start */
@@ -63,6 +63,8 @@ class CelebrityHost extends Component {
   componentWillReceiveProps(nextProps: Props) {
     const currentStatus = this.props.status;
     const newStatus = nextProps.status;
+
+    if (newStatus === 'closed') { disconnect(); }
   }
 
   render(): ReactComponent {

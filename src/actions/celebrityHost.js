@@ -3,39 +3,40 @@ import R from 'ramda';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
 import { startCountdown, setBroadcastEventStatus, connectToInteractive } from './broadcast';
-// import { opentokConfig, setPublishOnly, setBroadcastEventStatus, setBroadcastState, connectToPresence } from './broadcast';
 import { getEventWithCredentials } from '../services/api';
-import opentok2 from '../services/opentok2';
+import opentok from '../services/opentok';
 
-const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok2;
+const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
 const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: Signal) => {
   const signalData = data ? JSON.parse(data) : {};
+  const signalType = R.last(R.split(':', type));
   const fromData = JSON.parse(from.data);
   const fromProducer = fromData.userType === 'producer';
-  switch (type) {
-    case 'signal:goLive':
+
+  switch (signalType) {
+    case 'goLive':
       fromProducer && dispatch(setBroadcastEventStatus('live'));
       break;
-    case 'signal:videoOnOff':
+    case 'videoOnOff':
       fromProducer && toggleLocalVideo(signalData.video === 'on');
       break;
-    case 'signal:muteAudio':
+    case 'muteAudio':
       fromProducer && toggleLocalAudio(signalData.mute === 'off');
       break;
-    case 'signal:changeVolume':
+    case 'changeVolume':
       fromProducer && changeVolume('stage', signalData.userType, signalData.volume);
       break;
-    case 'signal:chatMessage': // @TODO
-    case 'signal:privateCall': // @TODO
-    case 'signal:endPrivateCall': // @TODO
-    case 'signal:openChat': // @TODO
-    case 'signal:newBackstageFan':
+    case 'chatMessage': // @TODO
+    case 'privateCall': // @TODO
+    case 'endPrivateCall': // @TODO
+    case 'openChat': // @TODO
+    case 'newBackstageFan':
       fromProducer && newBackstageFan();
       break;
-    case 'signal:finishEvent':
+    case 'finishEvent':
       fromProducer && dispatch(setBroadcastEventStatus('closed'));
       break;
     default:

@@ -2,131 +2,73 @@
 import Core from 'opentok-accelerator-core';
 import R from 'ramda';
 
-let coreStage;
-let coreBackstage;
+const instances: {[name: string]: Core} = {};
+const listeners: {[name: string]: Core => void} = {};
+const options: {[name: string]: OpentokSessionOptions} = {};
+let localInstance;
 
-const otEvents: SubscribeEventType[] = [
-  'subscribeToCamera',
-  'unsubscribeFromCamera',
-];
-
-const otStreamEvents: StreamEventType[] = [
-  'streamCreated',
-  'streamDestroyed',
-];
-
-const coreOptions = (credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = true): CoreOptions => ({
-  credentials,
-  streamContainers(pubSub: PubSub, source: VideoType, data: { userType: UserRole }): string {
-    return `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`;
-  },
-  communication: {
-    autoSubscribe,
-    callProperties: {
-      fitMode: 'contain',
-    },
-  },
-  controlsContainer: null,
-});
-
-const unsubscribeAll = (stage: boolean): Object => { // eslint-disable-line flowtype/no-weak-types
-  const core = stage ? coreStage : coreBackstage;
-  const subscribers = core.internalState.subscribers.camera;
-  Object.values(subscribers).forEach(core.unsubscribe);
-  return core.internalState.getPubSub();
+const getStreamByUserType = (userType: UserRole, core: Core): Stream => {
+  const streamByUserType = (stream: Stream): boolean => {
+    const connectionData = JSON.parse(R.pathOr(null, ['connection', 'data'], stream)) || {};
+    return R.equals(connectionData.userType === userType);
+  };
+  return R.find(streamByUserType, R.values(core.state().streams));
 };
 
-const subscribeAll = (stage: boolean): Object => { // eslint-disable-line flowtype/no-weak-types
-  const core = stage ? coreStage : coreBackstage;
-  const streams = core.internalState.getStreams();
-  Object.values(streams).forEach(core.subscribe);
-  return core.internalState.getPubSub();
+/**
+ * Create instances of core
+ */
+const init = (instancesToCreate: CoreInstanceOptions[], local: string) => {
+  const createCoreInstance = ({ name, coreOptions, eventListeners, opentokOptions = {} }: CoreInstanceOptions) => {
+    instances[name] = new Core(coreOptions);
+    listeners[name] = eventListeners;
+    options[name] = opentokOptions;
+  };
+  R.forEach(createCoreInstance, instancesToCreate);
+  localInstance = instances[local];
 };
 
-const connect = async (userCredentials: UserCredentials, userType: UserRole, listeners: OTListeners): AsyncVoid => {
-  const { apiKey, backstageToken, stageToken, stageSessionId, sessionId } = userCredentials;
-  const stageCredentials = {
-    apiKey,
-    sessionId: stageSessionId,
-    token: stageToken,
-  };
-  const backstageCredentials = {
-    apiKey,
-    sessionId,
-    token: backstageToken,
-  };
+/**
+ * Connect to all sessions/instances of core
+ */
+const connect = async (): AsyncVoid => {
 
-  const { onStateChanged, onStreamChanged, onSignal } = listeners;
-  const isCelebHost = R.equals('celebrity', userType) || R.equals('host', userType);
-  const isFan = R.equals('fan', userType);
-
-  // Connect the listeners with the OTCore object
-  const connectListeners = (otCore: Core) => {
-    // Assign listener for state changes
-    otEvents.forEach((e: SubscribeEvent): void => otCore.on(e, (state: CoreState) => {
-      onStateChanged(state);
-    }));
-
-    // Assign listener for stream changes
-    otStreamEvents.forEach((e: StreamEvent): void => otCore.on(e, ({ stream }: StreamEvent) => {
-      e === 'streamCreated' && !isFan && coreStage.subscribe(stream);
-      const connectionData = JSON.parse(stream.connection.data);
-      onStreamChanged(connectionData.userType, e, stream);
-    }));
-
-    // Assign listener for signal changes
-    otCore.on('signal', onSignal);
+  const connectInstance = async (name: string): AsyncVoid => {
+    const instance = instances[name];
+    const instanceOptions = options[name];
+    listeners[name](instance); // Connect listeners
+    const connection = await instance.connect();
+    return instanceOptions.autoPublish ? instance.startCall() : connection;
   };
 
   try {
-    // Core and SDK Wrapper should have 'connected' properties returned by state
-    // They should also wrap disconnect in try/catch in case a user tries to disconnect before connecting
-    if (stageToken) {
-      coreStage = new Core(coreOptions(stageCredentials, userType, false));
-      connectListeners(coreStage);
-    }
-
-    if (backstageToken) {
-      coreBackstage = new Core(coreOptions(backstageCredentials, userType, false));
-      connectListeners(coreBackstage);
-    }
-
-    await Promise.all([coreStage && coreStage.connect(), coreBackstage && coreBackstage.connect()]);
-
-    // Start subscribing and publishing
-    isCelebHost && coreStage.startCall();
-
-    return;
+    const connections = await Promise.all(R.map(connectInstance, R.keys(instances)));
+    return connections;
   } catch (error) {
     throw error;
   }
 };
 
-const disconnect: Unit = () => {
+
+/**
+ * Disconnect from all sessions/instances of core
+ */
+const disconnect = () => {
+
+  const disconnectInstance = (instance: Core) => {
+    instance.off();
+    instance.disconnect();
+  };
+
   try {
-    coreStage && coreStage.off();
-    coreStage && coreStage.disconnect();
-    coreBackstage && coreBackstage.off();
-    coreBackstage && coreBackstage.disconnect();
+    R.forEach(disconnectInstance, R.values(instances));
   } catch (error) {
-    console.log('error disconnect', error);
+    console.log('disconnect error', error);
   }
 };
 
-const getStreamByUserType = (userType: string, core: Core): Stream => {
-  let stream;
-  const printKeyConcatValue = (value: object) => {
-    const connectionData = JSON.parse(R.path(['connection', 'data'], value));
-    if (connectionData.userType === userType) {
-      stream = value;
-    }
-  };
-  R.forEachObjIndexed(printKeyConcatValue, core.state().streams);
-  return stream;
-};
-
-const changeVolume = (userType: string, volume: number, stage: boolean) => {
-  const core = stage ? coreStage : coreBackstage;
+const changeVolume = (instance: string, userType: UserRole, volume: number) => {
+  const core = instances[instance];
   const stream = getStreamByUserType(userType, core);
   if (stream) {
     const subscribers = core.getSubscribersForStream(stream);
@@ -134,25 +76,57 @@ const changeVolume = (userType: string, volume: number, stage: boolean) => {
   }
 };
 
-const signal = ({ type, data, to }: SignalParams, stage: boolean) => {
+const signal = async (instance: string, { type, data, to }: SignalParams): AsyncVoid => {
   try {
-    const core: Core = stage ? coreStage : coreBackstage;
+    const core = instances[instance];
     core.signal(type, data, to);
   } catch (error) {
-    console.log('error coreStage', error);
+    console.log('signaling errror', error);
   }
 };
 
-const toggleLocalVideo = (enable: boolean): void => coreStage.toggleLocalVideo(enable);
-const toggleLocalAudio = (enable: boolean): void => coreStage.toggleLocalAudio(enable);
+/**
+ * Subscribe to all streams in the session instance
+ */
+const subscribeAll = (instance: string): Object => { // eslint-disable-line flowtype/no-weak-types
+  const core = instances[instance];
+  const streams = core.state().getStreams();
+  Object.values(streams).forEach(core.subscribe);
+  return core.state().getPubSub();
+};
+
+const toggleLocalVideo = (enable: boolean): void => localInstance.toggleLocalVideo(enable);
+
+const toggleLocalAudio = (enable: boolean): void => localInstance.toggleLocalAudio(enable);
+
+/**
+ * Unsubscribe from all streams in the instance session
+ */
+const unsubscribeAll = (instance: string): Object => { // eslint-disable-line flowtype/no-weak-types
+  const core = instances[instance];
+  const subscribers = core.state().subscribers.camera;
+  Object.values(subscribers).forEach(core.unsubscribe);
+  return core.state().getPubSub();
+};
+
+/**
+ * subscribe to a stream
+ */
+const subscribe = (stream: Stream, instance: string) => {
+  const core = instances[instance];
+  core.subscribe(stream);
+};
+
 
 module.exports = {
+  init,
   connect,
   disconnect,
-  signal,
-  toggleLocalVideo,
-  toggleLocalAudio,
   changeVolume,
-  unsubscribeAll,
+  signal,
   subscribeAll,
+  toggleLocalAudio,
+  toggleLocalVideo,
+  unsubscribeAll,
+  subscribe,
 };

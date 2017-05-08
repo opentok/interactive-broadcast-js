@@ -1,20 +1,19 @@
 // @flow
 import R from 'ramda';
 import { validateUser } from './auth';
-import { setBroadcastEventStatus as changeStatus, connectToInteractive } from './broadcast';
-import opentok2 from '../services/opentok2';
+import { connectToInteractive, setBroadcastEventStatus } from './broadcast';
+import opentok from '../services/opentok';
 import io from '../services/socket-io';
 
-const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok2;
-const onSignal = ({ type, data, from }: Signal) => {
+const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
+const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: Signal) => {
   const signalData = data ? JSON.parse(data) : {};
   const signalType = R.last(R.split(':', type));
   const fromData = JSON.parse(from.data);
   const fromProducer = fromData.userType === 'producer';
   switch (signalType) {
     case 'goLive':
-      fromProducer && changeStatus('live');
-      opentok2.subscribeAll('stage');
+      dispatch(setBroadcastEventStatus('live'));
       break;
     case 'videoOnOff':
       fromProducer && toggleLocalVideo(signalData.video === 'on');
@@ -30,7 +29,7 @@ const onSignal = ({ type, data, from }: Signal) => {
     case 'endPrivateCall': // @TODO
     case 'openChat': // @TODO
     case 'finishEvent':
-      fromProducer && changeStatus('closed');
+      fromProducer && setBroadcastEventStatus('closed');
       break;
     default:
       break;
@@ -40,8 +39,9 @@ const onSignal = ({ type, data, from }: Signal) => {
 const onStreamChanged: ThunkActionCreator = (user: UserRole, event: StreamEventType, stream: Stream): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const status = R.path(['broadcast', 'event', 'status'], getState());
-    if (R.equals(status, 'live')) {
-      opentok2.subscribeAll('stage');
+    const userHasJoined = R.equals(event, 'streamCreated');
+    if (R.equals(status, 'live') && userHasJoined) {
+      opentok.subscribe(stream, 'stage');
     }
   };
 
@@ -59,7 +59,7 @@ const connectToPresenceWithToken: ThunkActionCreator = (adminId: string, fanUrl:
           dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
           const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
           const credentials = R.pick(credentialProps, eventData);
-          dispatch(connectToInteractive(credentials, 'fan', { onSignal, onStreamChanged }, eventData));
+          dispatch(connectToInteractive(credentials, 'fan', { onSignal: onSignal(dispatch), onStreamChanged }, eventData));
         } else {
           // @TODO: Should display the HLS version or a message.
         }

@@ -4,35 +4,20 @@ import { browserHistory } from 'react-router';
 import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
-import { disconnect, unsubscribeAll, subscribeAll } from '../services/opentok';
-import opentok2 from '../services/opentok2';
-import { setPublishOnly, setBroadcastEventStatus, setBroadcastState, connectToPresence, connectToInteractive } from './broadcast';
+import { disconnect, changeVolume } from '../services/opentok';
+import { connectToPresence, connectToInteractive } from './broadcast';
 
 const notStarted = R.propEq('status', 'notStarted');
 const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' ? 'preshow' : s };
 
-// const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStatus): Thunk =>
-//   async (dispatch: Dispatch): AsyncVoid => {
-//     try {
-//       const actions = [
-//         updateStatus(eventId, newStatus),
-//         setBroadcastEventStatus(newStatus),
-//       ];
-//       R.forEach(dispatch, actions);
-//       const type = newStatus === 'live' ? 'goLive' : 'finishEvent';
-//       opentok2.signal('stage', { type });
-//     } catch (error) {
-//       console.log('error on change status ==>', error);
-//     }
-//   };
-
-const onSignal = (dispatch: Dispatch) => ({ type, data, from }: Signal) => {
+const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: Signal) => {
   const signalData = data ? JSON.parse(data) : {};
+  const signalType = R.last(R.split(':', type));
   const fromData = JSON.parse(from.data);
   const fromProducer = fromData.userType === 'producer';
-  switch (type) {
-    case 'signal:changeVolume':
-      fromProducer && opentok2.changeVolume('stage', signalData.userType, signalData.volume);
+  switch (signalType) {
+    case 'changeVolume':
+      fromProducer && changeVolume('stage', signalData.userType, signalData.volume);
       break;
     default:
       break;
@@ -49,30 +34,6 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
       console.log(error);
     }
   };
-
-// const toggleParticipantProperty: ThunkActionCreator = (user: ParticipantType, prop: ParticipantAVProperty): Thunk =>
-//   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-//     const participants = R.path(['broadcast', 'participants'], getState());
-//     const to = participants[user].stream.connection;
-//     const newValue = !participants[user][prop];
-//     const stage = user !== 'backstageFan';
-//     participants[user][prop] = newValue;
-//     let signalObj;
-//     switch (prop) {
-//       case 'audio':
-//         signalObj = { type: 'muteAudio', to, data: { mute: newValue ? 'off' : 'on' } };
-//         break;
-//       case 'video':
-//         signalObj = { type: 'videoOnOff', to, data: { video: newValue ? 'on' : 'off' } };
-//         break;
-//       case 'volume':
-//         signalObj = { type: 'changeVolume', data: { userType: user, volume: newValue ? 100 : 50 } };
-//         break;
-//       default: // Do Nothing
-//     }
-//     signalObj && signal(signalObj, stage);
-//     dispatch({ type: 'SET_BROADCAST_PARTICIPANTS', participants });
-//   };
 
 const connectBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
@@ -125,24 +86,9 @@ const startCountdown: ThunkActionCreator = (): Thunk =>
     }, 1000);
   };
 
-const publishOnly: ThunkActionCreator = (): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const state = getState();
-    const enabled = !R.path(['broadcast', 'publishOnlyEnabled'], state);
-    const newBroadcastState = enabled ? unsubscribeAll(true) : subscribeAll(true);
-    const actions = [
-      setBroadcastState(newBroadcastState),
-      setPublishOnly(enabled),
-    ];
-    R.forEach(dispatch, actions);
-  };
-
 module.exports = {
   initializeBroadcast,
   resetBroadcastEvent,
   startCountdown,
-  publishOnly,
-  // changeStatus,
   setBroadcastEventWithCredentials,
-  setBroadcastEventStatus,
 };

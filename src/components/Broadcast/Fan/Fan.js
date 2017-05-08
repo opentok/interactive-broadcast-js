@@ -10,7 +10,7 @@ import { initializeBroadcast } from '../../../actions/fan';
 import FanHeader from './components/FanHeader';
 import FanBody from './components/FanBody';
 import Loading from '../../../components/Common/Loading';
-import { toggleLocalVideo, toggleLocalAudio, disconnect, changeVolume } from '../../../services/opentok';
+import { disconnect } from '../../../services/opentok';
 import './Fan.css';
 
 /* beautify preserve:start */
@@ -51,15 +51,14 @@ class Fan extends Component {
 
   componentWillReceiveProps(nextProps: Props) {
     // Need to check for change to event status here
-    return;
     if (nextProps.broadcastState === 'closed') { disconnect(); }
   }
 
   render(): ReactComponent {
-    const { eventData, status, broadcastState, participants } = this.props;
-    console.log('PPPP', participants);
+    const { eventData, status, broadcastState, participants = {} } = this.props;
     if (!eventData) return <Loading />;
-    const totalStreams = parseInt(R.pathOr(0, ['meta', 'subscriber', 'total'], broadcastState), 0);
+    const participantIsConnected = (type: ParticipantType): boolean => participants[type] && participants[type].connected;
+    const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
     const isClosed = R.equals(status, 'closed');
     const isLive = R.equals(status, 'live');
     return (
@@ -70,8 +69,7 @@ class Fan extends Component {
             status={status}
           />
           <FanBody
-            hasStreams={totalStreams > 0}
-            showImage={!isLive || totalStreams === 0}
+            hasStreams={hasStreams}
             image={isClosed ? eventData.endImage : eventData.startImage}
             participants={participants}
             isClosed={isClosed}

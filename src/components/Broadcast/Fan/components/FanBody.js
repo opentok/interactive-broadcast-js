@@ -12,15 +12,14 @@ type Props = {
   isLive: boolean,
   image?: string,
   participants: BroadcastParticipants,
-  showImage: boolean,
   hasStreams: boolean
 };
 const FanBody = (props: Props): ReactComponent => {
-  const { isClosed, isLive, image, participants, showImage, hasStreams } = props;
-  console.log('fan body props', props);
-  const imgClass = classNames('FanBody', { withStreams: hasStreams && isLive });
+  const { isClosed, isLive, image, participants, hasStreams } = props;
+  const showImage = !isLive || !hasStreams;
+  const fanBodyClasses = classNames('FanBody', { showImage });
   return (
-    <div className={imgClass}>
+    <div className={fanBodyClasses}>
       { showImage &&
         <div className="imageHolder">
           <img src={image || defaultImg} alt="event" />
@@ -29,7 +28,7 @@ const FanBody = (props: Props): ReactComponent => {
       { !isClosed && userTypes.map((type: ParticipantType): ReactComponent =>
         <VideoHolder
           key={`videoStream${type}`}
-          connected={participants && isLive ? participants[type].connected : false}
+          connected={participants && participants[type] && isLive ? participants[type].connected : false}
           userType={type}
         />)}
     </div>

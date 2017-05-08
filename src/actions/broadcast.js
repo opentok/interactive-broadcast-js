@@ -2,11 +2,8 @@
 import R from 'ramda';
 import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
-import opentok2 from '../services/opentok2';
+import opentok from '../services/opentok';
 import io from '../services/socket-io';
-
-// const notStarted = R.propEq('status', 'notStarted');
-// const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' ? 'preshow' : s };
 
 const setBroadcastEventStatus: ActionCreator = (status: EventStatus): BroadcastAction => ({
   type: 'SET_BROADCAST_EVENT_STATUS',
@@ -33,10 +30,7 @@ const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => 
 
     // Assign listener for state changes
     const subscribeEvents: SubscribeEventType[] = ['subscribeToCamera', 'unsubscribeFromCamera'];
-    const handleSubscribeEvent = (state: CoreState) => {
-      console.log('STATE event', state);
-      onStateChanged(state);
-    };
+    const handleSubscribeEvent = (state: CoreState): void => onStateChanged(state);
     R.forEach((event: SubscribeEventType): void => instance.on(event, handleSubscribeEvent), subscribeEvents);
 
     // Assign listener for stream changes
@@ -138,17 +132,16 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
     const instance = R.equals('backstageFan', participantType) ? 'backstage' : 'stage'; // For moving to OT2
     switch (property) {
       case 'audio':
-        opentok2.signal(instance, { type: 'muteAudio', to, data: { mute: value ? 'off' : 'on' } });
+        opentok.signal(instance, { type: 'muteAudio', to, data: { mute: value ? 'off' : 'on' } });
         break;
       case 'video':
-        opentok2.signal(instance, { type: 'videoOnOff', to, data: { video: value ? 'on' : 'off' } });
+        opentok.signal(instance, { type: 'videoOnOff', to, data: { video: value ? 'on' : 'off' } });
         break;
       case 'volume':
-        opentok2.signal(instance, { type: 'changeVolume', data: { userType: participantType, volume: value ? 100 : 50 } });
+        opentok.signal(instance, { type: 'changeVolume', data: { userType: participantType, volume: value ? 100 : 50 } });
         break;
       default: // Do Nothing
     }
-    console.log(update)
     dispatch({ type: 'PARTICIPANT_PROPERTY_CHANGED', participantType, update });
   };
 
@@ -187,25 +180,13 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
       onSignal,
     };
     const instances: CoreInstanceOptions[] = opentokConfig({ userCredentials, userType, listeners, broadcast });
-    opentok2.init(instances, 'stage');
-    await opentok2.connect(userCredentials, userType, listeners);
+    opentok.init(instances, 'stage');
+    await opentok.connect(userCredentials, userType, listeners);
   };
-
-// const connectToInteractiveOld: ThunkActionCreator = (credentials: UserCredentials, userType: UserRole, onSignal: SignalListener): Thunk =>
-//   async (dispatch: Dispatch): AsyncVoid => {
-//     const listeners = {
-//       onStateChanged: (state: CoreState): void => dispatch(setBroadcastState(state)),
-//       onStreamChanged: (participantType: UserRole, eventType: string, stream: Stream) => {
-//         dispatch(updateParticipants(participantType, eventType, stream));
-//       },
-//       onSignal,
-//     };
-//     await connect(credentials, userType, listeners);
-//   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
-    opentok2.disconnect();
+    opentok.disconnect();
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };
 
@@ -219,7 +200,7 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
       ];
       R.forEach(dispatch, actions);
       const type = newStatus === 'live' ? 'goLive' : 'finishEvent';
-      opentok2.signal('stage', { type });
+      opentok.signal('stage', { type });
     } catch (error) {
       console.log('error on change status ==>', error);
     }
@@ -249,7 +230,7 @@ const publishOnly: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const state = getState();
     const enabled = !R.path(['broadcast', 'publishOnlyEnabled'], state);
-    const newBroadcastState = enabled ? opentok2.unsubscribeAll('stage') : opentok2.subscribeAll('stage');
+    const newBroadcastState = enabled ? opentok.unsubscribeAll('stage') : opentok.subscribeAll('stage');
     const actions = [
       setBroadcastState(newBroadcastState),
       setPublishOnly(enabled),
