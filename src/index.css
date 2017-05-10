@@ -70,6 +70,21 @@ input.error {
     background-color: #f15949;
 }
 
+.btn.green {
+    color: #ffffff;
+    background-color: #26A65B;
+    border: 1px solid rgb(232, 235, 237);
+}
+
+.btn.green:hover {
+    background-color: #139348;
+}
+
+.btn.green.getInLine {
+  margin-top: 10px;
+  padding: 8px 12px;
+}
+
 .btn.transparent {
     color: #00a3e3;
     background-color: transparent;

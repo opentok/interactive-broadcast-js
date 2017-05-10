@@ -12,10 +12,11 @@ type Props = {
   isLive: boolean,
   image?: string,
   participants: BroadcastParticipants,
-  hasStreams: boolean
+  hasStreams: boolean,
+  backstageConnected: boolean
 };
 const FanBody = (props: Props): ReactComponent => {
-  const { isClosed, isLive, image, participants, hasStreams } = props;
+  const { isClosed, isLive, image, participants, hasStreams, backstageConnected } = props;
   const showImage = !isLive || !hasStreams;
   const fanBodyClasses = classNames('FanBody', { showImage });
   return (
@@ -31,6 +32,7 @@ const FanBody = (props: Props): ReactComponent => {
           connected={participants && participants[type] && isLive ? participants[type].connected : false}
           userType={type}
         />)}
+      <div className={classNames('VideoWrap', 'smallVideo', { hide: !backstageConnected })} id="videobackstageFan" />
     </div>
   );
 };

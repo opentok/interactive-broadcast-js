@@ -10,6 +10,7 @@ declare type PariticipantAVProps = {
 }
 
 declare type SessionName = 'stage' | 'backstage';
+declare type InstancesToConnect = Array<SessionName>;
 
 declare type ParticipantAVPropertyUpdate =
 { property: 'video', value: boolean } |
@@ -56,6 +57,7 @@ declare type CelebHostInitOptions = FanInitOptions & { userType: 'celebrity' | '
 declare type BroadcastAction =
   { type: 'SET_BROADCAST_EVENT', event: BroadcastEvent } |
   { type: 'RESET_BROADCAST_EVENT' } |
+  { type: 'BACKSTAGE_CONNECTED', connected: boolean } |
   { type: 'BROADCAST_CONNECTED', connected: boolean } |
   { type: 'BROADCAST_PRESENCE_CONNECTED', connected: boolean } |
   { type: 'SET_PUBLISH_ONLY_ENABLED', publishOnlyEnabled: boolean } |

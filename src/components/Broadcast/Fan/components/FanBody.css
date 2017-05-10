@@ -18,6 +18,16 @@
   border: 1px solid #000000;
 }
 
+.FanBody .VideoWrap.smallVideo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  height: 160px;
+  background: #444;
+  z-index: 999;
+}
+
 .FanBody .VideoWrap.hide {
   display:none;
 }

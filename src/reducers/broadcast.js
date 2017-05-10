@@ -13,6 +13,7 @@ const participantState = (stream?: Stream | null = null): ParticipantState => ({
 const initialState = (): BroadcastState => ({
   event: null,
   connected: false,
+  backstageConnected: false,
   presenceConnected: false,
   publishOnlyEnabled: false,
   publishers: {
@@ -28,10 +29,16 @@ const initialState = (): BroadcastState => ({
     host: participantState(),
     backstageFan: participantState(),
   },
+  ableToJoin: false,
+  setFanName: 'Anonymous',
 });
 
 const broadcast = (state: BroadcastState = initialState(), action: BroadcastAction): BroadcastState => {
   switch (action.type) {
+    case 'SET_FAN_NAME':
+      return R.assoc('fanName', action.fanName, state);
+    case 'SET_ABLE_TO_JOIN':
+      return R.assoc('ableToJoin', action.ableToJoin, state);
     case 'SET_PUBLISH_ONLY_ENABLED':
       return R.assoc('publishOnlyEnabled', action.publishOnlyEnabled, state);
     case 'BROADCAST_PARTICIPANT_JOINED':
@@ -51,6 +58,8 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       }
     case 'BROADCAST_CONNECTED':
       return R.assoc('connected', action.connected, state);
+    case 'BACKSTAGE_CONNECTED':
+      return R.assoc('backstageConnected', action.connected, state);
     case 'BROADCAST_PRESENCE_CONNECTED':
       return R.assoc('presenceConnected', action.connected, state);
     case 'RESET_BROADCAST_EVENT':

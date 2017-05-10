@@ -49,6 +49,7 @@ declare type Route = {
 declare type Unit = () => void;
 declare type AsyncVoid = Promise<void>
 
+
 // Forms
 declare type FormErrors = null | { fields: { [field: string]: string, message: string } };
 

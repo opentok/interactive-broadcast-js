@@ -1,7 +1,8 @@
 // @flow
 import R from 'ramda';
 import { validateUser } from './auth';
-import { connectToInteractive, setBroadcastEventStatus } from './broadcast';
+import { connectToInteractive, setBroadcastEventStatus, setAbleToJoin, setFanName, setBackstageConnected } from './broadcast';
+import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 import io from '../services/socket-io';
 
@@ -56,6 +57,7 @@ const connectToPresenceWithToken: ThunkActionCreator = (adminId: string, fanUrl:
       io.emit('joinInteractive', { fanUrl, adminId });
       io.on('ableToJoin', ({ ableToJoin, eventData }: { ableToJoin: boolean, eventData: BroadcastEvent & UserCredentials}) => {
         if (ableToJoin) {
+          dispatch(setAbleToJoin);
           dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
           const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
           const credentials = R.pick(credentialProps, eventData);
@@ -93,7 +95,33 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
     }
   };
 
+const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    /* Close the prompt */
+    dispatch(setFanName(fanName));
+    dispatch(resetAlert());
+    await opentok.connect(['backstage']);
+    dispatch(setBackstageConnected(true));
+  };
+
+const getInTheLine: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const options = (): AlertPartialOptions => ({
+      title: 'Almost done!',
+      text: 'You may enter you name below.',
+      type: 'input',
+      closeOnConfirm: false,
+      inputPlaceholder: 'Name (Optional)',
+      allowEscapeKey: false,
+      html: true,
+      confirmButtonColor: '#00a3e3',
+      onConfirm: (inputValue: string): void => dispatch(connectToBackstage(inputValue)),
+    });
+    dispatch(setInfo(options()));
+  };
+
 
 module.exports = {
   initializeBroadcast,
+  getInTheLine,
 };

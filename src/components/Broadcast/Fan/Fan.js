@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
 import { setBroadcastEventStatus } from '../../../actions/broadcast';
-import { initializeBroadcast } from '../../../actions/fan';
+import { initializeBroadcast, getInTheLine, leaveTheLine } from '../../../actions/fan';
 import FanHeader from './components/FanHeader';
 import FanBody from './components/FanBody';
 import Loading from '../../../components/Common/Loading';
@@ -55,7 +55,7 @@ class Fan extends Component {
   }
 
   render(): ReactComponent {
-    const { eventData, status, broadcastState, participants = {} } = this.props;
+    const { eventData, status, broadcastState, participants = {}, ableToJoin, getInLine, backstageConnected } = this.props;
     if (!eventData) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => participants[type] && participants[type].connected;
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
@@ -67,6 +67,8 @@ class Fan extends Component {
           <FanHeader
             name={eventData.name}
             status={status}
+            ableToJoin
+            getInLine={getInLine}
           />
           <FanBody
             hasStreams={hasStreams}
@@ -74,6 +76,7 @@ class Fan extends Component {
             participants={participants}
             isClosed={isClosed}
             isLive={isLive}
+            backstageConnected={backstageConnected}
           />
         </div>
       </div>
@@ -91,6 +94,8 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     status: R.path(['broadcast', 'event', 'status'], state),
     broadcastState: R.path(['broadcast', 'state'], state),
     participants: R.path(['broadcast', 'participants'], state),
+    ableToJoin: R.path(['broadcast', 'ableToJoin'], state),
+    backstageConnected: R.path(['broadcast', 'backstageConnected'], state),
   };
 };
 
@@ -98,6 +103,8 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
 ({
   init: (options: FanInitOptions): void => dispatch(initializeBroadcast(options)),
   changeEventStatus: (status: EventStatus): void => dispatch(setBroadcastEventStatus(status)),
+  getInLine: (): void => dispatch(getInTheLine()),
+  leaveLine: (): void => dispatch(leaveTheLine()),
 });
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Fan));

@@ -5,6 +5,21 @@ import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 import io from '../services/socket-io';
 
+const setBackstageConnected: ActionCreator = (connected: boolean): BroadcastAction => ({
+  type: 'BACKSTAGE_CONNECTED',
+  connected,
+});
+
+const setFanName: ActionCreator = (fanName: string): BroadcastAction => ({
+  type: 'SET_FAN_NAME',
+  fanName,
+});
+
+const setAbleToJoin: ActionCreator = (ableToJoin: boolean): BroadcastAction => ({
+  type: 'SET_ABLE_TO_JOIN',
+  ableToJoin,
+});
+
 const setBroadcastEventStatus: ActionCreator = (status: EventStatus): BroadcastAction => ({
   type: 'SET_BROADCAST_EVENT_STATUS',
   status,
@@ -42,7 +57,7 @@ const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => 
       const shouldSubscribe = R.all(R.equals(true), [isStage, streamCreated, isNotFan]);
       shouldSubscribe && instance.subscribe(stream);
       const connectionData: { userType: UserRole } = JSON.parse(stream.connection.data);
-      onStreamChanged(connectionData.userType, type, stream);
+      onStreamChanged(connectionData.userType, type, stream, isStage);
     };
 
     R.forEach((event: StreamEventType): void => instance.on(event, handleStreamEvent), otStreamEvents);
@@ -92,8 +107,14 @@ const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => 
       sessionId,
       token: backstageToken,
     };
-
-    return { name: 'backstage', coreOptions: coreOptions('backstage', credentials, userType), eventListeners };
+    const isFan: boolean = R.equals(userType, 'fan');
+    const autoPublish: boolean = isFan;
+    return {
+      name: 'backstage',
+      coreOptions: coreOptions('backstage', credentials, 'backstageFan'),
+      eventListeners,
+      opentokOptions: { autoPublish },
+    };
   };
 
   switch (userType) {
@@ -173,15 +194,17 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
         onStateChanged && dispatch(onStateChanged(state));
         dispatch(setBroadcastState(state));
       },
-      onStreamChanged: (user: UserRole, event: StreamEventType, stream: Stream) => {
+      onStreamChanged: (user: UserRole, event: StreamEventType, stream: Stream, isStage: boolean) => {
         onStreamChanged && dispatch(onStreamChanged(user, event, stream));
-        dispatch(updateParticipants(user, event, stream));
+        isStage && dispatch(updateParticipants(user, event, stream));
       },
       onSignal,
     };
     const instances: CoreInstanceOptions[] = opentokConfig({ userCredentials, userType, listeners, broadcast });
-    opentok.init(instances, 'stage');
-    await opentok.connect(userCredentials, userType, listeners);
+    opentok.init(instances);
+    /* Only the producer should be connected to both sessions from the begining */
+    const instancesToConnect = userType === 'producer' ? ['stage', 'backstage'] : ['stage'];
+    await opentok.connect(instancesToConnect);
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
@@ -251,4 +274,7 @@ module.exports = {
   changeStatus,
   setBroadcastEventStatus,
   updateParticipants,
+  setAbleToJoin,
+  setFanName,
+  setBackstageConnected,
 };

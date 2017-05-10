@@ -5,7 +5,6 @@ import R from 'ramda';
 const instances: {[name: string]: Core} = {};
 const listeners: {[name: string]: Core => void} = {};
 const options: {[name: string]: OpentokSessionOptions} = {};
-let localInstance;
 
 const getStreamByUserType = (userType: UserRole, core: Core): Stream => {
   const streamByUserType = (stream: Stream): boolean => {
@@ -18,22 +17,21 @@ const getStreamByUserType = (userType: UserRole, core: Core): Stream => {
 /**
  * Create instances of core
  */
-const init = (instancesToCreate: CoreInstanceOptions[], local: string) => {
+const init = (instancesToCreate: CoreInstanceOptions[]) => {
   const createCoreInstance = ({ name, coreOptions, eventListeners, opentokOptions = {} }: CoreInstanceOptions) => {
     instances[name] = new Core(coreOptions);
     listeners[name] = eventListeners;
     options[name] = opentokOptions;
   };
   R.forEach(createCoreInstance, instancesToCreate);
-  localInstance = instances[local];
 };
 
 /**
  * Connect to all sessions/instances of core
  */
-const connect = async (): AsyncVoid => {
+const connect = async (instancesToConnect: InstancesToConnect): AsyncVoid => {
 
-  const connectInstance = async (name: string): AsyncVoid => {
+  const connectInstance = async (name: SessionName): AsyncVoid => {
     const instance = instances[name];
     const instanceOptions = options[name];
     listeners[name](instance); // Connect listeners
@@ -42,7 +40,7 @@ const connect = async (): AsyncVoid => {
   };
 
   try {
-    const connections = await Promise.all(R.map(connectInstance, R.keys(instances)));
+    const connections = await Promise.all(R.map(connectInstance, R.values(instancesToConnect)));
     return connections;
   } catch (error) {
     throw error;
@@ -67,7 +65,7 @@ const disconnect = () => {
   }
 };
 
-const changeVolume = (instance: string, userType: UserRole, volume: number) => {
+const changeVolume = (instance: SessionName, userType: UserRole, volume: number) => {
   const core = instances[instance];
   const stream = getStreamByUserType(userType, core);
   if (stream) {
@@ -76,7 +74,7 @@ const changeVolume = (instance: string, userType: UserRole, volume: number) => {
   }
 };
 
-const signal = async (instance: string, { type, data, to }: SignalParams): AsyncVoid => {
+const signal = async (instance: SessionName, { type, data, to }: SignalParams): AsyncVoid => {
   try {
     const core = instances[instance];
     core.signal(type, data, to);
@@ -88,21 +86,21 @@ const signal = async (instance: string, { type, data, to }: SignalParams): Async
 /**
  * Subscribe to all streams in the session instance
  */
-const subscribeAll = (instance: string): Object => { // eslint-disable-line flowtype/no-weak-types
+const subscribeAll = (instance: SessionName): Object => { // eslint-disable-line flowtype/no-weak-types
   const core = instances[instance];
   const streams = core.state().getStreams();
   Object.values(streams).forEach(core.subscribe);
   return core.state().getPubSub();
 };
 
-const toggleLocalVideo = (enable: boolean): void => localInstance.toggleLocalVideo(enable);
+const toggleLocalVideo = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalVideo(enable);
 
-const toggleLocalAudio = (enable: boolean): void => localInstance.toggleLocalAudio(enable);
+const toggleLocalAudio = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalAudio(enable);
 
 /**
  * Unsubscribe from all streams in the instance session
  */
-const unsubscribeAll = (instance: string): Object => { // eslint-disable-line flowtype/no-weak-types
+const unsubscribeAll = (instance: SessionName): Object => { // eslint-disable-line flowtype/no-weak-types
   const core = instances[instance];
   const subscribers = core.state().subscribers.camera;
   Object.values(subscribers).forEach(core.unsubscribe);
@@ -112,7 +110,7 @@ const unsubscribeAll = (instance: string): Object => { // eslint-disable-line fl
 /**
  * subscribe to a stream
  */
-const subscribe = (stream: Stream, instance: string) => {
+const subscribe = (stream: Stream, instance: SessionName) => {
   const core = instances[instance];
   core.subscribe(stream);
 };
