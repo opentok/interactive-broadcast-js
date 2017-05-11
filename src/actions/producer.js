@@ -86,9 +86,15 @@ const startCountdown: ThunkActionCreator = (): Thunk =>
     }, 1000);
   };
 
+const reorderActiveFans: ActionCreator = (update: ActiveFanOrderUpdate): BroadcastAction => ({
+  type: 'REORDER_BROADCAST_ACTIVE_FANS',
+  update,
+});
+
 module.exports = {
   initializeBroadcast,
   resetBroadcastEvent,
   startCountdown,
   setBroadcastEventWithCredentials,
+  reorderActiveFans,
 };

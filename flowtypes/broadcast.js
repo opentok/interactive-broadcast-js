@@ -12,6 +12,8 @@ declare type PariticipantAVProps = {
 declare type SessionName = 'stage' | 'backstage';
 declare type InstancesToConnect = Array<SessionName>;
 
+declare type NetworkQuality = 'good' | 'fair' | 'poor';
+
 declare type ParticipantAVPropertyUpdate =
 { property: 'video', value: boolean } |
 { property: 'audio', value: boolean } |
@@ -20,7 +22,7 @@ declare type ParticipantAVPropertyUpdate =
 declare type ParticipantState = {
   connected: boolean,
   stream: null | Stream,
-  networkQuality: null | 'good' | 'fair' | 'poor',
+  networkQuality: null | NetworkQuality,
   video: boolean,
   audio: boolean,
   volume: number
@@ -31,6 +33,15 @@ declare type BroadcastParticipants = {
   celebrity: ParticipantState,
   host: ParticipantState,
   backstageFan: ParticipantState
+};
+
+
+declare type ActiveFan = {
+  id: string,
+  name: string,
+  browser: string,
+  connectionQuality: null | NetworkQuality,
+  snapshot: string
 };
 
 declare type BroadcastState = {
@@ -45,7 +56,8 @@ declare type BroadcastState = {
     camera: null | { [subscriberId: string]: Subscriber}
   },
   meta: null | CoreMeta,
-  participants: BroadcastParticipants
+  participants: BroadcastParticipants,
+  activeFans: ActiveFan[]
 };
 
 
@@ -53,6 +65,7 @@ declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
 
 declare type FanInitOptions = { adminId: UserId, userUrl: string };
 declare type CelebHostInitOptions = FanInitOptions & { userType: 'celebrity' | 'host' };
+declare type ActiveFanOrderUpdate = { newIndex: number, oldIndex: number };
 
 declare type BroadcastAction =
   { type: 'SET_BROADCAST_EVENT', event: BroadcastEvent } |
@@ -65,4 +78,5 @@ declare type BroadcastAction =
   { type: 'BROADCAST_PARTICIPANT_LEFT', participantType: ParticipantType } |
   { type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType: ParticipantType, update: ParticipantAVPropertyUpdate } |
   { type: 'SET_BROADCAST_EVENT_STATUS', status: EventStatus } |
-  { type: 'SET_BROADCAST_STATE', state: CoreState };
+  { type: 'SET_BROADCAST_STATE', state: CoreState } |
+  { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate };

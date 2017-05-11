@@ -56,13 +56,14 @@ class Producer extends Component {
   render(): ReactComponent {
     const { toggleSidePanel } = this;
     const { showingSidePanel } = this.state;
+    const { broadcast } = this.props;
     return (
       <div className="Producer">
         <div className={classNames('Producer-main', { full: !showingSidePanel })} >
           <ProducerHeader showingSidePanel={showingSidePanel} toggleSidePanel={toggleSidePanel} />
           <ProducerPrimary />
         </div>
-        <ProducerSidePanel hidden={!showingSidePanel} />
+        <ProducerSidePanel hidden={!showingSidePanel} broadcast={broadcast} />
         { /* <ProducerChat />*/ }
       </div>
     );

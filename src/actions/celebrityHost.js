@@ -18,7 +18,9 @@ const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: 
 
   switch (signalType) {
     case 'goLive':
-      fromProducer && dispatch(setBroadcastEventStatus('live'));
+      if (fromProducer) {
+        R.forEach(dispatch, [setBroadcastEventStatus('live'), startCountdown()]);
+      }
       break;
     case 'videoOnOff':
       fromProducer && toggleLocalVideo(signalData.video === 'on');

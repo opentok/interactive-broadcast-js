@@ -1,0 +1,78 @@
+.ActiveFanList {
+    width: 320px;
+    list-style-type: none;
+    padding: 10px;
+}
+
+.ActiveFan {
+    display: flex;
+    margin: 10px 0;
+    padding: 5px;
+    border: 1px solid #BDC4C9;
+    border-left: 8px solid #BDC4C9;
+    border-radius: 3px;
+    background: white;
+}
+
+.ActiveFan.sortable {
+    cursor: move;
+}
+
+.ActiveFan .ActiveFanImage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ActiveFan .ActiveFanImage img {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+}
+
+.ActiveFan .ActiveFanMain {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    margin-left: 5px;
+}
+
+.ActiveFan .ActiveFanMain .info,
+.ActiveFan .ActiveFanMain .actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.ActiveFan .ActiveFanMain .info .name-and-browser {
+    font-size: 13px;
+}
+
+.ActiveFan .ActiveFanMain .info .connection {
+    font-size: 11px;
+}
+
+.ActiveFan .ActiveFanMain .info .connection .quality.retrieving {
+    color: grey;
+}
+
+.ActiveFan .ActiveFanMain .info .connection .quality.poor {
+    color: #EF4836;
+}
+
+.ActiveFan .ActiveFanMain .info .connection .quality.fair {
+    color: rgba(243, 156, 18, .80);
+}
+
+.ActiveFan .ActiveFanMain .info .connection .quality.good {
+    color: #30c06c;
+}
+
+.ActiveFan .ActiveFanMain .actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.ActiveFan .ActiveFanMain .actions .btn {
+    font-size: 12px;
+    padding: 2px 5px;
+}

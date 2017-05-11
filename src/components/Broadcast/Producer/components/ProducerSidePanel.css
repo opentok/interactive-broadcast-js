@@ -17,8 +17,11 @@
     align-items: center;
     height: 55px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
 }
 
-.ProducerSidePanel-fan-list {
-    width: 320px;
+.ProducerSidePanel-reordering {
+  background: rgba(0, 0, 0, 0.1);
+  opacity: .90;
 }
