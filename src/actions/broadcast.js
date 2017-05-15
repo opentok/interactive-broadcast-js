@@ -10,16 +10,6 @@ const setBackstageConnected: ActionCreator = (connected: boolean): BroadcastActi
   connected,
 });
 
-const setFanName: ActionCreator = (fanName: string): BroadcastAction => ({
-  type: 'SET_FAN_NAME',
-  fanName,
-});
-
-const setAbleToJoin: ActionCreator = (ableToJoin: boolean): BroadcastAction => ({
-  type: 'SET_ABLE_TO_JOIN',
-  ableToJoin,
-});
-
 const setBroadcastEventStatus: ActionCreator = (status: EventStatus): BroadcastAction => ({
   type: 'SET_BROADCAST_EVENT_STATUS',
   status,
@@ -274,7 +264,5 @@ module.exports = {
   changeStatus,
   setBroadcastEventStatus,
   updateParticipants,
-  setAbleToJoin,
-  setFanName,
   setBackstageConnected,
 };

@@ -3,7 +3,7 @@
 /* beautify preserve:start */
 
 declare type ParticipantAVProperty = 'audio' | 'video' | 'volume';
-declare type PariticipantAVProps = {
+declare type ParticipantAVProps = {
   video: boolean,
   audio: boolean,
   volume: number
@@ -13,6 +13,8 @@ declare type SessionName = 'stage' | 'backstage';
 declare type InstancesToConnect = Array<SessionName>;
 
 declare type NetworkQuality = 'good' | 'fair' | 'poor';
+declare type ImgData = string;
+declare type onSnapshotReady = Unit;
 
 declare type ParticipantAVPropertyUpdate =
 { property: 'video', value: boolean } |
@@ -60,6 +62,12 @@ declare type BroadcastState = {
   activeFans: ActiveFan[]
 };
 
+declare type FanState = {
+  ableToJoin: booelan,
+  setFanName: string,
+  newFanSignalAckd: boolean
+};
+
 
 declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
 
@@ -80,3 +88,8 @@ declare type BroadcastAction =
   { type: 'SET_BROADCAST_EVENT_STATUS', status: EventStatus } |
   { type: 'SET_BROADCAST_STATE', state: CoreState } |
   { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate };
+
+declare type FanAction =
+  { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |
+  { type: 'SET_FAN_NAME', fanName: string } |
+  { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean };

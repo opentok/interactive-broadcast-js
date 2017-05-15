@@ -4,7 +4,7 @@ import { browserHistory } from 'react-router';
 import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
-import { disconnect, changeVolume } from '../services/opentok';
+import { disconnect, changeVolume, signal } from '../services/opentok';
 import { connectToPresence, connectToInteractive } from './broadcast';
 
 const notStarted = R.propEq('status', 'notStarted');
@@ -42,6 +42,8 @@ const connectBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
     await dispatch(connectToInteractive(credentials, 'producer', { onSignal: onSignal(dispatch) }));
     dispatch(connectToPresence());
     dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
+    /* Let the fans know that the admin has connected */
+    signal('stage', { type: 'startEvent' });
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>

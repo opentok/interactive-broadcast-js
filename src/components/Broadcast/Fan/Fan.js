@@ -96,7 +96,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     status: R.path(['broadcast', 'event', 'status'], state),
     broadcastState: R.path(['broadcast', 'state'], state),
     participants: R.path(['broadcast', 'participants'], state),
-    ableToJoin: R.path(['broadcast', 'ableToJoin'], state),
+    ableToJoin: R.path(['fan', 'ableToJoin'], state),
     backstageConnected: R.path(['broadcast', 'backstageConnected'], state),
   };
 };

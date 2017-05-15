@@ -42,16 +42,10 @@ const initialState = (): BroadcastState => ({
     { id: 'bdbaz8', name: 'aaron', browser: 'Chrome', connectionQuality: 'good', snapshot },
     { id: 'pnadf9', name: 'german', browser: 'Chrome', connectionQuality: 'fair', snapshot },
   ],
-  ableToJoin: false,
-  setFanName: 'Anonymous',
 });
 
 const broadcast = (state: BroadcastState = initialState(), action: BroadcastAction): BroadcastState => {
   switch (action.type) {
-    case 'SET_FAN_NAME':
-      return R.assoc('fanName', action.fanName, state);
-    case 'SET_ABLE_TO_JOIN':
-      return R.assoc('ableToJoin', action.ableToJoin, state);
     case 'SET_PUBLISH_ONLY_ENABLED':
       return R.assoc('publishOnlyEnabled', action.publishOnlyEnabled, state);
     case 'BROADCAST_PARTICIPANT_JOINED':

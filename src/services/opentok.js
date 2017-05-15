@@ -128,6 +128,15 @@ const subscribe = (stream: Stream, instance: SessionName) => {
 };
 
 
+/**
+ * get the first publisher in state
+ */
+const getPublisher = (instance: SessionName): Object => { // eslint-disable-line flowtype/no-weak-types
+  const core = instances[instance];
+  const publisher = R.path(['publishers', 'camera'], core.state());
+  return R.values(publisher)[0];
+};
+
 module.exports = {
   init,
   connect,
@@ -140,4 +149,5 @@ module.exports = {
   toggleLocalVideo,
   unsubscribeAll,
   subscribe,
+  getPublisher,
 };
