@@ -80,7 +80,8 @@ input.error {
     background-color: #139348;
 }
 
-.btn.green.getInLine {
+.btn.green.getInLine,
+.btn.red.getInLine {
   margin-top: 10px;
   padding: 8px 12px;
 }

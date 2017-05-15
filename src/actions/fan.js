@@ -14,7 +14,10 @@ const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: 
   const fromProducer = fromData.userType === 'producer';
   switch (signalType) {
     case 'goLive':
-      dispatch(setBroadcastEventStatus('live'));
+      if (fromProducer) {
+        dispatch(setBroadcastEventStatus('live'));
+        opentok.subscribeAll('stage');
+      }
       break;
     case 'videoOnOff':
       fromProducer && toggleLocalVideo(signalData.video === 'on');
@@ -30,7 +33,7 @@ const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: 
     case 'endPrivateCall': // @TODO
     case 'openChat': // @TODO
     case 'finishEvent':
-      fromProducer && setBroadcastEventStatus('closed');
+      fromProducer && dispatch(setBroadcastEventStatus('closed'));
       break;
     default:
       break;
@@ -98,14 +101,15 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
 const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     /* Close the prompt */
-    dispatch(setFanName(fanName));
     dispatch(resetAlert());
+    dispatch(setFanName(fanName));
     await opentok.connect(['backstage']);
     dispatch(setBackstageConnected(true));
   };
 
 const getInTheLine: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
+    const fanName = R.path(['broadcast', 'fanName'], getState());
     const options = (): AlertPartialOptions => ({
       title: 'Almost done!',
       text: 'You may enter you name below.',
@@ -117,11 +121,17 @@ const getInTheLine: ThunkActionCreator = (): Thunk =>
       confirmButtonColor: '#00a3e3',
       onConfirm: (inputValue: string): void => dispatch(connectToBackstage(inputValue)),
     });
-    dispatch(setInfo(options()));
+    dispatch(fanName ? connectToBackstage(fanName) : setInfo(options()));
   };
 
+const leaveTheLine: ThunkActionCreator = (): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    await opentok.disconnectFromInstance('backstage');
+    dispatch(setBackstageConnected(false));
+  };
 
 module.exports = {
   initializeBroadcast,
   getInTheLine,
+  leaveTheLine,
 };

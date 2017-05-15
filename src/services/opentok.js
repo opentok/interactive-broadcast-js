@@ -65,6 +65,18 @@ const disconnect = () => {
   }
 };
 
+/**
+ * Disconnect from a particular session/instance of core
+ */
+const disconnectFromInstance = (instanceToDisconnect: SessionName) => {
+  try {
+    instances[instanceToDisconnect].off();
+    instances[instanceToDisconnect].disconnect();
+  } catch (error) {
+    console.log('disconnect error', error);
+  }
+};
+
 const changeVolume = (instance: SessionName, userType: UserRole, volume: number) => {
   const core = instances[instance];
   const stream = getStreamByUserType(userType, core);
@@ -88,9 +100,9 @@ const signal = async (instance: SessionName, { type, data, to }: SignalParams): 
  */
 const subscribeAll = (instance: SessionName): Object => { // eslint-disable-line flowtype/no-weak-types
   const core = instances[instance];
-  const streams = core.state().getStreams();
+  const streams = core.state().streams;
   Object.values(streams).forEach(core.subscribe);
-  return core.state().getPubSub();
+  return core.state();
 };
 
 const toggleLocalVideo = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalVideo(enable);
@@ -104,7 +116,7 @@ const unsubscribeAll = (instance: SessionName): Object => { // eslint-disable-li
   const core = instances[instance];
   const subscribers = core.state().subscribers.camera;
   Object.values(subscribers).forEach(core.unsubscribe);
-  return core.state().getPubSub();
+  return core.state();
 };
 
 /**
@@ -120,6 +132,7 @@ module.exports = {
   init,
   connect,
   disconnect,
+  disconnectFromInstance,
   changeVolume,
   signal,
   subscribeAll,

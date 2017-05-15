@@ -18,11 +18,25 @@ body {
 }
 
 .Fan .Container {
-  padding-right: 15px;
-  padding-left: 15px;
   margin-right: auto;
   margin-left: auto;
   width: 100%;
   position: relative;
   min-height: 1px;
+}
+
+@media (min-width: 768px) {
+  .Fan .Container {
+    width: 750px;
+  }
+}
+@media (min-width: 992px) {
+  .Fan .Container {
+    width: 970px;
+  }
+}
+@media (min-width: 1200px) {
+  .Fan .Container {
+    width: 1170px;
+  }
 }

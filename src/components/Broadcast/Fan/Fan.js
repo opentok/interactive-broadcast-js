@@ -55,7 +55,7 @@ class Fan extends Component {
   }
 
   render(): ReactComponent {
-    const { eventData, status, broadcastState, participants = {}, ableToJoin, getInLine, backstageConnected } = this.props;
+    const { eventData, status, broadcastState, participants = {}, ableToJoin, getInLine, leaveLine, backstageConnected } = this.props;
     if (!eventData) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => participants[type] && participants[type].connected;
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
@@ -69,6 +69,8 @@ class Fan extends Component {
             status={status}
             ableToJoin
             getInLine={getInLine}
+            leaveLine={leaveLine}
+            backstageConnected={backstageConnected}
           />
           <FanBody
             hasStreams={hasStreams}

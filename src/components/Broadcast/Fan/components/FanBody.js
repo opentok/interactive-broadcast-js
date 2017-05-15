@@ -18,7 +18,7 @@ type Props = {
 const FanBody = (props: Props): ReactComponent => {
   const { isClosed, isLive, image, participants, hasStreams, backstageConnected } = props;
   const showImage = !isLive || !hasStreams;
-  const fanBodyClasses = classNames('FanBody', { showImage });
+  const fanBodyClasses = classNames('FanBody');
   return (
     <div className={fanBodyClasses}>
       { showImage &&

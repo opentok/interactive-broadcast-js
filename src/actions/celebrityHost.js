@@ -7,6 +7,7 @@ import { getEventWithCredentials } from '../services/api';
 import opentok from '../services/opentok';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
+const instance = 'stage';
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
@@ -23,13 +24,13 @@ const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: 
       }
       break;
     case 'videoOnOff':
-      fromProducer && toggleLocalVideo(signalData.video === 'on');
+      fromProducer && toggleLocalVideo(signalData.video === 'on', instance);
       break;
     case 'muteAudio':
-      fromProducer && toggleLocalAudio(signalData.mute === 'off');
+      fromProducer && toggleLocalAudio(signalData.mute === 'off', instance);
       break;
     case 'changeVolume':
-      fromProducer && changeVolume('stage', signalData.userType, signalData.volume);
+      fromProducer && changeVolume(instance, signalData.userType, signalData.volume);
       break;
     case 'chatMessage': // @TODO
     case 'privateCall': // @TODO
