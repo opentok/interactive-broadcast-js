@@ -1,6 +1,5 @@
 .CelebrityHostHeader {
   box-shadow: none;
-  border: 1px solid #e5e5e5;
   background: #fff;
   padding: 20px;
   position: relative;
@@ -8,36 +7,21 @@
   border-radius: 4px 4px 0 0;
   min-height: 90px;
   border-bottom: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.CelebrityHostHeader .Title {
+.CelebrityHostHeader-main {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
   font-family: 'Montserrat', sans-serif;
-  color: #58666E;
-  font-size: 13px;
-  font-weight: bold;
-  text-transform: uppercase;
-  padding: 16px 20px;
-  background: #fff;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  margin: 0;
-  padding-top: 9px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e5e5;
-  float: left;
-  border-color: #ddd;
-  border: 1px solid transparent;
 }
 
-.CelebrityHostHeader .Title h4 {
-  padding-right: 120px;
+.CelebrityHostHeader-main h4 {
   margin: 0;
-  text-overflow: ellipsis;
-  display: inline-block;
-  vertical-align: top;
-  white-space: nowrap;
-  overflow: hidden;
   width: 100%;
+  text-align: left;
   font-size: 1.5em;
   font-family: inherit;
   font-weight: 400;
@@ -46,7 +30,7 @@
   text-transform: uppercase;
 }
 
-.CelebrityHostHeader .Title h4 sup {
+.CelebrityHostHeader-main h4 sup {
   position: relative;
   font-size: 75%;
   line-height: 0;
@@ -55,28 +39,20 @@
   margin-left:3px;
 }
 
-.CelebrityHostHeader .Title ul {
-  margin: 0;
-  padding: 0 10px 0 0;
-  top: 0;
-  right: 0;
-  font-family: 'Open Sans', sans-serif;
-  position: absolute;
-  text-transform: none;
-  font-weight: 600;
-  font-size: inherit;
-  z-index: 1;
-}
-
-.CelebrityHostHeader .Title ul li {
-  line-height: 56px;
-  padding: 0;
-  margin-left: 5px;
-  display: inline-block;
+.CelebrityHostHeader-main .user-role {
   text-transform: uppercase;
+  font-weight: 600;
+  color: #00A2E3;
 }
 
-.CelebrityHostHeader .Title ul li span {
-  font-weight: bold;
-  color: #00A2E3;
+.CelebrityHostHeader-private-call {
+  width: 100%;
+  background: #EF4836;
+  color: white;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.CelebrityHostHeader-private-call.active {
+  opacity: 1;
 }

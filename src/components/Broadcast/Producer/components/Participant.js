@@ -8,28 +8,36 @@ import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
 import ControlIcon from './ControlIcon';
 import { toggleParticipantProperty } from '../../../../actions/broadcast';
+import { connectPrivateCall } from '../../../../actions/producer';
 import './Participant.css';
 
 const isBackstageFan = R.equals('backstageFan');
-const getHeaderLabel = (type: ParticipantType): string =>
-  R.toUpper(isBackstageFan(type) ? 'backstage fan' : type);
+const getHeaderLabel = (type: ParticipantType): string => R.toUpper(isBackstageFan(type) ? 'backstage fan' : type);
+
+type OwnProps = {
+  type: ParticipantType
+};
 
 type BaseProps = {
-  type: ParticpantType,
   broadcast: BroadcastState
 };
 
 type DispatchProps = {
-  toggleAudio: () => void,
-  toggleVideo: () => void,
-  toggleVolume: () => void
+  toggleAudio: ParticipantType => void,
+  toggleVideo: ParticipantType => void,
+  toggleVolume: ParticipantType => void,
+  privateCall: ParticipantType => void
 };
 
-type Props = BaseProps & DispatchProps;
+type Props = OwnProps & BaseProps & DispatchProps;
 
-const Participant = ({ type, broadcast, toggleAudio, toggleVideo, toggleVolume }: Props): ReactComponent => {
+const Participant = (props: Props): ReactComponent => {
+  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall } = props;
+  const broadcast = R.propOr({}, 'broadcast', props);
   const url = R.prop(`${type}Url`, createUrls(broadcast.event || {}));
-  const me = R.prop(`${type}`, broadcast.participants) || {};
+  const me = R.prop(type, broadcast.participants) || {};
+  const inPrivateCall = R.equals(broadcast.inPrivateCall, type);
+
   const statusIconClass = classNames('icon', { green: me.connected });
   const controlIconClass = classNames('icon', { active: me.connected });
   const status = me.connected ? 'Online' : 'Offline';
@@ -56,10 +64,30 @@ const Participant = ({ type, broadcast, toggleAudio, toggleVideo, toggleVolume }
       <div className="Participant-feed-controls">
         <span className="label">Alter Feed</span>
         <div className="controls">
-          <ControlIcon name={me.volume === 100 ? 'volume-up' : 'volume-down'} className={controlIconClass} disabled={!me.connected} onClick={toggleVolume} />
-          <ControlIcon name="phone" className={controlIconClass} disabled={!me.connected} />
-          <ControlIcon name={me.audio ? 'microphone' : 'microphone-slash'} disabled={!me.connected} className={controlIconClass} onClick={toggleAudio} />
-          <ControlIcon name="video-camera" className={controlIconClass} onClick={toggleVideo} disabled={!me.connected} />
+          <ControlIcon
+            name={me.volume === 100 ? 'volume-up' : 'volume-down'}
+            className={controlIconClass}
+            disabled={!me.connected}
+            onClick={toggleVolume}
+          />
+          <ControlIcon
+            name={inPrivateCall ? 'phone-square' : 'phone'}
+            className={controlIconClass}
+            disabled={!me.connected}
+            onClick={privateCall}
+          />
+          <ControlIcon
+            name={me.audio ? 'microphone' : 'microphone-slash'}
+            disabled={!me.connected}
+            className={controlIconClass}
+            onClick={toggleAudio}
+          />
+          <ControlIcon
+            name="video-camera"
+            className={controlIconClass}
+            onClick={toggleVideo}
+            disabled={!me.connected}
+          />
           { R.contains('fan', R.toLower(type)) ?
             <ControlIcon name="ban" className={controlIconClass} disabled={!me.connected} /> :
             <ControlIcon name="comment" className={controlIconClass} disabled={!me.connected} />
@@ -70,17 +98,14 @@ const Participant = ({ type, broadcast, toggleAudio, toggleVideo, toggleVolume }
   );
 };
 
-const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch, ownProps: Props): DispatchProps =>
-({
+const mapStateToProps = (state: State): BaseProps => R.pick(['broadcast', state]);
+
+const mapDispatchToProps: MapDispatchWithOwn<DispatchProps, OwnProps> = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
   toggleAudio: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'audio')),
   toggleVideo: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'video')),
   toggleVolume: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'volume')),
+  privateCall: (): void => dispatch(connectPrivateCall(ownProps.type)),
 });
 
-const mapStateToProps = (state: State): BaseProps => (
-  {
-    broadcast: R.path(['broadcast'], state),
-  }
-);
 
 export default connect(mapStateToProps, mapDispatchToProps)(Participant);

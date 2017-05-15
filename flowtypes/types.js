@@ -96,3 +96,5 @@ declare type Store<S, Action> = {
 declare type MapStateToProps<S, OP: Object, SP: Object> = (state: S, ownProps: OP) => SP | MapStateToProps<S, OP, SP>;
 // eslint-disable-next-line flowtype/no-weak-types
 declare type MapDispatchToProps<DP: Object> = ((dispatch: Dispatch) => DP) | DP;  // Modified to use single type
+declare type MapDispatchWithOwn<DP: Object, OP: Object> = ((dispatch: Dispatch, ownProps: OP) => DP); // eslint-disable-line flowtype/no-weak-types
+

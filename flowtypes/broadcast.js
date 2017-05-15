@@ -17,9 +17,9 @@ declare type ImgData = string;
 declare type onSnapshotReady = Unit;
 
 declare type ParticipantAVPropertyUpdate =
+{ property: 'volume', value: number } |
 { property: 'video', value: boolean } |
-{ property: 'audio', value: boolean } |
-{ property: 'volume', value: number };
+{ property: 'audio', value: boolean } ;
 
 declare type ParticipantState = {
   connected: boolean,
@@ -51,6 +51,7 @@ declare type BroadcastState = {
   connected: boolean,
   presenceConnected: boolean,
   publishOnlyEnabled: boolean,
+  inPrivateCall: null | ParticipantType,
   publishers: {
     camera: null | { [publisherId: string]: Publisher}
   },
@@ -87,6 +88,8 @@ declare type BroadcastAction =
   { type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType: ParticipantType, update: ParticipantAVPropertyUpdate } |
   { type: 'SET_BROADCAST_EVENT_STATUS', status: EventStatus } |
   { type: 'SET_BROADCAST_STATE', state: CoreState } |
+  { type: 'START_PRIVATE_CALL', participant: ParticipantType } |
+  { type: 'END_PRIVATE_CALL' } |
   { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate };
 
 declare type FanAction =

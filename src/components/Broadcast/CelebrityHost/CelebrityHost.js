@@ -22,11 +22,7 @@ type BaseProps = {
   adminId: string,
   userType: 'host' | 'celebrity',
   userUrl: string,
-  eventData: BroadcastEvent,
-  status: EventStatus,
-  broadcastState: BroadcastState,
-  participants: BroadcastParticipants,
-  publishOnlyEnabled: boolean
+  broadcast: BroadcastState
 };
 type DispatchProps = {
   init: CelebHostInitOptions => void,
@@ -61,28 +57,30 @@ class CelebrityHost extends Component {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    const currentStatus = this.props.status;
-    const newStatus = nextProps.status;
+    const currentStatus = this.props.broadcast.status;
+    const newStatus = nextProps.broadcast.status;
 
     if (newStatus === 'closed') { disconnect(); }
   }
 
   render(): ReactComponent {
-    const { eventData, userType, status, broadcastState, togglePublishOnly, publishOnlyEnabled, participants } = this.props;
+    const { userType, togglePublishOnly, broadcast } = this.props;
+    const { event, participants, publishOnlyEnabled, inPrivateCall } = broadcast;
+    if (!event) return <Loading />;
     const availableParticipants = publishOnlyEnabled ? null : participants;
-    if (!eventData) return <Loading />;
     return (
       <div className="CelebrityHost">
         <div className="Container">
           <CelebrityHostHeader
-            name={eventData.name}
-            status={status}
+            name={event.name}
+            status={event.status}
             userType={userType}
             togglePublishOnly={togglePublishOnly}
             publishOnlyEnabled={publishOnlyEnabled}
+            inPrivateCall={inPrivateCall}
           />
           <CelebrityHostBody
-            endImage={eventData.endImage}
+            endImage={event.endImage}
             participants={availableParticipants}
             status={status}
             userType={userType}
@@ -99,11 +97,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),
     userUrl: hostUrl || celebrityUrl,
-    eventData: R.path(['broadcast', 'event'], state),
-    status: R.path(['broadcast', 'event', 'status'], state),
-    broadcastState: R.path(['broadcast', 'state'], state),
-    participants: R.path(['broadcast', 'participants'], state),
-    publishOnlyEnabled: R.path(['broadcast', 'publishOnlyEnabled'], state),
+    broadcast: R.prop('broadcast', state),
   };
 };
 

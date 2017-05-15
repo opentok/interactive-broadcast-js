@@ -57,7 +57,7 @@ class Fan extends Component {
   render(): ReactComponent {
     const { eventData, status, broadcastState, participants = {}, ableToJoin, getInLine, leaveLine, backstageConnected } = this.props;
     if (!eventData) return <Loading />;
-    const participantIsConnected = (type: ParticipantType): boolean => participants[type] && participants[type].connected;
+    const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
     const isClosed = R.equals(status, 'closed');
     const isLive = R.equals(status, 'live');

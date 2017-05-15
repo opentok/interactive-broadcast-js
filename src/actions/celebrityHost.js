@@ -2,7 +2,7 @@
 import R from 'ramda';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
-import { startCountdown, setBroadcastEventStatus, connectToInteractive } from './broadcast';
+import { startCountdown, setBroadcastEventStatus, updateParticipants, setBroadcastState, startPrivateCall, endPrivateCall } from './broadcast';
 import { getEventWithCredentials } from '../services/api';
 import opentok from '../services/opentok';
 
@@ -11,7 +11,7 @@ const instance = 'stage';
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
-const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: Signal) => {
+const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener => ({ type, data, from }: Signal) => {
   const signalData = data ? JSON.parse(data) : {};
   const signalType = R.last(R.split(':', type));
   const fromData = JSON.parse(from.data);
@@ -33,8 +33,12 @@ const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: 
       fromProducer && changeVolume(instance, signalData.userType, signalData.volume);
       break;
     case 'chatMessage': // @TODO
-    case 'privateCall': // @TODO
-    case 'endPrivateCall': // @TODO
+    case 'privateCall':
+      fromProducer && dispatch(startPrivateCall(signalData.callWith, R.equals(userType, signalData.callWith)));
+      break;
+    case 'endPrivateCall':
+      fromProducer && dispatch(endPrivateCall(userType));
+      break;
     case 'openChat': // @TODO
     case 'newBackstageFan':
       fromProducer && newBackstageFan();
@@ -46,6 +50,91 @@ const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: 
       break;
   }
 };
+
+/**
+ * Build the configuration options for the opentok service
+ */
+type UserData = { userCredentials: UserCredentials, userType: HostCeleb };
+const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserData): CoreInstanceOptions[] => {
+
+  const eventListeners: CoreInstanceListener = (instance: Core) => {
+    // const { onStateChanged, onStreamChanged, onSignal } = listeners;
+
+    // Assign listener for state changes
+    const handlePubSubEvent = (state: CoreState, event: PubSubEventType): void => {
+      if (R.equals(event, 'startCall')) {
+        dispatch(updateParticipants(userType, event, state.publisher.stream));
+      }
+      dispatch(setBroadcastState(state));
+    };
+    const pubSubEvents: PubSubEventType[] = ['startCall', 'subscribeToCamera', 'unsubscribeFromCamera'];
+    R.forEach((event: PubSubEventType): void => instance.on(event, handlePubSubEvent), pubSubEvents);
+
+    // Assign listener for stream changes
+    const otStreamEvents: StreamEventType[] = ['streamCreated', 'streamDestroyed'];
+    const handleStreamEvent: StreamEventHandler = ({ type, stream }: OTStreamEvent) => {
+      const user: UserRole = R.prop('userType', JSON.parse(stream.connection.data));
+      if (R.equals(user, 'producer')) {
+        opentok.createEmptySubscriber('stage', stream);
+      } else {
+        opentok.subscribe('stage', stream);
+        dispatch(updateParticipants(user, type, stream));
+      }
+
+    };
+    R.forEach((event: StreamEventType): void => instance.on(event, handleStreamEvent), otStreamEvents);
+    // Assign signal listener
+    instance.on('signal', onSignal(dispatch, userType));
+  };
+
+  // To be moved to opentok service or broadcast actions???
+  const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = false): CoreOptions => ({
+    name,
+    credentials,
+    streamContainers(pubSub: PubSub, source: VideoType, data: { userType: UserRole }): string {
+      return `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`;
+    },
+    communication: {
+      autoSubscribe,
+      callProperties: {
+        fitMode: 'contain',
+      },
+    },
+    controlsContainer: null,
+  });
+
+  const stage = (): CoreInstanceOptions => {
+    const { apiKey, stageSessionId, stageToken } = userCredentials;
+    const credentials = {
+      apiKey,
+      sessionId: stageSessionId,
+      token: stageToken,
+    };
+
+    return {
+      name: 'stage',
+      coreOptions: coreOptions('stage', credentials, userType),
+      eventListeners,
+      opentokOptions: { autoPublish: true },
+    };
+  };
+
+  return [stage()];
+};
+
+
+/**
+ * Connect to OpenTok sessions
+ */
+const connectToInteractive: ThunkActionCreator =
+  (userCredentials: UserCredentials, userType: HostCeleb): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    // const { onStateChanged, onStreamChanged, onSignal } = roleListeners;
+    const instances: CoreInstanceOptions[] = opentokConfig(dispatch, { userCredentials, userType });
+    opentok.init(instances, 'stage');
+    await opentok.connect(['stage']);
+    dispatch(setBroadcastState(opentok.state('stage')));
+  };
 
 const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, userType: string, slug: string): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
@@ -71,7 +160,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
       const eventData = R.path(['broadcast', 'event'], getState());
       const { apiKey, stageToken, stageSessionId, status } = eventData;
       const credentials = { apiKey, stageSessionId, stageToken };
-      status !== 'closed' && await dispatch(connectToInteractive(credentials, userType, { onSignal: onSignal(dispatch) }));
+      status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
     } catch (error) {
       console.log('error', error);
     }

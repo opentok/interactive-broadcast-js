@@ -25,6 +25,9 @@ const setPublishOnly: ActionCreator = (publishOnlyEnabled: boolean): BroadcastAc
   publishOnlyEnabled,
 });
 
+/**
+ * Build the configuration options for the opentok service
+ */
 const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => {
 
   const { userCredentials, userType, listeners } = options;
@@ -121,26 +124,50 @@ const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => 
   }
 };
 
+// TODO: This might be easier if the type of non-admin/logged-in user were kept in state
+const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, connectToProducer?: boolean = false): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    opentok.unsubscribeAll('stage', true);
+    if (connectToProducer) {
+      const producerStream = opentok.getStreamByUserType('stage', 'producer');
+      opentok.subscribeToAudio('stage', producerStream);
+    }
+    dispatch({ type: 'START_PRIVATE_CALL', participant });
+  };
+
+const endPrivateCall: ThunkActionCreator = (participant: ParticipantType, userInCallDisconnected?: boolean = false): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    // See TODO above. We have no way of knowing who the current user is unless we pass the value around
+    const currentUserInCall = R.equals(participant, R.path(['broadcast', 'inPrivateCall'], getState()));
+    if (R.and(currentUserInCall, !userInCallDisconnected)) {
+      opentok.subscribeAll('stage', true);
+      opentok.unSubscribeFromAudio('stage', opentok.getStreamByUserType('stage', 'producer'));
+    }
+    dispatch({ type: 'END_PRIVATE_CALL' });
+  };
+
+
+/**
+ * Toggle a participants audio, video, or volume
+ */
 const toggleParticipantProperty: ThunkActionCreator = (participantType: ParticipantType, property: ParticipantAVProperty): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const participants = R.path(['broadcast', 'participants'], getState());
-    const to = participants[participantType].stream.connection;
-    const computeUpdate = (): ParticipantAVPropertyUpdate => {
-      const currentValue = participants[participantType][property];
-      switch (property) {
-        case 'volume':
-          return { property, value: currentValue === 100 ? 50 : 100 };
-        case 'audio':
-          return { property, value: !currentValue };
-        case 'video':
-          return { property, value: !currentValue };
-        default:
-          break;
-      }
-    };
-    const update = computeUpdate();
+    const participant = R.path(['broadcast', 'participants', participantType], getState());
+    const currentValue = R.prop(property, participant);
+
+    const update: ParticipantAVPropertyUpdate = R.ifElse(
+      R.equals('volume'), // $FlowFixMe
+      (): { property: 'volume', value: number } => ({ property, value: currentValue === 100 ? 50 : 100 }), // $FlowFixMe
+      (): { property: 'audio' | 'video', value: boolean } => ({ property, value: !currentValue }) // eslint-disable-line comma-dangle
+    )(property);
     const { value } = update;
+
+    const to = R.path(['stream', 'connection'], participant);
     const instance = R.equals('backstageFan', participantType) ? 'backstage' : 'stage'; // For moving to OT2
+
+    // TODO: Simplify signals
+    // 1.) Make data values booleans that match the actual values
+    // 2.) Create types for each action type (e.g. enableAudio, disableAudio, etc)
     switch (property) {
       case 'audio':
         opentok.signal(instance, { type: 'muteAudio', to, data: { mute: value ? 'off' : 'on' } });
@@ -153,21 +180,32 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
         break;
       default: // Do Nothing
     }
-    dispatch({ type: 'PARTICIPANT_PROPERTY_CHANGED', participantType, update });
+    dispatch({ type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType, update });
   };
 
+/**
+ * Update the participants state when someone joins or leaves
+ */
 const updateParticipants: ThunkActionCreator = (participantType: ParticipantType, event: StreamEventType, stream: Stream): Thunk =>
-  (dispatch: Dispatch): void => {
+  (dispatch: Dispatch, getState: GetState): void => {
     switch (event) {
       case 'streamCreated':
         return dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
-      case 'streamDestroyed':
+      case 'streamDestroyed': {
+        const inPrivateCall = R.equals(participantType, R.path(['broadcast', 'inPrivateCall'], getState()));
+        inPrivateCall && dispatch(endPrivateCall(participantType, true));
         return dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+      }
+      case 'startCall':
+        return dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
       default:
         break;
     }
   };
 
+/**
+ * Connect to socket.io
+ */
 const connectToPresence: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
     const onConnect = () => {
@@ -176,9 +214,13 @@ const connectToPresence: ThunkActionCreator = (): Thunk =>
     io.connected ? onConnect() : io.on('connect', onConnect);
   };
 
-const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials, userType: UserRole, roleSpecificListeners: OptionalOTListeners, broadcast?: BroadcastEvent): Thunk =>
+/**
+ * Connect to OpenTok sessions
+ */
+const connectToInteractive: ThunkActionCreator =
+  (userCredentials: UserCredentials, userType: UserRole, roleListeners: OptionalOTListeners, broadcast?: BroadcastEvent): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
-    const { onStateChanged, onStreamChanged, onSignal } = roleSpecificListeners;
+    const { onStateChanged, onStreamChanged, onSignal } = roleListeners;
     const listeners: OTListeners = {
       onStateChanged: (state: CoreState) => {
         onStateChanged && dispatch(onStateChanged(state));
@@ -191,10 +233,12 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
       onSignal,
     };
     const instances: CoreInstanceOptions[] = opentokConfig({ userCredentials, userType, listeners, broadcast });
+
     opentok.init(instances);
     /* Only the producer should be connected to both sessions from the begining */
     const instancesToConnect = userType === 'producer' ? ['stage', 'backstage'] : ['stage'];
     await opentok.connect(instancesToConnect);
+    dispatch(setBroadcastState(opentok.state('stage')));
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
@@ -204,6 +248,9 @@ const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   };
 
 
+/**
+ * Update the event status
+ */
 const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStatus): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
@@ -213,15 +260,19 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
       ];
       R.forEach(dispatch, actions);
       const type = newStatus === 'live' ? 'goLive' : 'finishEvent';
+      console.log('change status signal???');
       opentok.signal('stage', { type });
     } catch (error) {
       console.log('error on change status ==>', error);
     }
   };
 
+/**
+ * Start the go live countdown
+ */
 const startCountdown: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
-    const options = (counter ? : number = 1): AlertPartialOptions => ({
+    const options = (counter?: number = 1): AlertPartialOptions => ({
       title: 'GOING LIVE IN',
       text: `<h1>${counter}</h1>`,
       showConfirmButton: false,
@@ -264,5 +315,7 @@ module.exports = {
   changeStatus,
   setBroadcastEventStatus,
   updateParticipants,
+  startPrivateCall,
+  endPrivateCall,
   setBackstageConnected,
 };

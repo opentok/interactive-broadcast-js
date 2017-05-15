@@ -33,6 +33,7 @@ const FanBody = (props: Props): ReactComponent => {
           userType={type}
         />)}
       <div className={classNames('VideoWrap', 'smallVideo', { hide: !backstageConnected })} id="videobackstageFan" />
+      <div id="videoproducer" className="producerContainer" />
     </div>
   );
 };

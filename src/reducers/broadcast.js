@@ -23,6 +23,7 @@ const initialState = (): BroadcastState => ({
   backstageConnected: false,
   presenceConnected: false,
   publishOnlyEnabled: false,
+  inPrivateCall: null,
   publishers: {
     camera: null,
   },
@@ -55,7 +56,7 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
     case 'PARTICIPANT_PROPERTY_CHANGED':
       return R.assocPath(['participants', action.participantType, action.update.property], action.update.value, state);
     case 'SET_BROADCAST_STATE':
-      return R.assoc('state', action.state, state);
+      return R.merge(action.state, state);
     case 'SET_BROADCAST_EVENT':
       return R.assoc('event', action.event, state);
     case 'SET_BROADCAST_EVENT_STATUS':
@@ -66,6 +67,10 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('backstageConnected', action.connected, state);
     case 'BROADCAST_PRESENCE_CONNECTED':
       return R.assoc('presenceConnected', action.connected, state);
+    case 'START_PRIVATE_CALL':
+      return R.assoc('inPrivateCall', action.participant, state);
+    case 'END_PRIVATE_CALL':
+      return R.assoc('inPrivateCall', null, state);
     case 'RESET_BROADCAST_EVENT':
       return initialState();
     case 'REORDER_BROADCAST_ACTIVE_FANS':

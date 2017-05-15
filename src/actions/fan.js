@@ -102,7 +102,7 @@ const onStreamChanged: ThunkActionCreator = (user: UserRole, event: StreamEventT
     const status = R.path(['broadcast', 'event', 'status'], getState());
     const userHasJoined = R.equals(event, 'streamCreated');
     if (R.equals(status, 'live') && userHasJoined) {
-      opentok.subscribe(stream, 'stage');
+      opentok.subscribe('stage', stream);
     }
   };
 

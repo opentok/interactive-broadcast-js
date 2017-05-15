@@ -40,3 +40,9 @@
 .FanBody .imageHolder img {
   width: 100%;
 }
+
+.FanBody .producerContainer {
+  position: absolute;
+  z-index: -100;
+  visibility: hidden;
+}

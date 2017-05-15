@@ -11,10 +11,28 @@
   font-size: 12px;
 }
 
+.ProducerPrimary-info .private-call {
+  width: 100%;
+  background: #EF4836;
+  color: white;
+  opacity: 0;
+  transition: opacity .75s ease-in-out;
+}
+
+.ProducerPrimary-info .private-call.active {
+  opacity: 1;
+}
+
 .ProducerPrimary-participants {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  padding: 30px 0;
+  padding: 15px 0;
+}
+
+.ProducerPrimary-participants .producerContainer {
+  position: absolute;
+  visibility: hidden;
+  z-index: -100;
 }

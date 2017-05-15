@@ -25,6 +25,7 @@ declare class OTEvent {
 
 declare type StreamEventType = 'streamCreated' | 'streamDestroyed' | 'streamPropertyChanged';
 declare type SubscribeEventType = 'subscribeToCamera' | 'unsubscribeFromCamera';
+declare type PubSubEventType = 'startCall' | 'subscribeToCamera' | 'unsubscribeFromCamera';
 type SessionEventType = 'sessionConnected' | 'sessionDisconnected' | 'sessionReconnected' | 'sessionReconnecting';
 type ConnectionEventType = 'connectionCreated' | 'connectionDestroyed';
 
@@ -139,6 +140,7 @@ declare type Stream = {
   hasAudio: boolean,
   hasVideo: boolean,
   name: string,
+  streamId: string,
   videoDimensions: { width: number, height: number },
   videoType: VideoType
 }

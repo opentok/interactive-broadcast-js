@@ -30,7 +30,8 @@ declare type UserCredentials = {
   sessionId: string
 };
 
-declare type UserRole = 'producer' | 'host' | 'celebrity' | 'fan';
+declare type HostCeleb = 'host' | 'celebrity';
+declare type UserRole = 'producer' | HostCeleb | 'fan';
 
 declare type UserMap = {[id: UserId]: User};
 declare type CurrentUserState = null | User;

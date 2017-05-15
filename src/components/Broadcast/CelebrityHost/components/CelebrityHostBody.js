@@ -31,6 +31,7 @@ const CelebrityHostBody = (props: Props): ReactComponent => {
           isMe={userType === type}
           userType={type}
         />)}
+      <div id="videoproducer" className="producerContainer" />
     </div>
   );
 };
