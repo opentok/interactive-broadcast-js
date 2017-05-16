@@ -9,8 +9,9 @@ import users from './users';
 import events from './events';
 import broadcast from './broadcast';
 import alert from './alert';
+import fan from './fan';
 
 /** Combine Reducers */
-const interactiveBroadcastApp = combineReducers({ auth, currentUser, users, events, broadcast, alert, toastr });
+const interactiveBroadcastApp = combineReducers({ auth, currentUser, users, events, broadcast, alert, toastr, fan });
 
 export default interactiveBroadcastApp;

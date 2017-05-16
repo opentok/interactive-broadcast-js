@@ -1,0 +1,17 @@
+.FanStatusBar {
+  width: auto;
+  font-size: 16px;
+  padding: 0;
+  color: #fff;
+  line-height: 30px;
+  font-weight: 400;
+  text-align: center;
+}
+
+.FanStatusBar.lightBlue {
+  background: #8EB9C3;
+}
+
+.FanStatusBar.blue {
+  background: #00a3e3;
+}

@@ -5,10 +5,13 @@ const initialState = (): FanState => ({
   ableToJoin: false,
   setFanName: 'Anonymous',
   newFanSignalAckd: false,
+  status: 'disconnected',
 });
 
 const fan = (state: FanState = initialState(), action: FanAction): FanState => {
   switch (action.type) {
+    case 'SET_FAN_STATUS':
+      return R.assoc('status', action.status, state);
     case 'SET_NEW_FAN_ACKD':
       return R.assoc('newFanSignalAckd', action.newFanSignalAckd, state);
     case 'SET_FAN_NAME':

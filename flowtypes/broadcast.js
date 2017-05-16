@@ -63,12 +63,14 @@ declare type BroadcastState = {
   activeFans: ActiveFan[]
 };
 
+declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
+
 declare type FanState = {
   ableToJoin: booelan,
   setFanName: string,
-  newFanSignalAckd: boolean
+  newFanSignalAckd: boolean,
+  status: FanStatus
 };
-
 
 declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
 

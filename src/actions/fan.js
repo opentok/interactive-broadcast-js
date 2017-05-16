@@ -10,6 +10,11 @@ import io from '../services/socket-io';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
 
+const setFanStatus: ActionCreator = (status: FanStatus): FanAction => ({
+  type: 'SET_FAN_STATUS',
+  status,
+});
+
 const setNewFanSignalAckd: ActionCreator = (newFanSignalAckd: boolean): FanAction => ({
   type: 'SET_NEW_FAN_ACKD',
   newFanSignalAckd,
@@ -54,9 +59,11 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener => ({ 
     case 'endPrivateCall': // @TODO
     case 'openChat': // @TODO
     case 'resendNewFanSignal': {
+      /* Avoid re-send this signal if the producer already received it before */
       const newFanSignalAckd = R.path(['fan', 'newFanSignalAckd'], state);
       if (newFanSignalAckd) return;
 
+      /* Construct the user information and send it to the producer */
       const userInfo = {
         username: R.path(['fan', 'fanName'], state),
         quality: 'great', // @TODO: send the actual quality
@@ -91,6 +98,12 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener => ({ 
       break;
     case 'startEvent':
       dispatch(setNewFanSignalAckd(false));
+      break;
+    case 'joinBackstage':
+      dispatch(setFanStatus('backstage'));
+      break;
+    case 'disconnectBackstage':
+      dispatch(setFanStatus('inLine'));
       break;
     default:
       break;
@@ -165,6 +178,8 @@ const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
     await opentok.connect(['backstage']);
     /* Save the new backstage connection state */
     dispatch(setBackstageConnected(true));
+    /* Save the fan status  */
+    dispatch(setFanStatus('inLine'));
     /* Get the sessionId and join the room in socket.io */
     const sessionId = R.path(['broadcast', 'event', 'sessionId'], getState());
     io.emit('joinRoom', sessionId);
@@ -191,6 +206,7 @@ const leaveTheLine: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     await opentok.disconnectFromInstance('backstage');
     dispatch(setBackstageConnected(false));
+    dispatch(setFanStatus('disconnected'));
   };
 
 module.exports = {

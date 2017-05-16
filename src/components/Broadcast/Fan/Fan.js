@@ -9,6 +9,7 @@ import { setBroadcastEventStatus } from '../../../actions/broadcast';
 import { initializeBroadcast, getInTheLine, leaveTheLine } from '../../../actions/fan';
 import FanHeader from './components/FanHeader';
 import FanBody from './components/FanBody';
+import FanStatusBar from './components/FanStatusBar';
 import Loading from '../../../components/Common/Loading';
 import { disconnect } from '../../../services/opentok';
 import './Fan.css';
@@ -55,7 +56,7 @@ class Fan extends Component {
   }
 
   render(): ReactComponent {
-    const { eventData, status, broadcastState, participants = {}, ableToJoin, getInLine, leaveLine, backstageConnected } = this.props;
+    const { eventData, status, broadcastState, participants = {}, ableToJoin, getInLine, leaveLine, backstageConnected, fanStatus } = this.props;
     if (!eventData) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
@@ -72,6 +73,7 @@ class Fan extends Component {
             leaveLine={leaveLine}
             backstageConnected={backstageConnected}
           />
+          <FanStatusBar fanStatus={fanStatus} />
           <FanBody
             hasStreams={hasStreams}
             image={isClosed ? eventData.endImage : eventData.startImage}
@@ -97,6 +99,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     broadcastState: R.path(['broadcast', 'state'], state),
     participants: R.path(['broadcast', 'participants'], state),
     ableToJoin: R.path(['fan', 'ableToJoin'], state),
+    fanStatus: R.path(['fan', 'status'], state),
     backstageConnected: R.path(['broadcast', 'backstageConnected'], state),
   };
 };
