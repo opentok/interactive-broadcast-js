@@ -1,5 +1,4 @@
 // @flow
-
 const storageKey = 'interactiveBroadcast';
 
 export const loadState = (): LocalStorageState | void => {
@@ -31,5 +30,5 @@ export const saveAuthToken = (token: string): void => {
   }
 };
 
-export const loadAuthToken = (): ?string => localStorage.getItem(`${storageKey}-token`);
+export const loadAuthToken = (): string => localStorage.getItem(`${storageKey}-token`) || '';
 

@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
 import { setBroadcastEventStatus } from '../../../actions/broadcast';
-import { initializeBroadcast, getInTheLine, leaveTheLine } from '../../../actions/fan';
+import { initializeBroadcast, getInLine, leaveTheLine } from '../../../actions/fan';
 import FanHeader from './components/FanHeader';
 import FanBody from './components/FanBody';
 import FanStatusBar from './components/FanStatusBar';
@@ -108,7 +108,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
 ({
   init: (options: FanInitOptions): void => dispatch(initializeBroadcast(options)),
   changeEventStatus: (status: EventStatus): void => dispatch(setBroadcastEventStatus(status)),
-  getInLine: (): void => dispatch(getInTheLine()),
+  getInLine: (): void => dispatch(getInLine()),
   leaveLine: (): void => dispatch(leaveTheLine()),
 });
 

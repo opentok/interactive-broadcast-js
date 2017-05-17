@@ -4,6 +4,7 @@ import { browserHistory } from 'react-router';
 import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
+import firebase from '../services/firebase';
 import opentok from '../services/opentok';
 import { connectToPresence, setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall } from './broadcast';
 
@@ -120,13 +121,23 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
     }
   };
 
-const connectBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
+const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
+  (dispatch: Dispatch) => {
+    const adminId = firebase.auth().currentUser.uid;
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.id}`);
+    ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
+      const update = R.prop('activeFans', snapshot.val() || {});
+      dispatch({ type: 'UPDATE_ACTIVE_FANS', update });
+    });
+  };
+const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
-    const credentials = R.pick(credentialProps, await getAdminCredentials(eventId));
+    const credentials = R.pick(credentialProps, await getAdminCredentials(event.id));
     await dispatch(connectToInteractive(credentials));
     dispatch(connectToPresence());
     createEmptyPublisher('stage');
+    dispatch(updateActiveFans(event));
     dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
     /* Let the fans know that the admin has connected */
     signal('stage', { type: 'startEvent' });
@@ -138,13 +149,14 @@ const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };
 
+
 const initializeBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
       const event = R.path(['events', 'map', eventId], getState()) || await getEvent(eventId);
       const actions = [
         updateStatus(eventId, 'preshow'),
-        connectBroadcast(eventId),
+        connectBroadcast(event),
         { type: 'SET_BROADCAST_EVENT', event: R.evolve(setStatus, event) },
       ];
       R.forEach(dispatch, notStarted(event) ? actions : R.tail(actions));

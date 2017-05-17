@@ -1,3 +1,4 @@
+// @flow
 import React, { Component } from 'react';
 import R from 'ramda';
 import { connect } from 'react-redux';
@@ -12,9 +13,13 @@ type InitialProps = { params: { id?: string } };
 type BaseProps = {
   user: User,
   events: BroadcastEventMap,
-  eventId: string
+  eventId: EventId
 };
-type DispatchProps = { loadEvents: Unit, createEvent: Unit, updateEvent: Unit };
+type DispatchProps = {
+  loadEvents: UserId => void,
+  createEvent: BroadcastEventFormData => void,
+  updateEvent: BroadcastEventUpdateFormData => void
+};
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
 
@@ -129,22 +134,21 @@ class UpdateEvent extends Component {
   }
 }
 
-const mapStateToProps = (state: State, ownProps: initialProps): BaseProps => ({
+const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => ({
   eventId: ownProps.params.id,
   events: state.events.map,
   user: state.currentUser,
 });
-const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
-  ({
-    loadEvents: (userId: string) => {
-      dispatch(getBroadcastEvents(userId));
-    },
-    createEvent: (data: BroadcastEventFormData) => {
-      dispatch(createBroadcastEvent(data));
-    },
-    updateEvent: (data: BroadcastEventFormData) => {
-      dispatch(updateBroadcastEvent(data));
-    },
-  });
+const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps => ({
+  loadEvents: (userId: UserId) => {
+    dispatch(getBroadcastEvents(userId));
+  },
+  createEvent: (data: BroadcastEventFormData) => {
+    dispatch(createBroadcastEvent(data));
+  },
+  updateEvent: (data: BroadcastEventUpdateFormData) => {
+    dispatch(updateBroadcastEvent(data));
+  },
+});
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(UpdateEvent));

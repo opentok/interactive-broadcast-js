@@ -42,9 +42,26 @@ declare type ActiveFan = {
   id: string,
   name: string,
   browser: string,
+  mobile: boolean,
   connectionQuality: null | NetworkQuality,
-  snapshot: string
+  snapshot: null | string
 };
+
+declare type ActiveFanMap = { [fanId: string]: ActiveFan }
+
+declare type ActiveFanUpdate = {
+  id?: string,
+  name?: string,
+  browser?: string,
+  connectionQuality?: null | NetworkQuality,
+  mobile?: boolean,
+  snapshot?: string
+};
+
+declare type ActiveFans = {
+  order: UserId[],
+  map: ActiveFanMap
+}
 
 declare type BroadcastState = {
   event: null | BroadcastEvent,
@@ -60,13 +77,13 @@ declare type BroadcastState = {
   },
   meta: null | CoreMeta,
   participants: BroadcastParticipants,
-  activeFans: ActiveFan[]
+  activeFans: ActiveFans
 };
 
 declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
 
 declare type FanState = {
-  ableToJoin: booelan,
+  ableToJoin: boolean,
   setFanName: string,
   newFanSignalAckd: boolean,
   status: FanStatus
@@ -92,9 +109,13 @@ declare type BroadcastAction =
   { type: 'SET_BROADCAST_STATE', state: CoreState } |
   { type: 'START_PRIVATE_CALL', participant: ParticipantType } |
   { type: 'END_PRIVATE_CALL' } |
+  { type: 'UPDATE_ACTIVE_FANS', update: ActiveFanMap } |
   { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate };
 
 declare type FanAction =
   { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |
   { type: 'SET_FAN_NAME', fanName: string } |
+  { type: 'SET_FAN_STATUS', status: FanStatus } |
   { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean };
+
+

@@ -150,9 +150,9 @@ const createEmptySubscriber = async (instance: SessionName, stream: Stream): Asy
 };
 
 
-const toggleLocalVideo = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalVideo(enable);
+const toggleLocalVideo = (instance: SessionName, enable: boolean): void => instances[instance].toggleLocalVideo(enable);
 
-const toggleLocalAudio = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalAudio(enable);
+const toggleLocalAudio = (instance: SessionName, enable: boolean): void => instances[instance].toggleLocalAudio(enable);
 
 /**
  * Unsubscribe from all streams in the instance session

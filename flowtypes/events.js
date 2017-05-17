@@ -73,6 +73,8 @@ declare type BroadcastEventFormData = {
     composed: boolean
 }
 
+declare type BroadcastEventUpdateFormData = BroadcastEventFormData & { id: string }
+
 declare type EventUrls = {
   fanUrl: string,
   fanAudioUrl: string,

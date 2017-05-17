@@ -1,3 +1,4 @@
+// @flow
 import R from 'ramda';
 import { loadAuthToken as jwt } from './localStorage';
 
@@ -9,38 +10,35 @@ const defaultHeaders = { 'Content-Type': 'application/json' };
 /** ********* */
 
 /** Generator headers for a request */
-const headers = (requiresAuth: boolean, authToken: string): Headers =>
+const headers = (requiresAuth: boolean, authToken?: string): Headers =>
   R.merge(defaultHeaders, requiresAuth ? { Authorization: `Bearer ${authToken || jwt()}` } : null);
 
 /** Check for external route containing http/https */
 const getURL = (route: string): string => route.includes('http') ? route : `${apiUrl}/${route}`;
 
 /** Parse a response based on the type */
-const parseResponse = (response: Response): * => {
+const parseResponse = (response: Response): Promise<*> => {
   const contentType = R.head(R.split(';')(R.defaultTo('')(response.headers.get('content-type'))));
   if (contentType === 'application/json') {
     return response.json();
-  } else if (contentType === 'text/html') {
-    return response.text();
   }
-  return null;
+  return response.text();  // contentType === 'text/html'
 };
 
 /** Check for API-level errors */
-const checkStatus = (response: Response): PromiseLike =>
-  new Promise((resolve: PromiseLike, reject: PromiseLike): Promise => {
+const checkStatus = (response: Response): Promise<*> =>
+  new Promise((resolve: Promise.resolve<Response>, reject: Promise.reject<Error>): void => {
     if (response.status >= 200 && response.status < 300) {
       return resolve(response);
     }
     parseResponse(response)
-      .then(({ message }: { message: string }): PromiseLike => reject(new Error(message)))
+      .then(({ message }: { message: string }): void => reject(new Error(message)))
       .catch(reject);
-    return null;
   });
 
 /** Create a new Request object */
-const request = (method: HttpMethod, route: string, data: * = null, requiresAuth: boolean = true, authToken: string = null): Request => {
-  const body = data && JSON.stringify(data);
+const request = (method: HttpMethod, route: string, data: * = null, requiresAuth: boolean = true, authToken?: string): Request => {
+  const body: string | void = data && JSON.stringify(data);
   return new Request(getURL(route), {
     method: method.toUpperCase(),
     mode: 'cors',
@@ -50,8 +48,8 @@ const request = (method: HttpMethod, route: string, data: * = null, requiresAuth
 };
 
 /** Execute a request using fetch */
-const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth: boolean = true, authToken: string | null = null): Promise<*> =>
-  new Promise((resolve: PromiseLike, reject: PromiseLike) => {
+const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth: boolean = true, authToken?: string): Promise<*> =>
+  new Promise((resolve: Promise.resolve<*>, reject: Promise.reject<Error>) => {
     fetch(request(method, route, body, requiresAuth, authToken))
       .then(checkStatus)
       .then(parseResponse)
@@ -60,9 +58,9 @@ const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth
   });
 
 /** HTTP Methods */
-const get = (route: string, requiresAuth: boolean = true, authToken: string = null): Promise<*> =>
+const get = (route: string, requiresAuth: boolean = true, authToken?: string): Promise<*> =>
   execute('get', route, null, requiresAuth, authToken);
-const post = (route: string, body: * = null, requiresAuth: boolean = true, authToken: string = null): Promise<*> =>
+const post = (route: string, body: * = null, requiresAuth: boolean = true, authToken?: string): Promise<*> =>
   execute('post', route, body, requiresAuth, authToken);
 const put = (route: string, body: * = null, requiresAuth: boolean = true): Promise<*> => execute('put', route, body, requiresAuth);
 const patch = (route: string, body: * = null, requiresAuth: boolean = true): Promise<*> => execute('patch', route, body, requiresAuth);
@@ -86,7 +84,7 @@ const deleteUserRecord = (userId: string): Promise<boolean> => del(`admin/${user
 const getEvents = (adminId: string): Promise<BroadcastEventMap> => get(`event?adminId=${adminId}`);
 const getEvent = (id: string): Promise<BroadcastEvent> => get(`event/${id}`);
 const createEvent = (data: BroadcastEventFormData): Promise<BroadcastEvent> => post('event', data);
-const updateEvent = (data: BroadcastEventFormData): Promise<BroadcastEvent> => patch(`event/${data.id}`, data);
+const updateEvent = (data: BroadcastEventUpdateFormData): Promise<BroadcastEvent> => patch(`event/${data.id}`, data);
 const updateEventStatus = (id: string, status: EventStatus): Promise<BroadcastEvent> => put(`event/change-status/${id}`, { status });
 const deleteEvent = (id: string): Promise<boolean> => del(`event/${id}`);
 const getMostRecentEvent = (id: string): Promise<BroadcastEvent> => get(`event/get-current-admin-event?adminId=${id}`);

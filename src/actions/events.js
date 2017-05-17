@@ -89,7 +89,7 @@ const createBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
     }
   };
 
-const updateBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData): Thunk =>
+const updateBroadcastEvent: ThunkActionCreator = (data: BroadcastEventUpdateFormData): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
       const event: BroadcastEvent = await updateEvent(data);

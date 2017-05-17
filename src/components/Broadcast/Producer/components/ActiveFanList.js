@@ -23,11 +23,12 @@ const connectionQuality = (quality: null | NetworkQuality): ReactComponent => {
     </div>);
 };
 
+const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
 const Fan = SortableElement(({ fan, sortable }: { fan: ActiveFan, sortable: boolean }): ReactComponent => {
   return (
     <li className={classNames('ActiveFan', { sortable })}>
       <div className="ActiveFanImage">
-        <img src={fan.snapshot} alt="fan-snapshot" />
+        <img src={fan.snapshot || snapshot} alt="fan-snapshot" />
       </div>
       <div className="ActiveFanMain">
         <div className="info">
@@ -48,7 +49,7 @@ const Fan = SortableElement(({ fan, sortable }: { fan: ActiveFan, sortable: bool
   );
 });
 
-const SortableFanList: { fans: ActiveFan[] } => ReactComponent = SortableContainer(({ fans }: { fans: ActiveFan[]}): ReactComponent => {
+const SortableFanList: { fans: ActiveFan[] } => ReactComponent = SortableContainer(({ fans }: { fans: ActiveFan[] }): ReactComponent => {
   const sortable = fans.length > 1;
   return (
     <ul className={classNames('ActiveFanList', { sortable })} >
@@ -59,7 +60,7 @@ const SortableFanList: { fans: ActiveFan[] } => ReactComponent = SortableContain
   );
 });
 
-type BaseProps = { activeFans: ActiveFan[] };
+type BaseProps = { activeFans: ActiveFans };
 type DispatchProps = { reorderFans: ActiveFanOrderUpdate => void };
 type Props = BaseProps & DispatchProps;
 
@@ -74,9 +75,10 @@ class ActiveFanList extends Component {
 
   render(): ReactComponent {
     const { onSortEnd } = this;
-    const { activeFans } = this.props;
+    const { map, order } = this.props.activeFans;
+    const buildList = (acc: ActiveFan[], id: UserId): ActiveFan[] => R.append(R.prop(id, map), acc);
     return (
-      <SortableFanList fans={activeFans} onSortEnd={onSortEnd} lockAxis="y" helperClass="ProducerSidePanel-reordering" />
+      <SortableFanList fans={R.reduce(buildList, [], order)} onSortEnd={onSortEnd} lockAxis="y" helperClass="ProducerSidePanel-reordering" />
     );
   }
 }

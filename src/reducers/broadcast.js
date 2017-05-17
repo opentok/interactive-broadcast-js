@@ -10,13 +10,6 @@ const participantState = (stream?: Stream | null = null): ParticipantState => ({
   volume: 100,
 });
 
-// Reorder the active fans array
-const updateFanOrder = (activeFans: ActiveFan[], update: ActiveFanOrderUpdate): ActiveFan[] => {
-  const { oldIndex, newIndex } = update;
-  return R.insert(newIndex, activeFans[oldIndex], R.remove(oldIndex, 1, activeFans));
-};
-
-const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
 const initialState = (): BroadcastState => ({
   event: null,
   connected: false,
@@ -37,13 +30,34 @@ const initialState = (): BroadcastState => ({
     host: participantState(),
     backstageFan: participantState(),
   },
-  // activeFans: [],
-  activeFans: [
-    { id: 'ad98fh', name: 'tim', browser: 'Firefox', connectionQuality: null, snapshot },
-    { id: 'bdbaz8', name: 'aaron', browser: 'Chrome', connectionQuality: 'good', snapshot },
-    { id: 'pnadf9', name: 'german', browser: 'Chrome', connectionQuality: 'fair', snapshot },
-  ],
+  activeFans: {
+    map: {},
+    order: [],
+  },
 });
+
+const activeFansUpdate = (activeFans: ActiveFans, update: ActiveFanMap): ActiveFans => {
+  const currentOrder = R.prop('order', activeFans);
+  const buildOrder = (): UserId[] => {
+    const fanLeftLine = R.gt(R.length(currentOrder), R.length(R.keys(update)));
+    if (R.isEmpty(currentOrder)) {
+      return R.keys(update);
+    }
+    if (fanLeftLine) {
+      return R.without(R.without(R.keys(update), currentOrder), currentOrder);
+    }
+    return R.concat(currentOrder, R.without(currentOrder, R.keys(update)));
+  };
+
+  return { map: R.defaultTo({})(update), order: buildOrder() };
+};
+
+// Reorder the active fans array
+const updateFanOrder = (activeFans: ActiveFans, update: ActiveFanOrderUpdate): ActiveFans => {
+  const { order } = activeFans;
+  const { oldIndex, newIndex } = update;
+  return R.insert(newIndex, order[oldIndex], R.remove(oldIndex, 1, order));
+};
 
 const broadcast = (state: BroadcastState = initialState(), action: BroadcastAction): BroadcastState => {
   switch (action.type) {
@@ -73,8 +87,10 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('inPrivateCall', null, state);
     case 'RESET_BROADCAST_EVENT':
       return initialState();
+    case 'UPDATE_ACTIVE_FANS':
+      return R.assoc('activeFans', activeFansUpdate(state.activeFans, action.update), state);
     case 'REORDER_BROADCAST_ACTIVE_FANS':
-      return R.assoc('activeFans', updateFanOrder(state.activeFans, action.update), state);
+      return R.assocPath(['activeFans', 'order'], updateFanOrder(state.activeFans, action.update), state);
     default:
       return state;
   }

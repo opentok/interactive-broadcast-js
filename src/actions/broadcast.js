@@ -260,7 +260,6 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
       ];
       R.forEach(dispatch, actions);
       const type = newStatus === 'live' ? 'goLive' : 'finishEvent';
-      console.log('change status signal???');
       opentok.signal('stage', { type });
     } catch (error) {
       console.log('error on change status ==>', error);

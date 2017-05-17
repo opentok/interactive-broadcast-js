@@ -4,7 +4,24 @@ import React from 'react';
 /* beautify preserve:start */
 
 // API
-declare type Headers = { 'Content-Type': 'application/json', jwt?: string };
+// declare type RequestHeaders = { 'Content-Type': 'application/json', jwt?: string };
+// declare class Headers {
+//   constructor(values: HeaderValues): void
+// }
+type HeadersInit = Headers | {[key: string]: string};
+declare class Headers {
+    @@iterator(): Iterator<[string, string]>;
+    constructor(init?: HeadersInit): void;
+    append(name: string, value: string): void;
+    delete(name: string): void;
+    entries(): Iterator<[string, string]>;
+    get(name: string): string;
+    getAll(name: string): Array<string>;
+    has(name: string): boolean;
+    keys(): Iterator<string>;
+    set(name: string, value: string): void;
+    values(): Iterator<string>;
+}
 declare type HttpMethod = 'get' | 'GET' | 'post' | 'POST' | 'put' | 'PUT' | 'patch' | 'PATCH' | 'delete' | 'DELETE';
 
 // Redux state(s)
@@ -21,7 +38,14 @@ declare type LocalStorageState = {
 }
 
 // Redux Actions
-declare type Action = AuthAction | UserAction | ManageUsersAction | EventsAction | BroadcastAction | AlertAction;
+declare type Action =
+  AuthAction |
+  UserAction |
+  ManageUsersAction |
+  EventsAction |
+  BroadcastAction |
+  FanAction |
+  AlertAction;
 
 // Redux dispatch, action creators, etc.
 declare type ActionCreator = (*) => Action;
