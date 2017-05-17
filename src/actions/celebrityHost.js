@@ -11,45 +11,47 @@ const instance = 'stage';
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
-const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener => ({ type, data, from }: Signal) => {
-  const signalData = data ? JSON.parse(data) : {};
-  const signalType = R.last(R.split(':', type));
-  const fromData = JSON.parse(from.data);
-  const fromProducer = fromData.userType === 'producer';
+const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener =>
+  async ({ type, data, from }: Signal): AsyncVoid => {
+    const signalData = data ? JSON.parse(data) : {};
+    const signalType = R.last(R.split(':', type));
+    const fromData = JSON.parse(from.data);
+    const fromProducer = fromData.userType === 'producer';
 
-  switch (signalType) {
-    case 'goLive':
-      if (fromProducer) {
-        R.forEach(dispatch, [setBroadcastEventStatus('live'), startCountdown()]);
-      }
-      break;
-    case 'videoOnOff':
-      fromProducer && toggleLocalVideo(signalData.video === 'on', instance);
-      break;
-    case 'muteAudio':
-      fromProducer && toggleLocalAudio(signalData.mute === 'off', instance);
-      break;
-    case 'changeVolume':
-      fromProducer && changeVolume(instance, signalData.userType, signalData.volume);
-      break;
-    case 'chatMessage': // @TODO
-    case 'privateCall':
-      fromProducer && dispatch(startPrivateCall(signalData.callWith, R.equals(userType, signalData.callWith)));
-      break;
-    case 'endPrivateCall':
-      fromProducer && dispatch(endPrivateCall(userType));
-      break;
-    case 'openChat': // @TODO
-    case 'newBackstageFan':
-      fromProducer && newBackstageFan();
-      break;
-    case 'finishEvent':
-      fromProducer && dispatch(setBroadcastEventStatus('closed'));
-      break;
-    default:
-      break;
-  }
-};
+    switch (signalType) {
+      case 'goLive':
+        if (fromProducer) {
+          R.forEach(dispatch, [setBroadcastEventStatus('live'), startCountdown()]);
+        }
+        break;
+      case 'videoOnOff':
+        fromProducer && toggleLocalVideo(signalData.video === 'on', instance);
+        break;
+      case 'muteAudio':
+        fromProducer && toggleLocalAudio(signalData.mute === 'off', instance);
+        break;
+      case 'changeVolume':
+        fromProducer && changeVolume(instance, signalData.userType, signalData.volume);
+        break;
+      case 'chatMessage': // @TODO
+      case 'privateCall':
+        fromProducer && dispatch(startPrivateCall(signalData.callWith, R.equals(userType, signalData.callWith)));
+        break;
+      case 'endPrivateCall':
+        fromProducer && dispatch(endPrivateCall(userType));
+        break;
+      case 'openChat': // @TODO
+      case 'newBackstageFan':
+        fromProducer && newBackstageFan();
+        break;
+      case 'finishEvent':
+        fromProducer && dispatch(setBroadcastEventStatus('closed'));
+        await opentok.endCall('stage');
+        break;
+      default:
+        break;
+    }
+  };
 
 /**
  * Build the configuration options for the opentok service

@@ -16,11 +16,6 @@ const setFanStatus: ActionCreator = (status: FanStatus): FanAction => ({
   status,
 });
 
-const setNewFanSignalAckd: ActionCreator = (newFanSignalAckd: boolean): FanAction => ({
-  type: 'SET_NEW_FAN_ACKD',
-  newFanSignalAckd,
-});
-
 const setFanName: ActionCreator = (fanName: string): FanAction => ({
   type: 'SET_FAN_NAME',
   fanName,
@@ -42,7 +37,6 @@ const createSnapshot = async (): ImgData | null => {
   }
 };
 
-
 const updateActiveFanRecord: ThunkActionCreator = (fanUpdate: null | ActiveFanUpdate, event: BroadcastEvent): Thunk =>
   async (): AsyncVoid => {
     const fanId = firebase.auth().currentUser.uid;
@@ -55,94 +49,83 @@ const updateActiveFanRecord: ThunkActionCreator = (fanUpdate: null | ActiveFanUp
     }
   };
 
-const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener => ({ type, data, from }: Signal) => {
-  const state = getState();
-  const signalData = data ? JSON.parse(data) : {};
-  const signalType = R.last(R.split(':', type));
-  const fromData = JSON.parse(from.data);
-  const fromProducer = fromData.userType === 'producer';
+const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
+  async ({ type, data, from }: Signal): AsyncVoid => {
+    const state = getState();
+    const signalData = data ? JSON.parse(data) : {};
+    const signalType = R.last(R.split(':', type));
+    const fromData = JSON.parse(from.data);
+    const fromProducer = fromData.userType === 'producer';
+    const isStage = R.equals(R.path(['fan', 'status'], state), 'stage');
+    const instance = isStage ? 'stage' : 'backstage';
+    /* If the sender of this signal is not the Producer, we should do nothing */
+    if (!fromProducer) return;
 
-  /* If the sender of this signal is not the Producer, we should do nothing */
-  if (!fromProducer) return;
-
-  switch (signalType) {
-    case 'goLive':
-      dispatch(setBroadcastEventStatus('live'));
-      opentok.subscribeAll('stage');
-      break;
-    case 'videoOnOff':
-      toggleLocalVideo('stage', signalData.video === 'on');
-      break;
-    case 'muteAudio':
-      toggleLocalAudio('stage', signalData.mute === 'off');
-      break;
-    case 'changeVolume':
-      changeVolume('stage', signalData.userType, signalData.volume);
-      break;
-    case 'chatMessage': // @TODO
-    case 'privateCall': // @TODO
-    case 'endPrivateCall': // @TODO
-    case 'openChat': // @TODO
-    case 'resendNewFanSignal':
-      {
-        const newFanSignalAckd = R.path(['fan', 'newFanSignalAckd'], state);
-        if (newFanSignalAckd) return;
-
-        const userInfo = {
-          name: R.path(['fan', 'fanName'], state),
-          quality: 'great', // @TODO: send the actual quality
-          user_id: R.path(['broadcast', 'event', 'backstageToken'], state),
-          browser: platform.name,
-          os: platform.os.family,
-          mobile: platform.manufacturer !== null,
-        };
-        opentok.signal('backstage', { type: 'newFan', data: userInfo });
+    switch (signalType) {
+      case 'goLive':
+        dispatch(setBroadcastEventStatus('live'));
+        opentok.subscribeAll('stage');
         break;
-      }
-    case 'newFanAck':
-      {
-        /* We received newFanAck signal so let's set save the state in storage */
-        dispatch(setNewFanSignalAckd(true));
-        /* Get the connection Id from the publisher */
-        const publisher = opentok.getPublisher('backstage');
-        const connectionId = publisher.stream.connection.connectionId;
-        /* Reuse the publisher to get the sessionId */
-        const sessionId = publisher.session.id;
-        /* Create the snapshot and send it to the producer via socket.io */
-        createSnapshot(publisher.getImgData(), (snapshot: string) => {
-          dispatch(updateActiveFanRecord({ snapshot }));
-          io.emit('mySnapshot', {
-            connectionId,
-            snapshot,
-            sessionId,
-          });
+      case 'videoOnOff':
+        toggleLocalVideo(signalData.video === 'on', instance);
+        break;
+      case 'muteAudio':
+        toggleLocalAudio(signalData.mute === 'off', instance);
+        break;
+      case 'changeVolume':
+        changeVolume('stage', signalData.userType, signalData.volume);
+        break;
+      case 'chatMessage': // @TODO
+      case 'privateCall': // @TODO
+      case 'endPrivateCall': // @TODO
+      case 'openChat': // @TODO
+      case 'finishEvent':
+        dispatch(setBroadcastEventStatus('closed'));
+        break;
+      case 'joinBackstage':
+        dispatch(setFanStatus('backstage'));
+        break;
+      case 'disconnectBackstage':
+        dispatch(setFanStatus('inLine'));
+        break;
+      case 'joinHost': {
+        /* Unpublish from backstage */
+        await opentok.endCall('backstage');
+        /* Display the going live alert */
+        const options = (): AlertPartialOptions => ({
+          title: '<h5>GOING LIVE NOW</h5>',
+          text: '<h1><i class="fa fa-spinner fa-pulse"></i></h1>',
+          showConfirmButton: false,
+          html: true,
+          type: null,
+          allowEscapeKey: false,
         });
+        dispatch(setInfo(options()));
         break;
       }
-    case 'finishEvent':
-      dispatch(setBroadcastEventStatus('closed'));
-      break;
-    case 'startEvent':
-      dispatch(setNewFanSignalAckd(false));
-      break;
-    case 'joinBackstage':
-      dispatch(setFanStatus('backstage'));
-      break;
-    case 'disconnectBackstage':
-      dispatch(setFanStatus('inLine'));
-      break;
-    default:
-      break;
-  }
-};
+      case 'joinHostNow': {
+        /* Change the status of the fan to 'stage' */
+        dispatch(setFanStatus('stage'));
+        /* Close the alert */
+        dispatch(resetAlert());
+        /* Start publishing to onstage */
+        opentok.startCall('stage');
+        /* Start subscribing from onstage */
+        opentok.subscribeAll('stage');
+        break;
+      }
+      default:
+        break;
+    }
+  };
 
 const onStreamChanged: ThunkActionCreator = (user: UserRole, event: StreamEventType, stream: Stream): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
-    const status = R.path(['broadcast', 'event', 'status'], getState());
+    const state = getState();
+    const isLive = R.equals('live', R.path(['broadcast', 'event', 'status'], state));
+    const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
     const userHasJoined = R.equals(event, 'streamCreated');
-    if (R.equals(status, 'live') && userHasJoined) {
-      opentok.subscribe('stage', stream);
-    }
+    R.and(R.or(isLive, fanOnStage), userHasJoined) && opentok.subscribe('stage', stream);
   };
 
 const createActiveFanRecord: ThunkActionCreator = (uid: UserId, name: string, event: BroadcastEvent): Thunk =>
@@ -160,7 +143,7 @@ const createActiveFanRecord: ThunkActionCreator = (uid: UserId, name: string, ev
     const fanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${id}/activeFans/${uid}`);
     try {
       // Automatically remove the active fan record on disconnect event
-      fanRef.onDisconnect().remove((error: Error): void => console.log(error));
+      fanRef.onDisconnect().remove((error: Error): void => error && console.log(error));
       fanRef.set(record);
     } catch (error) {
       console.log(error);
@@ -269,11 +252,13 @@ const leaveTheLine: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const state = getState();
     const event = R.path(['broadcast', 'event'], state);
+    const isLive = R.equals('live', event.status);
+    const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
     await opentok.disconnectFromInstance('backstage');
+    if (fanOnStage) await isLive ? opentok.unpublish('stage') : opentok.endCall('stage');
     dispatch(setBackstageConnected(false));
     dispatch(updateActiveFanRecord(null, event, true));
     dispatch(setFanStatus('disconnected'));
-
   };
 
 module.exports = {

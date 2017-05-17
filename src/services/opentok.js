@@ -60,9 +60,15 @@ const createEmptyPublisher = async (instance: SessionName): AsyncVoid => {
   }
 };
 
+const state = (instance: SessionName): CoreState => instances[instance].state();
+
+/**
+ * get the first publisher in state
+ */
+const getPublisher = (instance: SessionName): Publisher => R.head(R.values(state(instance).publishers.camera));
+
 const publishAudio = async (instance: SessionName, shouldPublish: boolean): AsyncVoid => {
-  const core = instances[instance];
-  const publisher = R.head(R.values(core.state().publishers.camera));
+  const publisher = getPublisher(instance);
   if (shouldPublish) {
     if (publisher) {
       publisher.publishAudio(true);
@@ -116,12 +122,15 @@ const changeVolume = (instance: SessionName, userType: UserRole, volume: number)
   }
 };
 
+/**
+ * Send a signal specifying the core instance 'backstage' or 'stage'
+ */
 const signal = async (instance: SessionName, { type, data, to }: SignalParams): AsyncVoid => {
   try {
     const core: Core = instances[instance];
     core.signal(type, data, to);
   } catch (error) {
-    console.log('signaling errror', error);
+    console.log('signaling error', error);
   }
 };
 
@@ -133,7 +142,7 @@ const subscribeAll = (instance: SessionName, audioOnly?: boolean = false): Objec
   if (audioOnly) {
     R.forEach((s: Subscriber): Subscriber => s.subscribeToAudio(true), getAllSubscribers(instance));
   } else {
-    const streams = core.state().getStreams();
+    const streams = core.state().streams;
     Object.values(streams).forEach(core.subscribe);
   }
   return core.state();
@@ -149,10 +158,15 @@ const createEmptySubscriber = async (instance: SessionName, stream: Stream): Asy
   }
 };
 
+/**
+ * Toggle the local video of an specific session
+ */
+const toggleLocalVideo = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalVideo(enable);
 
-const toggleLocalVideo = (instance: SessionName, enable: boolean): void => instances[instance].toggleLocalVideo(enable);
-
-const toggleLocalAudio = (instance: SessionName, enable: boolean): void => instances[instance].toggleLocalAudio(enable);
+/**
+ * Toggle the local audio of an specific session
+ */
+const toggleLocalAudio = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalAudio(enable);
 
 /**
  * Unsubscribe from all streams in the instance session
@@ -167,11 +181,14 @@ const unsubscribeAll = (instance: SessionName, audioOnly?: boolean = false): Cor
 
 /**
  * subscribe to a stream
- * TODO: Error handling - this should be an async function
  */
-const subscribe = (instance: SessionName, stream: Stream) => {
-  const core = instances[instance];
-  core.subscribe(stream);
+const subscribe = async (instance: SessionName, stream: Stream): AsyncVoid => {
+  try {
+    const core = instances[instance];
+    core.subscribe(stream);
+  } catch (error) {
+    console.log('subscribe error', error);
+  }
 };
 
 const toggleSubscribeAudio = (instance: SessionName, stream: Stream, shouldSubscribe: boolean) => {
@@ -192,17 +209,19 @@ const unsubscribe = (instance: SessionName, stream: Stream) => {
 
 const unSubscribeFromAudio: ((SessionName, Stream) => void) = R.partialRight(toggleSubscribeAudio, [false]);
 
-const state = (instance: SessionName): CoreState => instances[instance].state();
+const startCall = async (instance: SessionName): AsyncVoid => instances[instance].startCall({ publishVideo: true, publishAudio: true });
 
+const endCall = async (instance: SessionName): AsyncVoid => instances[instance].endCall();
 
-/**
- * get the first publisher in state
- */
-const getPublisher = (instance: SessionName): Object => { // eslint-disable-line flowtype/no-weak-types
-  const core = instances[instance];
-  const publisher = R.path(['publishers', 'camera'], core.state());
-  return R.values(publisher)[0];
-};
+const unpublish = async (instance: SessionName): AsyncVoid => {
+  try {
+    const core = instances[instance];
+    const publisher = getPublisher(instance);
+    await core.communication.session.unpublish(publisher);
+  } catch (error) {
+    console.log('unpublish error', error);
+  }
+}
 
 module.exports = {
   init,
@@ -225,4 +244,7 @@ module.exports = {
   unsubscribe,
   unSubscribeFromAudio,
   getPublisher,
+  startCall,
+  endCall,
+  unpublish,
 };

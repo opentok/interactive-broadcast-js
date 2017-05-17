@@ -187,17 +187,20 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
  * Update the participants state when someone joins or leaves
  */
 const updateParticipants: ThunkActionCreator = (participantType: ParticipantType, event: StreamEventType, stream: Stream): Thunk =>
-  (dispatch: Dispatch, getState: GetState): void => {
+  (dispatch: Dispatch, getState: GetState) => {
     switch (event) {
       case 'streamCreated':
-        return dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
+        dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
+        break;
       case 'streamDestroyed': {
         const inPrivateCall = R.equals(participantType, R.path(['broadcast', 'inPrivateCall'], getState()));
         inPrivateCall && dispatch(endPrivateCall(participantType, true));
-        return dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+        dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+        break;
       }
       case 'startCall':
-        return dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
+        dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
+        break;
       default:
         break;
     }

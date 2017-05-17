@@ -20,6 +20,10 @@ const FanStatusBar = (props: Props): ReactComponent => {
       statusText = 'You Are In Backstage';
       statusClass = 'blue';
       break;
+    case 'stage':
+      statusText = 'You Are On Stage';
+      statusClass = 'green';
+      break;
     default:
       statusText = '';
       break;

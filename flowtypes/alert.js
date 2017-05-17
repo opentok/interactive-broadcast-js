@@ -31,7 +31,7 @@ declare type AlertPartialOptions = {
   showCancelButton?: boolean
 };
 
-declare type AlertType = 'warning' | 'error' | 'success' | 'info';
+declare type AlertType = 'warning' | 'error' | 'success' | 'info' | null;
 
 declare type AlertAction =
   { type: 'RESET_ALERT' } |

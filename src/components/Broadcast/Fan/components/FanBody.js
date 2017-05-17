@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import classNames from 'classnames';
+import R from 'ramda';
 import VideoHolder from '../../../Common/VideoHolder';
 import './FanBody.css';
 import defaultImg from '../../../../images/TAB_VIDEO_PREVIEW_LS.jpg';
@@ -13,12 +14,16 @@ type Props = {
   image?: string,
   participants: BroadcastParticipants,
   hasStreams: boolean,
-  backstageConnected: boolean
+  backstageConnected: boolean,
+  fanStatus: FanStatus
 };
 const FanBody = (props: Props): ReactComponent => {
-  const { isClosed, isLive, image, participants, hasStreams, backstageConnected } = props;
-  const showImage = !isLive || !hasStreams;
+  const { isClosed, isLive, image, participants = {}, hasStreams, backstageConnected, fanStatus } = props;
+  const fanOnStage = R.equals('stage', fanStatus);
+  const showImage = (!isLive || !hasStreams) && !fanOnStage;
   const fanBodyClasses = classNames('FanBody');
+  const hidePublisher = !backstageConnected || fanOnStage;
+  const shouldSubscribe = isLive || fanOnStage;
   return (
     <div className={fanBodyClasses}>
       { showImage &&
@@ -29,10 +34,10 @@ const FanBody = (props: Props): ReactComponent => {
       { !isClosed && userTypes.map((type: ParticipantType): ReactComponent =>
         <VideoHolder
           key={`videoStream${type}`}
-          connected={participants && participants[type] && isLive ? participants[type].connected : false}
+          connected={(participants[type] && participants[type].connected && shouldSubscribe) || (fanOnStage && type === 'fan')}
           userType={type}
         />)}
-      <div className={classNames('VideoWrap', 'smallVideo', { hide: !backstageConnected })} id="videobackstageFan" />
+      <div className={classNames('VideoWrap', 'smallVideo', { hide: hidePublisher })} id="videobackstageFan" />
       <div id="videoproducer" className="producerContainer" />
     </div>
   );

@@ -80,6 +80,7 @@ class Fan extends Component {
             participants={participants}
             isClosed={isClosed}
             isLive={isLive}
+            fanStatus={fanStatus}
             backstageConnected={backstageConnected}
           />
         </div>
