@@ -25,26 +25,30 @@ const parseResponse = (response: Response): Promise<*> => {
   return response.text();  // contentType === 'text/html'
 };
 
+/** Parse API error response */
+const parseErrorResponse = (response: Response): Promise<Error> => response.json();
+
 /** Check for API-level errors */
 const checkStatus = (response: Response): Promise<*> =>
   new Promise((resolve: Promise.resolve<Response>, reject: Promise.reject<Error>): void => {
     if (response.status >= 200 && response.status < 300) {
       return resolve(response);
     }
-    parseResponse(response)
+    parseErrorResponse(response)
       .then(({ message }: { message: string }): void => reject(new Error(message)))
       .catch(reject);
   });
 
 /** Create a new Request object */
-const request = (method: HttpMethod, route: string, data: * = null, requiresAuth: boolean = true, authToken?: string): Request => {
-  const body: string | void = data && JSON.stringify(data);
-  return new Request(getURL(route), {
+const request = (method: HttpMethod, route: string, data?: *, requiresAuth: boolean = true, authToken?: string): Request => {
+  const body = (): {} | { body: string } => data ? { body: JSON.stringify(data) } : {};
+  const baseOptions = {
     method: method.toUpperCase(),
     mode: 'cors',
     headers: new Headers(headers(requiresAuth, authToken)),
-    body,
-  });
+  };
+  const requestOptions = R.merge(baseOptions, body());
+  return new Request(getURL(route), requestOptions);
 };
 
 /** Execute a request using fetch */

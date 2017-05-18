@@ -24,6 +24,13 @@ const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: 
     case 'changeVolume':
       fromProducer && changeVolume('stage', signalData.userType, signalData.volume);
       break;
+    case 'chatMessage':
+      {
+        const { fromType, fromId } = signalData;
+        const chatId = R.equals(fromType, 'activeFan') ? `${fromType}-${fromId}` : fromType;
+        dispatch({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', false, signalData) });
+      }
+      break;
     default:
       break;
   }
@@ -205,6 +212,18 @@ const reorderActiveFans: ActionCreator = (update: ActiveFanOrderUpdate): Broadca
   update,
 });
 
+const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const chatId = `activeFan-${fan.id}`;
+    const existingChat = R.path(['broadcast', 'chats', chatId], getState());
+    const connection = opentok.getConnection('backstage', fan.streamId);
+    if (existingChat) {
+      dispatch({ type: 'DISPLAY_CHAT', chatId, display: true });
+    } else {
+      dispatch({ type: 'START_NEW_FAN_CHAT', fan: R.assoc('connection', connection, fan) });
+    }
+  };
+
 module.exports = {
   initializeBroadcast,
   resetBroadcastEvent,
@@ -212,4 +231,5 @@ module.exports = {
   setBroadcastEventWithCredentials,
   connectPrivateCall,
   reorderActiveFans,
+  chatWithActiveFan,
 };

@@ -304,6 +304,20 @@ const publishOnly: ThunkActionCreator = (): Thunk =>
     R.forEach(dispatch, actions);
   };
 
+const sendChatMessage: ThunkActionCreator = (chatId: ChatId, message: ChatMessagePartial): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    const chat: ChatState = R.path(['broadcast', 'chats', chatId], getState());
+    console.log('the chat', chat);
+    console.log('the message', message);
+    try {
+      await opentok.signal(chat.session, { type: 'chatMessage', to: chat.to.connection, data: message });
+    } catch (error) {
+      // @TODO Error handling
+      console.log('Failed to send chat message', error);
+    }
+    dispatch({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', true, message) });
+  };
+
 module.exports = {
   setBroadcastState,
   opentokConfig,
@@ -320,4 +334,5 @@ module.exports = {
   startPrivateCall,
   endPrivateCall,
   setBackstageConnected,
+  sendChatMessage,
 };

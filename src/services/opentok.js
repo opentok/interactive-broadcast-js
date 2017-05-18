@@ -134,6 +134,11 @@ const signal = async (instance: SessionName, { type, data, to }: SignalParams): 
   }
 };
 
+const getConnection = (instance: SessionName, streamId: string): Connection => {
+  const core = instances[instance];
+  return core.state().streams[streamId].connection;
+};
+
 /**
  * Subscribe to all streams in the session instance
  */
@@ -158,15 +163,9 @@ const createEmptySubscriber = async (instance: SessionName, stream: Stream): Asy
   }
 };
 
-/**
- * Toggle the local video of an specific session
- */
-const toggleLocalVideo = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalVideo(enable);
+const toggleLocalVideo = (instance: SessionName, enable: boolean): void => instances[instance].toggleLocalVideo(enable);
 
-/**
- * Toggle the local audio of an specific session
- */
-const toggleLocalAudio = (enable: boolean, instance: SessionName): void => instances[instance].toggleLocalAudio(enable);
+const toggleLocalAudio = (instance: SessionName, enable: boolean): void => instances[instance].toggleLocalAudio(enable);
 
 /**
  * Unsubscribe from all streams in the instance session
@@ -221,7 +220,7 @@ const unpublish = async (instance: SessionName): AsyncVoid => {
   } catch (error) {
     console.log('unpublish error', error);
   }
-}
+};
 
 module.exports = {
   init,
@@ -234,6 +233,7 @@ module.exports = {
   createEmptySubscriber,
   publishAudio,
   signal,
+  getConnection,
   subscribeAll,
   toggleLocalAudio,
   toggleLocalVideo,

@@ -25,6 +25,12 @@ body {
   min-height: 1px;
 }
 
+.FanChat {
+  position: fixed;
+  bottom: 0;
+  right: 15px;
+}
+
 @media (min-width: 768px) {
   .Fan .Container {
     width: 750px;

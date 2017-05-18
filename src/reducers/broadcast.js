@@ -10,6 +10,22 @@ const participantState = (stream?: Stream | null = null): ParticipantState => ({
   volume: 100,
 });
 
+const initialChatState = (fromType: ChatUser, fromId?: UserId, toType: ChatUser, to: UserWithConnection): ChatState => {
+  const session: SessionName = R.contains('activeFan', [fromType, toType]) ? 'backstage' : 'stage';
+  const chatId = R.equals(toType, 'activeFan') ? `activeFan-${R.prop('id', to)}` : toType;
+  return {
+    chatId,
+    session,
+    fromType,
+    fromId,
+    toType,
+    to,
+    displayed: true,
+    minimized: false,
+    messages: [],
+  };
+};
+
 const initialState = (): BroadcastState => ({
   event: null,
   connected: false,
@@ -34,6 +50,7 @@ const initialState = (): BroadcastState => ({
     map: {},
     order: [],
   },
+  chats: {},
 });
 
 const activeFansUpdate = (activeFans: ActiveFans, update: ActiveFanMap): ActiveFans => {
@@ -91,6 +108,14 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('activeFans', activeFansUpdate(state.activeFans, action.update), state);
     case 'REORDER_BROADCAST_ACTIVE_FANS':
       return R.assocPath(['activeFans', 'order'], updateFanOrder(state.activeFans, action.update), state);
+    case 'START_NEW_FAN_CHAT':
+      return R.assocPath(['chats', `activeFan-${action.fan.id}`], initialChatState('producer', undefined, 'activeFan', action.fan), state);
+    case 'START_NEW_PRODUCER_CHAT':
+      return R.assocPath(['chats', 'producer'], initialChatState(action.fromType, action.fromId, 'producer', action.producer), state);
+    case 'DISPLAY_CHAT':
+      return R.assocPath(['chats', action.chatId, 'displayed'], action.display, state);
+    case 'NEW_CHAT_MESSAGE':
+      return R.assocPath(['chats', action.chatId, 'messages'], R.append(action.message, R.path(['chats', action.chatId, 'messages'], state)), state);
     default:
       return state;
   }

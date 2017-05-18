@@ -5,7 +5,7 @@ import Icon from 'react-fontawesome';
 import R from 'ramda';
 import classNames from 'classnames';
 import { SortableContainer, SortableElement } from 'react-sortable-hoc';
-import { reorderActiveFans } from '../../../../actions/producer';
+import { reorderActiveFans, chatWithActiveFan } from '../../../../actions/producer';
 import { properCase } from '../../../../services/util';
 import './ActiveFanList.css';
 
@@ -23,8 +23,13 @@ const connectionQuality = (quality: null | NetworkQuality): ReactComponent => {
     </div>);
 };
 
+type ActiveFanActions = {
+  chat: ActiveFan => void
+};
+
 const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
-const Fan = SortableElement(({ fan, sortable }: { fan: ActiveFan, sortable: boolean }): ReactComponent => {
+const Fan = SortableElement(({ fan, sortable, actions }: { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions }): ReactComponent => {
+  const { chat } = actions;
   return (
     <li className={classNames('ActiveFan', { sortable })}>
       <div className="ActiveFanImage">
@@ -39,29 +44,33 @@ const Fan = SortableElement(({ fan, sortable }: { fan: ActiveFan, sortable: bool
           { connectionQuality(fan.connectionQuality)}
         </div>
         <div className="actions">
-          <buttons className="btn white">Send to backstage</buttons>
-          <buttons className="btn white">Call</buttons>
-          <buttons className="btn white">Chat</buttons>
-          <buttons className="btn white">Kick</buttons>
+          <button className="btn white">Send to backstage</button>
+          <button className="btn white">Call</button>
+          <button className="btn white" onClick={R.partial(chat, [fan])}>Chat</button>
+          <button className="btn white">Kick</button>
         </div>
       </div>
     </li>
   );
 });
 
-const SortableFanList: { fans: ActiveFan[] } => ReactComponent = SortableContainer(({ fans }: { fans: ActiveFan[] }): ReactComponent => {
-  const sortable = fans.length > 1;
-  return (
-    <ul className={classNames('ActiveFanList', { sortable })} >
-      {fans.map((fan: ActiveFan, index: number): ReactComponent => (
-        <Fan key={`fan-${fan.id}`} index={index} fan={fan} sortable={sortable} /> // eslint-disab
-      ))}
-    </ul>
-  );
-});
+const SortableFanList: { fans: ActiveFan[], actions: ActiveFanActions } => ReactComponent =
+  SortableContainer(({ fans, actions }: { fans: ActiveFan[], actions: ActiveFanActions }): ReactComponent => {
+    const sortable = fans.length > 1;
+    return (
+      <ul className={classNames('ActiveFanList', { sortable })} >
+        {fans.map((fan: ActiveFan, index: number): ReactComponent => (
+          <Fan key={`fan-${fan.id}`} index={index} fan={fan} sortable={sortable} actions={actions} /> // eslint-disab
+        ))}
+      </ul>
+    );
+  });
 
 type BaseProps = { activeFans: ActiveFans };
-type DispatchProps = { reorderFans: ActiveFanOrderUpdate => void };
+type DispatchProps = {
+  reorderFans: ActiveFanOrderUpdate => void,
+  actions: ActiveFanActions
+};
 type Props = BaseProps & DispatchProps;
 
 class ActiveFanList extends Component {
@@ -75,16 +84,25 @@ class ActiveFanList extends Component {
 
   render(): ReactComponent {
     const { onSortEnd } = this;
+    const { actions } = this.props;
     const { map, order } = this.props.activeFans;
     const buildList = (acc: ActiveFan[], id: UserId): ActiveFan[] => R.append(R.prop(id, map), acc);
     return (
-      <SortableFanList fans={R.reduce(buildList, [], order)} onSortEnd={onSortEnd} lockAxis="y" helperClass="ProducerSidePanel-reordering" />
+      <SortableFanList
+        fans={R.reduce(buildList, [], order)}
+        onSortEnd={onSortEnd} actions={actions}
+        lockAxis="y"
+        helperClass="ProducerSidePanel-reordering"
+      />
     );
   }
 }
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps => ({
   reorderFans: (update: ActiveFanOrderUpdate): void => dispatch(reorderActiveFans(update)),
+  actions: {
+    chat: (fan: ActiveFan): void => dispatch(chatWithActiveFan(fan)),
+  },
 });
 
 export default connect(null, mapDispatchToProps)(ActiveFanList);

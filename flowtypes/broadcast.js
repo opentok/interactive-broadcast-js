@@ -13,7 +13,7 @@ declare type SessionName = 'stage' | 'backstage';
 declare type InstancesToConnect = Array<SessionName>;
 
 declare type NetworkQuality = 'good' | 'fair' | 'poor';
-declare type ImgData = string;
+declare type ImgData = null | string;
 declare type onSnapshotReady = Unit;
 
 declare type ParticipantAVPropertyUpdate =
@@ -30,6 +30,10 @@ declare type ParticipantState = {
   volume: number
 }
 
+declare type ParticipantWithConnection = ParticipantState & { connection: Connection };
+declare type ProducerWithConnection = { connection: Connection }
+declare type UserWithConnection = ParticipantWithConnection | ActiveFanWithConnection | ProducerWithConnection;
+
 declare type BroadcastParticipants = {
   fan: ParticipantState,
   celebrity: ParticipantState,
@@ -44,24 +48,31 @@ declare type ActiveFan = {
   browser: string,
   mobile: boolean,
   connectionQuality: null | NetworkQuality,
+  streamId: string,
   snapshot: null | string
 };
 
+declare type ActiveFanWithConnection = ActiveFan & { connection: Connection };
+
 declare type ActiveFanMap = { [fanId: string]: ActiveFan }
 
-declare type ActiveFanUpdate = {
+declare type ActiveFanUpdate = null | {
   id?: string,
   name?: string,
   browser?: string,
   connectionQuality?: null | NetworkQuality,
   mobile?: boolean,
-  snapshot?: string
+  snapshot?: string,
+  streamId?: string
 };
 
 declare type ActiveFans = {
   order: UserId[],
   map: ActiveFanMap
 }
+
+declare type ChatId = ParticipantType | string;
+declare type ProducerChats = {[chatId: ChatId]: ChatState };
 
 declare type BroadcastState = {
   event: null | BroadcastEvent,
@@ -77,7 +88,8 @@ declare type BroadcastState = {
   },
   meta: null | CoreMeta,
   participants: BroadcastParticipants,
-  activeFans: ActiveFans
+  activeFans: ActiveFans,
+  chats: ProducerChats
 };
 
 declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
@@ -95,6 +107,40 @@ declare type FanInitOptions = { adminId: UserId, userUrl: string };
 declare type CelebHostInitOptions = FanInitOptions & { userType: 'celebrity' | 'host' };
 declare type ActiveFanOrderUpdate = { newIndex: number, oldIndex: number };
 
+/**
+ * Chat Types
+ */
+
+declare type ChatUser = 'activeFan' | 'producer' | ParticipantType;
+declare type ChatMessage = {
+  from: ConnectionId,
+  to: ConnectionId,
+  isMe: boolean,
+  text: string,
+  timestamp: number
+};
+declare type ChatMessagePartial = {
+  text: string,
+  timestamp: number,
+  fromType: ChatUser,
+  fromId? : UserId
+};
+declare type ChatState = {
+    chatId: ParticipantType | UserId,
+    session: SessionName,
+    toType: ChatUser,
+    fromType: ChatUser,
+    fromId?: UserId, // This will be used to indentify active fans only
+    to: UserWithConnection,
+    displayed: boolean,
+    minimized: boolean,
+    messages: ChatMessage[]
+  };
+
+/**
+ * Actions
+ */
+
 declare type BroadcastAction =
   { type: 'SET_BROADCAST_EVENT', event: BroadcastEvent } |
   { type: 'RESET_BROADCAST_EVENT' } |
@@ -110,7 +156,11 @@ declare type BroadcastAction =
   { type: 'START_PRIVATE_CALL', participant: ParticipantType } |
   { type: 'END_PRIVATE_CALL' } |
   { type: 'UPDATE_ACTIVE_FANS', update: ActiveFanMap } |
-  { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate };
+  { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate } |
+  { type: 'START_NEW_FAN_CHAT', fan: ActiveFanWithConnection } |
+  { type: 'START_NEW_PRODUCER_CHAT', fromType: ChatUser, fromId?: UserId, producer: ProducerWithConnection } |
+  { type: 'DISPLAY_CHAT', chatId: ChatId, display: boolean } |
+  { type: 'NEW_CHAT_MESSAGE', chatId: ChatId, message: ChatMessage };
 
 declare type FanAction =
   { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |

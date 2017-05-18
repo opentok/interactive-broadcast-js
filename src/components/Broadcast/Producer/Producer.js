@@ -7,6 +7,7 @@ import classNames from 'classnames';
 import ProducerHeader from './components/ProducerHeader';
 import ProducerSidePanel from './components/ProducerSidePanel';
 import ProducerPrimary from './components/ProducerPrimary';
+import ProducerChat from './components/ProducerChat';
 import { initializeBroadcast, resetBroadcastEvent } from '../../../actions/producer';
 import './Producer.css';
 
@@ -64,7 +65,7 @@ class Producer extends Component {
           <ProducerPrimary />
         </div>
         <ProducerSidePanel hidden={!showingSidePanel} broadcast={broadcast} />
-        { /* <ProducerChat />*/ }
+        <ProducerChat chats={broadcast.chats} />
       </div>
     );
   }

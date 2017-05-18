@@ -1,9 +1,9 @@
 .ProducerChat {
-  position: fixed;
-  bottom: 0;
-  height: 300px;
-  width: 100%;
-  background-color: papayawhip;
-  display: flex;
-  align-items: flex-end;
+    position: fixed;
+    bottom: 0;
+    height: 300px;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: flex-end;
 }

@@ -66,8 +66,9 @@ declare type Subscriber = {
   videoWidth: () => number
 };
 
+declare type ConnectionId = string;
 declare type Connection = {
-  connectionId: string,
+  connectionId: ConnectionId,
   creationTime: number,
   data: string
 }
@@ -196,7 +197,7 @@ declare type StreamEventHandler = OTStreamEvent => void;
 declare type OTEventListener = OTEvent => void;
 declare type StreamEventListener = (UserRole, StreamEventType, Stream) => void;
 declare type StateChangeListener = CoreState => void;
-declare type SignalListener = Signal => void;
+declare type SignalListener = Signal => (void | AsyncVoid);
 declare type OTListener = OTEventListener | StreamEventHandler | StateChangeListener | SignalListener;
 
 declare type OTListeners = {
@@ -205,11 +206,11 @@ declare type OTListeners = {
   onSignal: SignalListener
 };
 
-declare type OptionalOTListeners = {
-  onStreamChanged?: ThunkActionCreator,
-  onStateChanged?: ThunkActionCreator,
-  onSignal: SignalListener
-};
+// declare type OptionalOTListeners = {
+//   onStreamChanged?: ThunkActionCreator,
+//   onStateChanged?: ThunkActionCreator,
+//   onSignal: SignalListener
+// };
 
 declare class Core {
   connect: () => Promise<{connections: number}>,

@@ -1,102 +1,94 @@
 // @flow
 import React, { Component } from 'react';
 import R from 'ramda';
+import { connect } from 'react-redux';
+import classNames from 'classnames';
 import Icon from 'react-fontawesome';
+import { properCase } from '../../services/util';
+import { sendChatMessage } from '../../actions/broadcast';
 import './Chat.css';
 
-
-type Props = {
-  with: Connection,
-  core: Core
+const Message = (message: ChatMessage): ReactComponent => {
+  const { isMe } = message;
+  const messageClass = classNames('Message', { isMe });
+  return (
+    <div className={messageClass} key={message.timestamp}>
+      <div className="MessageText">
+        { message.text }
+      </div>
+    </div>
+  );
 };
 
-type Message = {
-  text: string,
-  me: boolean
+
+type BaseProps = {
+  chat: ChatState
 };
+
+type DispatchProps ={
+  sendMessage: (ChatId, ChatMessagePartial) => void
+};
+
+type Props = BaseProps & DispatchProps;
 
 class Chat extends Component {
 
   props: Props;
-
-  state: {
-    displayed: boolean,
-    minimized: boolean,
-    newMessage: string,
-    messages: Array<Message>
-  }
-
-  toggleDisplayed: Unit;
-  toggleMinimized: Unit;
-  handleIncomingMessage: Signal => void;
+  state: { newMessageText: string };
   handleChange: SyntheticInputEvent => void;
   handleSubmit: SyntheticInputEvent => void;
 
   constructor(props: Props) {
     super(props);
-    this.state = {
-      displayed: false,
-      minimized: false,
-      newMessage: '',
-      messages: [],
-    };
-    this.toggleDisplayed = this.toggleDisplayed.bind(this);
-    this.toggleMinimized = this.toggleMinimized.bind(this);
-    this.handleIncomingMessage = this.handleIncomingMessage.bind(this);
+    this.state = { newMessageText: '' };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  componentDidMount() {
-    const { core } = this.props;
-    core.on('signal', this.handleIncomingMessage);
-  }
-
-  handleIncomingMessage(e: Signal) {
-    console.log('incomingININININ', e);
-  }
-
-  toggleDisplayed() {
-    this.setState({ displayed: !this.state.displayed });
-  }
-
-  toggleMinimized() {
-    this.setState({ minimized: !this.state.minimized });
-  }
-
   handleChange(e: SyntheticInputEvent) {
-    const newMessage = e.target.value;
-    this.setState({ newMessage });
+    const newMessageText = e.target.value;
+    this.setState({ newMessageText });
   }
 
   handleSubmit(e: SyntheticInputEvent) {
     e.preventDefault();
-    const { core, connection } = this.props;
-    const { newMessage } = this.state;
-    core.signal('chat', connection, { text: newMessage });
+    const { newMessageText } = this.state;
+    if (R.isEmpty(newMessageText)) { return; }
+
+    const { sendMessage, chat } = this.props;
+
+    const message = {
+      text: newMessageText,
+      timestamp: Date.now(),
+      fromType: chat.fromType,
+      fromId: chat.fromId,
+    };
+    sendMessage(chat.chatId, message);
+    this.setState({ newMessageText: '' });
   }
 
   render(): ReactComponent {
-    const { toggleMinimized, toggleDisplayed, handleChange, handleSubmit } = this;
-    const { displayed, minimized, newMessage } = this.state;
-    const chattingWith = JSON.parse(R.pathOr(null, ['connection', 'data'], this.props));
+    const { displayed, minimized, messages, toType, to } = this.props.chat;
+    const { newMessageText } = this.state;
+    const { handleSubmit, handleChange } = this;
+    const chattingWith = properCase(R.equals(toType, 'activeFan') ? R.prop('name', to) : (toType));
     return (
-      <div className="Chat">
+      <div className={classNames('Chat', { hidden: !displayed })}>
         <div className="ChatHeader">
-          <button className="btn minimize" onClick={toggleMinimized}>Chat with such and such</button>
-          <button className="btn" onClick={toggleDisplayed}><Icon className="icon" name="close" /></button>
+          <button className="btn minimize" onClick={(): void => console.log('min')}>Chat with { chattingWith }</button>
+          <button className="btn" onClick={(): void => console.log('min')}><Icon className="icon" name="close" /></button>
         </div>
         { !minimized &&
           <div className="ChatMain">
-            <div className="ChatContent">
-              newMessages and other things go here
+            <div className="ChatMessages">
+              { R.map(Message, messages) }
             </div>
             <form className="ChatForm" onSubmit={handleSubmit}>
               <input
                 type="text"
-                name="newMessage"
+                name="newMessageText"
                 placeholder="Write a message . . ."
-                value={newMessage}
+                value={newMessageText}
                 onChange={handleChange}
               />
               <button type="submit" className="btn"><Icon className="icon" name="check" /></button>
@@ -108,4 +100,8 @@ class Chat extends Component {
   }
 }
 
-export default Chat;
+const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): Props => ({
+  sendMessage: (chatId: ChatId, message: ChatMessagePartial): void => dispatch(sendChatMessage(chatId, message)),
+});
+
+export default connect(null, mapDispatchToProps)(Chat);
