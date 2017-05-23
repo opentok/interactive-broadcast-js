@@ -7,7 +7,7 @@ import Icon from 'react-fontawesome';
 import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
 import ControlIcon from './ControlIcon';
-import { toggleParticipantProperty } from '../../../../actions/broadcast';
+import { toggleParticipantProperty, kickFanFromFeed } from '../../../../actions/broadcast';
 import { connectPrivateCall, chatWithParticipant } from '../../../../actions/producer';
 import './Participant.css';
 
@@ -33,7 +33,7 @@ type DispatchProps = {
 type Props = OwnProps & BaseProps & DispatchProps;
 
 const Participant = (props: Props): ReactComponent => {
-  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat } = props;
+  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat, kickFan } = props;
   const broadcast = R.propOr({}, 'broadcast', props);
   const url = R.prop(`${type}Url`, createUrls(broadcast.event || {}));
   const me = R.prop(type, broadcast.participants) || {};
@@ -90,8 +90,8 @@ const Participant = (props: Props): ReactComponent => {
             disabled={!me.connected}
           />
           { R.contains('fan', R.toLower(type)) ?
-            <ControlIcon name="ban" className={controlIconClass} disabled={!me.connected} /> :
-            <ControlIcon name="comment" onClick={chat} className={controlIconClass} disabled={!me.connected} />
+          <ControlIcon name="ban" className={controlIconClass} onClick={kickFan} disabled={!me.connected} /> :
+          <ControlIcon name="comment" onClick={chat} className={controlIconClass} disabled={!me.connected} />
           }
         </div>
       </div>
@@ -106,6 +106,7 @@ const mapDispatchToProps: MapDispatchWithOwn<DispatchProps, OwnProps> = (dispatc
   toggleVideo: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'video')),
   toggleVolume: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'volume')),
   privateCall: (): void => dispatch(connectPrivateCall(ownProps.type)),
+  kickFan: (): void => dispatch(kickFanFromFeed(ownProps.type)),
   chat: (): void => dispatch(chatWithParticipant(ownProps.type)),
 });
 

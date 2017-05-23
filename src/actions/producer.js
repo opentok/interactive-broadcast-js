@@ -50,8 +50,10 @@ const opentokConfig = (dispatch: Dispatch, userCredentials: UserCredentials): Co
     const otStreamEvents: StreamEventType[] = ['streamCreated', 'streamDestroyed'];
     const handleStreamEvent: StreamEventHandler = ({ type, stream }: OTStreamEvent) => {
       const isStage = R.propEq('name', 'stage', instance);
+      const backstageFanLeft = type === 'streamDestroyed' && !isStage;
       const connectionData: { userType: UserRole } = JSON.parse(stream.connection.data);
       isStage && dispatch(updateParticipants(connectionData.userType, type, stream));
+      backstageFanLeft && dispatch(updateParticipants(connectionData.userType, 'backstageFanLeft', stream));
     };
 
     R.forEach((event: StreamEventType): void => instance.on(event, handleStreamEvent), otStreamEvents);
@@ -77,6 +79,7 @@ const opentokConfig = (dispatch: Dispatch, userCredentials: UserCredentials): Co
 
   const stage = (): CoreInstanceOptions => {
     const { apiKey, stageSessionId, stageToken } = userCredentials;
+    const autoSubscribe = true;
     const credentials = {
       apiKey,
       sessionId: stageSessionId,
@@ -84,13 +87,14 @@ const opentokConfig = (dispatch: Dispatch, userCredentials: UserCredentials): Co
     };
     return {
       name: 'stage',
-      coreOptions: coreOptions('stage', credentials, 'producer', true),
+      coreOptions: coreOptions('stage', credentials, 'producer', autoSubscribe),
       eventListeners,
     };
   };
 
   const backstage = (): CoreInstanceOptions => {
     const { apiKey, sessionId, backstageToken } = userCredentials;
+    const autoSubscribe = false;
     const credentials = {
       apiKey,
       sessionId,
@@ -98,7 +102,7 @@ const opentokConfig = (dispatch: Dispatch, userCredentials: UserCredentials): Co
     };
     return {
       name: 'backstage',
-      coreOptions: coreOptions('backstage', credentials, 'producer', false),
+      coreOptions: coreOptions('backstage', credentials, 'producer', autoSubscribe),
       eventListeners,
     };
   };
@@ -216,6 +220,19 @@ const reorderActiveFans: ActionCreator = (update: ActiveFanOrderUpdate): Broadca
   update,
 });
 
+const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
+  (dispatch: Dispatch) => {
+    /* Get the stream */
+    const stream = opentok.getStreamById('backstage', fan.streamId);
+    /* Add the participant to the backstage fan feed and start subscribing */
+    dispatch(updateParticipants('backstageFan', 'streamCreated', stream));
+    opentok.subscribe('backstage', stream);
+    /* Let the fan know that he is on backstage */
+    signal('backstage', { type: 'joinBackstage', to: stream.connection });
+    /* Let the celeb & host know that there is a new fan on backstage */
+    signal('stage', { type: 'newBackstageFan' });
+  };
+
 const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const chatId = `activeFan-${fan.id}`;
@@ -249,6 +266,7 @@ module.exports = {
   setBroadcastEventWithCredentials,
   connectPrivateCall,
   reorderActiveFans,
+  sendToBackstage,
   chatWithActiveFan,
   chatWithParticipant,
 };

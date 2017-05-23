@@ -183,12 +183,31 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
     dispatch({ type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType, update });
   };
 
+
+const kickFanFromFeed: ThunkActionCreator = (participantType: ParticipantType): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    const participant = R.path(['broadcast', 'participants', participantType], getState());
+    const to = R.path(['stream', 'connection'], participant);
+    const stream = R.path(['stream'], participant);
+    const isStage = R.equals('fan', participantType);
+    const instance = isStage ? 'stage' : 'backstage';
+    const type = isStage ? 'disconnect' : 'disconnectBackstage';
+    await opentok.signal(instance, { type, to });
+    await opentok.unsubscribe(instance, stream);
+    dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+  };
+
 /**
  * Update the participants state when someone joins or leaves
  */
 const updateParticipants: ThunkActionCreator = (participantType: ParticipantType, event: StreamEventType, stream: Stream): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     switch (event) {
+      case 'backstageFanLeft': {
+        const participant = R.path(['broadcast', 'participants', 'backstageFan'], getState());
+        participant && R.equals(participant.stream.streamId, stream.streamId) && dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+        break;
+      }
       case 'streamCreated':
         dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
         break;
@@ -346,6 +365,7 @@ module.exports = {
   endPrivateCall,
   setBackstageConnected,
   sendChatMessage,
+  kickFanFromFeed,
   minimizeChat,
   displayChat,
 };

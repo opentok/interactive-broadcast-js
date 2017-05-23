@@ -134,6 +134,11 @@ const signal = async (instance: SessionName, { type, data, to }: SignalParams): 
   }
 };
 
+const getStreamById = (instance: SessionName, streamId: string): Connection => {
+  const core = instances[instance];
+  return core.state().streams[streamId];
+};
+
 const getConnection = (instance: SessionName, streamId: string): Connection => {
   const core = instances[instance];
   return core.state().streams[streamId].connection;
@@ -229,6 +234,7 @@ module.exports = {
   disconnectFromInstance,
   changeVolume,
   getStreamByUserType,
+  getStreamById,
   createEmptyPublisher,
   createEmptySubscriber,
   publishAudio,

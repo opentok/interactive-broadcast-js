@@ -77,7 +77,7 @@ const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserDa
     // const { onStateChanged, onStreamChanged, onSignal } = listeners;
 
     // Assign listener for state changes
-    const handlePubSubEvent = (state: CoreState, event: PubSubEventType): void => {
+    const handlePubSubEvent = (state: CoreState, event: PubSubEventType) => {
       if (R.equals(event, 'startCall')) {
         dispatch(updateParticipants(userType, event, state.publisher.stream));
       }

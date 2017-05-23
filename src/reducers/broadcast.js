@@ -84,7 +84,7 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assocPath(['participants', action.participantType], participantState(action.stream), state);
     case 'BROADCAST_PARTICIPANT_LEFT':
       return R.assocPath(['participants', action.participantType], participantState(), state);
-    case 'PARTICIPANT_PROPERTY_CHANGED':
+    case 'PARTICIPANT_AV_PROPERTY_CHANGED':
       return R.assocPath(['participants', action.participantType, action.update.property], action.update.value, state);
     case 'SET_BROADCAST_STATE':
       return R.merge(action.state, state);
