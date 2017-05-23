@@ -12,6 +12,7 @@ import { setInfo, resetAlert } from '../../../actions/alert';
 import CelebrityHostHeader from './components/CelebrityHostHeader';
 import CelebrityHostBody from './components/CelebrityHostBody';
 import Loading from '../../../components/Common/Loading';
+import Chat from '../../../components/Common/Chat';
 import { disconnect } from '../../../services/opentok';
 import './CelebrityHost.css';
 
@@ -57,15 +58,13 @@ class CelebrityHost extends Component {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    const currentStatus = this.props.broadcast.status;
-    const newStatus = nextProps.broadcast.status;
-
-    if (newStatus === 'closed') { disconnect(); }
+    if (R.pathEq(['broadcast', 'event', 'status'], 'closed', nextProps)) { disconnect(); }
   }
 
   render(): ReactComponent {
     const { userType, togglePublishOnly, broadcast } = this.props;
-    const { event, participants, publishOnlyEnabled, inPrivateCall } = broadcast;
+    const { event, participants, publishOnlyEnabled, inPrivateCall, chats } = broadcast;
+    const producerChat = R.prop('producer', chats);
     if (!event) return <Loading />;
     const availableParticipants = publishOnlyEnabled ? null : participants;
     return (
@@ -82,9 +81,12 @@ class CelebrityHost extends Component {
           <CelebrityHostBody
             endImage={event.endImage}
             participants={availableParticipants}
-            status={status}
+            status={event.status}
             userType={userType}
           />
+          <div className="HostCelebChat" >
+            { producerChat && <Chat chat={producerChat} /> }
+          </div>
         </div>
       </div>
     );

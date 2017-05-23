@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import classNames from 'classnames';
 import Icon from 'react-fontawesome';
 import { properCase } from '../../services/util';
-import { sendChatMessage } from '../../actions/broadcast';
+import { sendChatMessage, minimizeChat, displayChat } from '../../actions/broadcast';
 import './Chat.css';
 
 const Message = (message: ChatMessage): ReactComponent => {
@@ -20,13 +20,14 @@ const Message = (message: ChatMessage): ReactComponent => {
   );
 };
 
-
 type BaseProps = {
   chat: ChatState
 };
 
 type DispatchProps ={
-  sendMessage: (ChatId, ChatMessagePartial) => void
+  sendMessage: (ChatMessagePartial) => void,
+  minimize: boolean => void,
+  hide: Unit
 };
 
 type Props = BaseProps & DispatchProps;
@@ -35,12 +36,15 @@ class Chat extends Component {
 
   props: Props;
   state: { newMessageText: string };
+  messageContainer: HTMLDivElement;
+  updateScrollPosition: Unit;
   handleChange: SyntheticInputEvent => void;
   handleSubmit: SyntheticInputEvent => void;
 
   constructor(props: Props) {
     super(props);
     this.state = { newMessageText: '' };
+    this.updateScrollPosition = this.updateScrollPosition.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -48,6 +52,13 @@ class Chat extends Component {
   handleChange(e: SyntheticInputEvent) {
     const newMessageText = e.target.value;
     this.setState({ newMessageText });
+  }
+
+  updateScrollPosition() {
+    const { messageContainer } = this;
+    setTimeout(() => {
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }, 0);
   }
 
   handleSubmit(e: SyntheticInputEvent) {
@@ -63,24 +74,25 @@ class Chat extends Component {
       fromType: chat.fromType,
       fromId: chat.fromId,
     };
-    sendMessage(chat.chatId, message);
-    this.setState({ newMessageText: '' });
+    sendMessage(message);
+    this.setState({ newMessageText: '' }, this.updateScrollPosition);
   }
 
   render(): ReactComponent {
     const { displayed, minimized, messages, toType, to } = this.props.chat;
+    const { minimize, hide } = this.props;
     const { newMessageText } = this.state;
     const { handleSubmit, handleChange } = this;
     const chattingWith = properCase(R.equals(toType, 'activeFan') ? R.prop('name', to) : (toType));
     return (
-      <div className={classNames('Chat', { hidden: !displayed })}>
+      <div className={classNames('Chat', toType, { hidden: !displayed })}>
         <div className="ChatHeader">
-          <button className="btn minimize" onClick={(): void => console.log('min')}>Chat with { chattingWith }</button>
-          <button className="btn" onClick={(): void => console.log('min')}><Icon className="icon" name="close" /></button>
+          <button className="btn minimize" onClick={R.partial(minimize, [!minimized])}>Chat with { chattingWith }</button>
+          <button className="btn" onClick={hide}><Icon className="icon" name="close" /></button>
         </div>
         { !minimized &&
           <div className="ChatMain">
-            <div className="ChatMessages">
+            <div className="ChatMessages" ref={(el: HTMLDivElement) => { this.messageContainer = el; }} >
               { R.map(Message, messages) }
             </div>
             <form className="ChatForm" onSubmit={handleSubmit}>
@@ -100,8 +112,10 @@ class Chat extends Component {
   }
 }
 
-const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): Props => ({
-  sendMessage: (chatId: ChatId, message: ChatMessagePartial): void => dispatch(sendChatMessage(chatId, message)),
+const mapDispatchToProps: MapDispatchWithOwn<DispatchProps, BaseProps> = (dispatch: Dispatch, ownProps: BaseProps): DispatchProps => ({
+  sendMessage: (message: ChatMessagePartial): void => dispatch(sendChatMessage(ownProps.chat.chatId, message)),
+  minimize: (shouldMinimize: boolean): void => dispatch(minimizeChat(ownProps.chat.chatId, shouldMinimize)),
+  hide: (): void => dispatch(displayChat(ownProps.chat.chatId, false)),
 });
 
 export default connect(null, mapDispatchToProps)(Chat);

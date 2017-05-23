@@ -6,6 +6,10 @@
     border-radius: 1px;
 }
 
+.Chat.hidden {
+  visibility: hidden;
+}
+
 .ChatHeader {
     display: flex;
     justify-content: space-between;
@@ -32,9 +36,9 @@
 }
 
 .ChatMessages {
-  flex-grow: 1;
   overflow-y: scroll;
   padding: 5px;
+  height: 258px;
 }
 
 .ChatMessages .Message {

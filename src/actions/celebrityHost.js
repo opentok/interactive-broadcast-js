@@ -11,6 +11,18 @@ const instance = 'stage';
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
+const receivedChatMessage: ThunkActionCreator = (connection: Connection, message: ChatMessage, fromType: HostCeleb): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const chatId = 'producer';
+    const state = getState();
+    const existingChat = R.pathOr(null, ['broadcast', 'chats', chatId], state);
+    const actions = [
+      ({ type: 'START_NEW_PRODUCER_CHAT', fromType, producer: { connection } }),
+      ({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', false, message) }),
+    ];
+    R.forEach(dispatch, existingChat ? R.tail(actions) : actions);
+  };
+
 const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener =>
   async ({ type, data, from }: Signal): AsyncVoid => {
     const signalData = data ? JSON.parse(data) : {};
@@ -25,15 +37,17 @@ const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener =>
         }
         break;
       case 'videoOnOff':
-        fromProducer && toggleLocalVideo(signalData.video === 'on', instance);
+        fromProducer && toggleLocalVideo(instance, signalData.video === 'on');
         break;
       case 'muteAudio':
-        fromProducer && toggleLocalAudio(signalData.mute === 'off', instance);
+        fromProducer && toggleLocalAudio(instance, signalData.mute === 'off');
         break;
       case 'changeVolume':
         fromProducer && changeVolume(instance, signalData.userType, signalData.volume);
         break;
-      case 'chatMessage': // @TODO
+      case 'chatMessage':
+        dispatch(receivedChatMessage(from, signalData, userType));
+        break;
       case 'privateCall':
         fromProducer && dispatch(startPrivateCall(signalData.callWith, R.equals(userType, signalData.callWith)));
         break;

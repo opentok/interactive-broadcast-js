@@ -110,12 +110,21 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assocPath(['activeFans', 'order'], updateFanOrder(state.activeFans, action.update), state);
     case 'START_NEW_FAN_CHAT':
       return R.assocPath(['chats', `activeFan-${action.fan.id}`], initialChatState('producer', undefined, 'activeFan', action.fan), state);
+    case 'START_NEW_PARTICIPANT_CHAT':
+      {
+        const { participant, participantType } = action;
+        return R.assocPath(['chats', participantType], initialChatState('producer', undefined, participantType, participant), state);
+      }
     case 'START_NEW_PRODUCER_CHAT':
       return R.assocPath(['chats', 'producer'], initialChatState(action.fromType, action.fromId, 'producer', action.producer), state);
     case 'DISPLAY_CHAT':
       return R.assocPath(['chats', action.chatId, 'displayed'], action.display, state);
+    case 'REMOVE_CHAT':
+      return R.dissocPath(['chats', action.chatId], state);
     case 'NEW_CHAT_MESSAGE':
       return R.assocPath(['chats', action.chatId, 'messages'], R.append(action.message, R.path(['chats', action.chatId, 'messages'], state)), state);
+    case 'MINIMIZE_CHAT':
+      return R.assocPath(['chats', action.chatId, 'minimized'], action.minimize, state);
     default:
       return state;
   }

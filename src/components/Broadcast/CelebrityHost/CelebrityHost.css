@@ -26,3 +26,9 @@ body {
   position: relative;
   min-height: 1px;
 }
+
+.HostCelebChat {
+  position: fixed;
+  bottom: 0;
+  right: 15px;
+}

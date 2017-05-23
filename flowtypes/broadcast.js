@@ -123,7 +123,7 @@ declare type ChatMessagePartial = {
   text: string,
   timestamp: number,
   fromType: ChatUser,
-  fromId? : UserId
+  fromId?: UserId
 };
 declare type ChatState = {
     chatId: ParticipantType | UserId,
@@ -158,8 +158,11 @@ declare type BroadcastAction =
   { type: 'UPDATE_ACTIVE_FANS', update: ActiveFanMap } |
   { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate } |
   { type: 'START_NEW_FAN_CHAT', fan: ActiveFanWithConnection } |
+  { type: 'START_NEW_PARTICIPANT_CHAT', participantType: ParticipantType, participant: ParticipantWithConnection } |
   { type: 'START_NEW_PRODUCER_CHAT', fromType: ChatUser, fromId?: UserId, producer: ProducerWithConnection } |
+  { type: 'REMOVE_CHAT', chatId: ChatId } |
   { type: 'DISPLAY_CHAT', chatId: ChatId, display: boolean } |
+  { type: 'MINIMIZE_CHAT', chatId: ChatId, minimize: boolean } |
   { type: 'NEW_CHAT_MESSAGE', chatId: ChatId, message: ChatMessage };
 
 declare type FanAction =

@@ -192,12 +192,13 @@ const updateParticipants: ThunkActionCreator = (participantType: ParticipantType
       case 'streamCreated':
         dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
         break;
-      case 'streamDestroyed': {
-        const inPrivateCall = R.equals(participantType, R.path(['broadcast', 'inPrivateCall'], getState()));
-        inPrivateCall && dispatch(endPrivateCall(participantType, true));
-        dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
-        break;
-      }
+      case 'streamDestroyed':
+        {
+          const inPrivateCall = R.equals(participantType, R.path(['broadcast', 'inPrivateCall'], getState()));
+          inPrivateCall && dispatch(endPrivateCall(participantType, true));
+          dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+          break;
+        }
       case 'startCall':
         dispatch({ type: 'BROADCAST_PARTICIPANT_JOINED', participantType, stream });
         break;
@@ -307,8 +308,6 @@ const publishOnly: ThunkActionCreator = (): Thunk =>
 const sendChatMessage: ThunkActionCreator = (chatId: ChatId, message: ChatMessagePartial): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const chat: ChatState = R.path(['broadcast', 'chats', chatId], getState());
-    console.log('the chat', chat);
-    console.log('the message', message);
     try {
       await opentok.signal(chat.session, { type: 'chatMessage', to: chat.to.connection, data: message });
     } catch (error) {
@@ -317,6 +316,18 @@ const sendChatMessage: ThunkActionCreator = (chatId: ChatId, message: ChatMessag
     }
     dispatch({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', true, message) });
   };
+
+const minimizeChat: ActionCreator = (chatId: ChatId, minimize?: boolean = true): BroadcastAction => ({
+  type: 'MINIMIZE_CHAT',
+  chatId,
+  minimize,
+});
+
+const displayChat: ActionCreator = (chatId: ChatId, display?: boolean = true): BroadcastAction => ({
+  type: 'DISPLAY_CHAT',
+  chatId,
+  display,
+});
 
 module.exports = {
   setBroadcastState,
@@ -335,4 +346,6 @@ module.exports = {
   endPrivateCall,
   setBackstageConnected,
   sendChatMessage,
+  minimizeChat,
+  displayChat,
 };

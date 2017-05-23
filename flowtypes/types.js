@@ -30,7 +30,8 @@ declare type State = {
   users: UserMap,
   events: BroadcastEventMap,
   auth: AuthState,
-  fan: FanState
+  fan: FanState,
+  broadcast: BroadcastState
 };
 
 // What persists in local storage

@@ -103,6 +103,7 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         break;
       case 'chatMessage':
         dispatch(receivedChatMessage(from, signalData));
+        break;
       case 'privateCall': // @TODO
       case 'endPrivateCall': // @TODO
       case 'openChat': // @TODO
@@ -192,19 +193,6 @@ const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>
       console.log(error);
     }
   };
-
-// const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>
-//   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-//     const event = R.path(['broadcast', 'event'], getState());
-//     try {
-//       const { uid } = await firebase.auth().signInAnonymously();
-//       // We have the anonymous uid here
-//       dispatch(createActiveFanRecord(uid, fanName, event));
-//     } catch (error) {
-//       console.log(error);
-//     }
-//   };
-
 
 const connectToPresenceWithToken: ThunkActionCreator = (adminId: string, fanUrl: string): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {

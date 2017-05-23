@@ -8,7 +8,7 @@ import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
 import ControlIcon from './ControlIcon';
 import { toggleParticipantProperty } from '../../../../actions/broadcast';
-import { connectPrivateCall } from '../../../../actions/producer';
+import { connectPrivateCall, chatWithParticipant } from '../../../../actions/producer';
 import './Participant.css';
 
 const isBackstageFan = R.equals('backstageFan');
@@ -23,16 +23,17 @@ type BaseProps = {
 };
 
 type DispatchProps = {
-  toggleAudio: ParticipantType => void,
-  toggleVideo: ParticipantType => void,
-  toggleVolume: ParticipantType => void,
-  privateCall: ParticipantType => void
+  toggleAudio: Unit,
+  toggleVideo: Unit,
+  toggleVolume: Unit,
+  privateCall: Unit,
+  chat: Unit
 };
 
 type Props = OwnProps & BaseProps & DispatchProps;
 
 const Participant = (props: Props): ReactComponent => {
-  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall } = props;
+  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat } = props;
   const broadcast = R.propOr({}, 'broadcast', props);
   const url = R.prop(`${type}Url`, createUrls(broadcast.event || {}));
   const me = R.prop(type, broadcast.participants) || {};
@@ -90,7 +91,7 @@ const Participant = (props: Props): ReactComponent => {
           />
           { R.contains('fan', R.toLower(type)) ?
             <ControlIcon name="ban" className={controlIconClass} disabled={!me.connected} /> :
-            <ControlIcon name="comment" className={controlIconClass} disabled={!me.connected} />
+            <ControlIcon name="comment" onClick={chat} className={controlIconClass} disabled={!me.connected} />
           }
         </div>
       </div>
@@ -105,6 +106,7 @@ const mapDispatchToProps: MapDispatchWithOwn<DispatchProps, OwnProps> = (dispatc
   toggleVideo: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'video')),
   toggleVolume: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'volume')),
   privateCall: (): void => dispatch(connectPrivateCall(ownProps.type)),
+  chat: (): void => dispatch(chatWithParticipant(ownProps.type)),
 });
 
 

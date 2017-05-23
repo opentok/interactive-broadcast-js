@@ -1,9 +1,20 @@
 .ProducerChat {
     position: fixed;
     bottom: 0;
-    height: 300px;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: flex-end;
+}
+
+.ProducerChat .Chat {
+    margin: 0 5px;
+}
+
+.ProducerChat .Chat.host .ChatHeader,
+.ProducerChat .Chat.host .ChatForm button {
+    background-color: #f15949;
+}
+
+.ProducerChat .Chat.celebrity .ChatHeader,
+.ProducerChat .Chat.celebrity .ChatForm button {
+    background-color: #a27ae8;
 }

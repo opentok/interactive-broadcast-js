@@ -109,7 +109,7 @@ const opentokConfig = (dispatch: Dispatch, userCredentials: UserCredentials): Co
 /**
  * Connect to OpenTok sessions
  */
-const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials, broadcast?: BroadcastEvent): Thunk =>
+const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const instances: CoreInstanceOptions[] = opentokConfig(dispatch, userCredentials);
     opentok.init(instances);
@@ -121,7 +121,7 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
       const data = R.assoc(`${userType}Url`, slug, { adminId, userType });
-      const eventData: HostCelebEventData = await getEventWithCredentials(data, getState().auth.authToken);
+      const eventData: HostCelebEventData = await getEventWithCredentials(data, R.path(['auth', 'authToken'], getState()));
       dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
     } catch (error) {
       console.log(error);
@@ -129,14 +129,18 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
   };
 
 const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
-  (dispatch: Dispatch) => {
+  (dispatch: Dispatch, getState: GetState) => {
     const adminId = firebase.auth().currentUser.uid;
     const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.id}`);
     ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
       const update = R.prop('activeFans', snapshot.val() || {});
+      const currentFans = R.path(['broadcast', 'activeFans', 'map'], getState());
+      const fansNoLongerActive: ChatId[] = R.difference(R.keys(currentFans), R.keys(update));
+      R.forEach((fanId: ChatId): void => dispatch({ type: 'REMOVE_CHAT', chatId: fanId }), fansNoLongerActive);
       dispatch({ type: 'UPDATE_ACTIVE_FANS', update });
     });
   };
+
 const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
@@ -224,6 +228,20 @@ const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     }
   };
 
+const chatWithParticipant: ThunkActionCreator = (participantType: ParticipantType): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const chatId = participantType;
+    const { broadcast } = getState();
+    const existingChat = R.path(['chats', chatId], broadcast);
+    const participant = R.path(['participants', participantType], broadcast);
+    const connection = R.path(['stream', 'connection'], participant);
+    if (existingChat) {
+      dispatch({ type: 'DISPLAY_CHAT', chatId, display: true });
+    } else {
+      dispatch({ type: 'START_NEW_PARTICIPANT_CHAT', participantType, participant: R.assoc('connection', connection, participant) });
+    }
+  };
+
 module.exports = {
   initializeBroadcast,
   resetBroadcastEvent,
@@ -232,4 +250,5 @@ module.exports = {
   connectPrivateCall,
   reorderActiveFans,
   chatWithActiveFan,
+  chatWithParticipant,
 };
