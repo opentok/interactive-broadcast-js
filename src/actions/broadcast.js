@@ -100,11 +100,11 @@ const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => 
       sessionId,
       token: backstageToken,
     };
-    const isFan: boolean = R.equals(userType, 'fan');
+    const isFan: boolean = R.contains(userType, ['activeFan', 'fan', 'backstageFan']);
     const autoPublish: boolean = isFan;
     return {
       name: 'backstage',
-      coreOptions: coreOptions('backstage', credentials, 'backstageFan'),
+      coreOptions: coreOptions('backstage', credentials, 'backstageFan', !isFan),
       eventListeners,
       opentokOptions: { autoPublish },
     };
@@ -132,7 +132,7 @@ const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, conn
       const producerStream = opentok.getStreamByUserType('stage', 'producer');
       opentok.subscribeToAudio('stage', producerStream);
     }
-    dispatch({ type: 'START_PRIVATE_CALL', participant });
+    dispatch({ type: 'START_PRIVATE_PARTICIPANT_CALL', participant });
   };
 
 const endPrivateCall: ThunkActionCreator = (participant: ParticipantType, userInCallDisconnected?: boolean = false): Thunk =>
@@ -143,7 +143,7 @@ const endPrivateCall: ThunkActionCreator = (participant: ParticipantType, userIn
       opentok.subscribeAll('stage', true);
       opentok.unSubscribeFromAudio('stage', opentok.getStreamByUserType('stage', 'producer'));
     }
-    dispatch({ type: 'END_PRIVATE_CALL' });
+    dispatch({ type: 'END_PRIVATE_PARTICIPANT_CALL' });
   };
 
 
@@ -250,7 +250,8 @@ const connectToInteractive: ThunkActionCreator =
         dispatch(setBroadcastState(state));
       },
       onStreamChanged: (user: UserRole, event: StreamEventType, stream: Stream, isStage: boolean) => {
-        onStreamChanged && dispatch(onStreamChanged(user, event, stream));
+        const session = isStage ? 'stage' : 'backstage';
+        onStreamChanged && dispatch(onStreamChanged(user, event, stream, session));
         isStage && dispatch(updateParticipants(user, event, stream));
       },
       onSignal,

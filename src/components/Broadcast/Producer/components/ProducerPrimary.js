@@ -46,7 +46,7 @@ class ProducerPrimary extends Component {
   }
 }
 
-const mapStateToProps = (state: State): BaseProps => ({
+const mapStateToProps = (state: State): Props => ({
   broadcast: R.prop('broadcast', state),
   user: R.prop('currentUser', state),
 });

@@ -12,7 +12,7 @@ const participantState = (stream?: Stream | null = null): ParticipantState => ({
 
 const initialChatState = (fromType: ChatUser, fromId?: UserId, toType: ChatUser, to: UserWithConnection): ChatState => {
   const session: SessionName = R.contains('activeFan', [fromType, toType]) ? 'backstage' : 'stage';
-  const chatId = R.equals(toType, 'activeFan') ? `activeFan-${R.prop('id', to)}` : toType;
+  const chatId = R.equals(toType, 'activeFan') ? `activeFan${R.prop('id', to)}` : toType;
   return {
     chatId,
     session,
@@ -23,6 +23,7 @@ const initialChatState = (fromType: ChatUser, fromId?: UserId, toType: ChatUser,
     displayed: true,
     minimized: false,
     messages: [],
+    inPrivateCall: false,
   };
 };
 
@@ -98,10 +99,16 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('backstageConnected', action.connected, state);
     case 'BROADCAST_PRESENCE_CONNECTED':
       return R.assoc('presenceConnected', action.connected, state);
-    case 'START_PRIVATE_CALL':
+    case 'START_PRIVATE_PARTICIPANT_CALL':
       return R.assoc('inPrivateCall', action.participant, state);
-    case 'END_PRIVATE_CALL':
+    case 'END_PRIVATE_PARTICIPANT_CALL':
       return R.assoc('inPrivateCall', null, state);
+    case 'PRIVATE_ACTIVE_FAN_CALL':
+      {
+        const chatId = `activeFan${action.fanId}`;
+        const privateCallUpdate = R.assoc('inPrivateCall', action.inPrivateCall ? chatId : null, state);
+        return R.assocPath(['chats', chatId, 'inPrivateCall'], action.inPrivateCall, privateCallUpdate);
+      }
     case 'RESET_BROADCAST_EVENT':
       return initialState();
     case 'UPDATE_ACTIVE_FANS':
@@ -109,7 +116,7 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
     case 'REORDER_BROADCAST_ACTIVE_FANS':
       return R.assocPath(['activeFans', 'order'], updateFanOrder(state.activeFans, action.update), state);
     case 'START_NEW_FAN_CHAT':
-      return R.assocPath(['chats', `activeFan-${action.fan.id}`], initialChatState('producer', undefined, 'activeFan', action.fan), state);
+      return R.assocPath(['chats', `activeFan${action.fan.id}`], initialChatState('producer', undefined, 'activeFan', action.fan), state);
     case 'START_NEW_PARTICIPANT_CHAT':
       {
         const { participant, participantType } = action;

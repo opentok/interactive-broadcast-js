@@ -5,6 +5,7 @@ const initialState = (): FanState => ({
   ableToJoin: false,
   setFanName: 'Anonymous',
   status: 'disconnected',
+  inPrivateCall: false,
 });
 
 const fan = (state: FanState = initialState(), action: FanAction): FanState => {
@@ -15,6 +16,8 @@ const fan = (state: FanState = initialState(), action: FanAction): FanState => {
       return R.assoc('fanName', action.fanName, state);
     case 'SET_ABLE_TO_JOIN':
       return R.assoc('ableToJoin', action.ableToJoin, state);
+    case 'FAN_PRIVATE_CALL':
+      return R.assoc('inPrivateCall', action.inPrivateCall, state);
     default:
       return state;
   }

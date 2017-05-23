@@ -7,7 +7,7 @@
 }
 
 .Chat.hidden {
-  visibility: hidden;
+    visibility: hidden;
 }
 
 .ChatHeader {
@@ -27,6 +27,29 @@
     text-decoration: underline;
 }
 
+.ChatActions {
+    display: flex;
+    justify-content: flex-start;
+    background: #F5F5F5;
+    padding: 5px;
+}
+
+.ChatActions .btn {
+    margin-right: 3px;
+    font-size: 12px;
+}
+
+.ChatPrivateCall {
+    height: 125px;
+    padding: 5px;
+    background: black;
+    display: none;
+}
+
+.ChatPrivateCall.inPrivateCall {
+    display: initial;
+}
+
 .ChatMain {
     height: 250px;
     display: flex;
@@ -36,58 +59,55 @@
 }
 
 .ChatMessages {
-  overflow-y: scroll;
-  padding: 5px;
-  height: 258px;
+    overflow-y: scroll;
+    padding: 5px;
+    height: 258px;
 }
 
 .ChatMessages .Message {
-  display: flex;
-  width: 100%;
-  justify-content: flex-start;
-  margin-bottom: 6px;
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    margin-bottom: 6px;
 }
 
 .ChatMessages .Message.isMe {
-  justify-content: flex-end;
+    justify-content: flex-end;
 }
 
 .ChatMessages .Message .MessageText {
-  max-width: 85%;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 300;
-  text-align: left;
-  padding: 3px 6px;
-  background-color: white;
-  border-radius: 8px;
+    max-width: 85%;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
+    text-align: left;
+    padding: 3px 6px;
+    background-color: white;
+    border-radius: 8px;
 }
 
 .ChatMessages .Message.isMe .MessageText {
-  background-color: lightblue;
+    background-color: lightblue;
 }
 
 .ChatForm {
-  height: 40px;
-  display: flex;
-  justify-content: space-between;
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .ChatForm * {
-  border-radius: 0 !important;
+    border-radius: 0 !important;
 }
 
 .ChatForm input {
-  padding: 2px;
-  width: 85%;
+    padding: 2px;
+    width: 85%;
 }
 
 .ChatForm .btn {
-  width: 15%;
-
+    width: 15%;
 }
 
 .ChatForm .btn.red {
-  background-color: crimson;
+    background-color: crimson;
 }
-
-

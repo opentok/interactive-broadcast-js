@@ -5,7 +5,7 @@ import Icon from 'react-fontawesome';
 import R from 'ramda';
 import classNames from 'classnames';
 import { SortableContainer, SortableElement } from 'react-sortable-hoc';
-import { reorderActiveFans, chatWithActiveFan, sendToBackstage } from '../../../../actions/producer';
+import { reorderActiveFans, chatWithActiveFan, startActiveFanCall, sendToBackstage } from '../../../../actions/producer';
 import { kickFanFromFeed } from '../../../../actions/broadcast';
 import { properCase } from '../../../../services/util';
 import './ActiveFanList.css';
@@ -25,7 +25,8 @@ const connectionQuality = (quality: null | NetworkQuality): ReactComponent => {
 };
 
 type ActiveFanActions = {
-  chat: ActiveFan => void
+  chat: ActiveFan => void,
+  privateCall: ActiveFan => void
 };
 
 const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
@@ -47,10 +48,9 @@ const Fan = SortableElement(({ fan, sortable, actions, state }: { fan: ActiveFan
           { connectionQuality(fan.connectionQuality)}
         </div>
         <div className="actions">
-
+          <button className="btn white" onClick={R.partial(privateCall, [fan])}>Call</button>
           {!isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
           {isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to stage</button>}
-          <button className="btn white">Call</button>
           <button className="btn white" onClick={R.partial(chat, [fan])}>Chat</button>
           <button className="btn white" onClick={R.partial(kickFan, [isOnBackstage ? 'backstageFan' : 'fan'])}>Kick</button>
         </div>
@@ -113,6 +113,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   reorderFans: (update: ActiveFanOrderUpdate): void => dispatch(reorderActiveFans(update)),
   actions: {
     chat: (fan: ActiveFan): void => dispatch(chatWithActiveFan(fan)),
+    privateCall: (fan: ActiveFan): void => dispatch(startActiveFanCall(fan)),
     sendFanToBackstage: (fan: ActiveFan): void => dispatch(sendToBackstage(fan)),
     kickFan: (participantType: ParticipantType): void => dispatch(kickFanFromFeed(participantType)),
   },

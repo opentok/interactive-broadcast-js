@@ -90,8 +90,8 @@ const Participant = (props: Props): ReactComponent => {
             disabled={!me.connected}
           />
           { R.contains('fan', R.toLower(type)) ?
-          <ControlIcon name="ban" className={controlIconClass} onClick={kickFan} disabled={!me.connected} /> :
-          <ControlIcon name="comment" onClick={chat} className={controlIconClass} disabled={!me.connected} />
+            <ControlIcon name="ban" className={controlIconClass} onClick={kickFan} disabled={!me.connected} /> :
+            <ControlIcon name="comment" onClick={chat} className={controlIconClass} disabled={!me.connected} />
           }
         </div>
       </div>

@@ -41,7 +41,6 @@ declare type BroadcastParticipants = {
   backstageFan: ParticipantState
 };
 
-
 declare type ActiveFan = {
   id: string,
   name: string,
@@ -49,7 +48,9 @@ declare type ActiveFan = {
   mobile: boolean,
   connectionQuality: null | NetworkQuality,
   streamId: string,
-  snapshot: null | string
+  snapshot: null | string,
+  inPrivateCall: boolean,
+  isBackstage: boolean
 };
 
 declare type ActiveFanWithConnection = ActiveFan & { connection: Connection };
@@ -79,7 +80,7 @@ declare type BroadcastState = {
   connected: boolean,
   presenceConnected: boolean,
   publishOnlyEnabled: boolean,
-  inPrivateCall: null | ParticipantType,
+  inPrivateCall: null | ParticipantType | string, // String will be used for active fans (e.g. activeFan${activeFan.id})
   publishers: {
     camera: null | { [publisherId: string]: Publisher}
   },
@@ -97,8 +98,8 @@ declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'pr
 declare type FanState = {
   ableToJoin: boolean,
   setFanName: string,
-  newFanSignalAckd: boolean,
-  status: FanStatus
+  status: FanStatus,
+  inPrivateCall: boolean
 };
 
 declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
@@ -134,7 +135,8 @@ declare type ChatState = {
     to: UserWithConnection,
     displayed: boolean,
     minimized: boolean,
-    messages: ChatMessage[]
+    messages: ChatMessage[],
+    inPrivateCall?: boolean
   };
 
 /**
@@ -153,11 +155,13 @@ declare type BroadcastAction =
   { type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType: ParticipantType, update: ParticipantAVPropertyUpdate } |
   { type: 'SET_BROADCAST_EVENT_STATUS', status: EventStatus } |
   { type: 'SET_BROADCAST_STATE', state: CoreState } |
-  { type: 'START_PRIVATE_CALL', participant: ParticipantType } |
-  { type: 'END_PRIVATE_CALL' } |
+  { type: 'START_PRIVATE_PARTICIPANT_CALL', participant: ParticipantType } |
+  { type: 'END_PRIVATE_PARTICIPANT_CALL' } |
+  { type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: UserId, inPrivateCall: boolean } |
+  { type: 'END_PRIVATE_ACTIVE_FAN_CALL', fan: ActiveFan } |
   { type: 'UPDATE_ACTIVE_FANS', update: ActiveFanMap } |
   { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate } |
-  { type: 'START_NEW_FAN_CHAT', fan: ActiveFanWithConnection } |
+  { type: 'START_NEW_FAN_CHAT', fan: ActiveFanWithConnection, privateCall?: boolean } |
   { type: 'START_NEW_PARTICIPANT_CHAT', participantType: ParticipantType, participant: ParticipantWithConnection } |
   { type: 'START_NEW_PRODUCER_CHAT', fromType: ChatUser, fromId?: UserId, producer: ProducerWithConnection } |
   { type: 'REMOVE_CHAT', chatId: ChatId } |
@@ -169,6 +173,7 @@ declare type FanAction =
   { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |
   { type: 'SET_FAN_NAME', fanName: string } |
   { type: 'SET_FAN_STATUS', status: FanStatus } |
-  { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean };
+  { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean } |
+  { type: 'FAN_PRIVATE_CALL', inPrivateCall: boolean };
 
 

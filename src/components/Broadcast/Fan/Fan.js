@@ -21,8 +21,9 @@ type BaseProps = {
   userType: 'host' | 'celeb',
   userUrl: string,
   eventData: BroadcastEvent,
+  inPrivateCall: boolean,
   status: EventStatus,
-  broadcastState: BroadcastState,
+  broadcast: BroadcastState,
   participants: BroadcastParticipants,
   fanStatus: FanStatus,
   producerChat: ChatState
@@ -34,7 +35,7 @@ type DispatchProps = {
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
 
-const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
+// const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
 class Fan extends Component {
 
@@ -54,11 +55,11 @@ class Fan extends Component {
 
   componentWillReceiveProps(nextProps: Props) {
     // Need to check for change to event status here
-    if (nextProps.broadcastState === 'closed') { disconnect(); }
+    if (R.pathEq(['eventData', 'status'], 'closed', nextProps)) { disconnect(); }
   }
 
   render(): ReactComponent {
-    const { eventData, status, participants = {}, ableToJoin, getInLine, leaveLine, backstageConnected, fanStatus, producerChat } = this.props;
+    const { eventData, status, participants = {}, inPrivateCall, getInLine, leaveLine, backstageConnected, fanStatus, producerChat } = this.props;
     if (!eventData) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
@@ -74,6 +75,7 @@ class Fan extends Component {
             getInLine={getInLine}
             leaveLine={leaveLine}
             backstageConnected={backstageConnected}
+            inPrivateCall={inPrivateCall}
           />
           <FanStatusBar fanStatus={fanStatus} />
           <FanBody
@@ -100,9 +102,10 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),
     userUrl: fanUrl,
+    inPrivateCall: R.path(['fan', 'inPrivateCall'], state),
     eventData: R.path(['broadcast', 'event'], state),
     status: R.path(['broadcast', 'event', 'status'], state),
-    broadcastState: R.path(['broadcast', 'state'], state),
+    broadcast: R.path(['broadcast'], state),
     participants: R.path(['broadcast', 'participants'], state),
     ableToJoin: R.path(['fan', 'ableToJoin'], state),
     fanStatus: R.path(['fan', 'status'], state),

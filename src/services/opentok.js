@@ -15,6 +15,11 @@ const getStreamByUserType = (instance: SessionName, userType: UserRole): Stream 
   return R.find(streamByUserType, R.values(core.state().streams));
 };
 
+const getStreamById = (instance: SessionName, streamId: string): Stream => {
+  const core = instances[instance];
+  return core.state().streams[streamId];
+};
+
 const getAllSubscribers = (instance: SessionName): Subscriber[] => R.values(R.prop(instance, instances).state().subscribers.camera);
 
 /**
@@ -39,6 +44,8 @@ const connect = async (instancesToConnect: InstancesToConnect): AsyncVoid => {
     const instanceOptions = options[name];
     listeners[name](instance); // Connect listeners
     const connection = await instance.connect();
+    window.core = window.core || {};
+    window.core[name] = instance;
     return instanceOptions.autoPublish ? instance.startCall() : connection;
   };
 
@@ -53,7 +60,7 @@ const connect = async (instancesToConnect: InstancesToConnect): AsyncVoid => {
 const createEmptyPublisher = async (instance: SessionName): AsyncVoid => {
   const core = instances[instance];
   try {
-    await core.startCall({ publishVideo: false, videoSource: null });
+    const p = await core.startCall({ publishVideo: false, videoSource: null });
     return;
   } catch (error) {
     throw error;
@@ -73,15 +80,18 @@ const publishAudio = async (instance: SessionName, shouldPublish: boolean): Asyn
     if (publisher) {
       publisher.publishAudio(true);
     } else {
-      console.log('Cannot stop publishing audio. Local publisher does not exist.');
+      try {
+        await instances[instance].startCall({ publishVideo: false });
+        return;
+      } catch (error) {
+        throw error;
+      }
     }
+  }
+  if (!publisher) {
+    console.log(`${instance} publisher does not exist`);
   } else {
-    try {
-      await instances[instance].startCall({ publishVideo: false });
-      return;
-    } catch (error) {
-      throw error;
-    }
+    publisher.publishAudio(false);
   }
 };
 /**

@@ -1,4 +1,6 @@
 .FanHeader {
+  display: flex;
+  flex-direction: column;
   box-shadow: none;
   border: 1px solid #e5e5e5;
   background: #fff;
@@ -10,7 +12,7 @@
   min-height: 60px;
 }
 
-.FanHeader .Title {
+.FanHeader-main {
   font-family: 'Montserrat', sans-serif;
   color: #58666E;
   font-size: 14px;
@@ -27,9 +29,34 @@
   float: left;
   border-color: #ddd;
   border: 1px solid transparent;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+  font-family: 'Montserrat', sans-serif;
 }
 
-.FanHeader .Title h4 {
+.FanHeader-main h4 {
+  margin: 0;
+  width: 100%;
+  text-align: left;
+  font-size: 1.5em;
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #37363E;
+  text-transform: uppercase;
+}
+
+.FanHeader-main h4 sup {
+  position: relative;
+  font-size: 75%;
+  line-height: 0;
+  vertical-align: baseline;
+  top: -.5em;
+  margin-left:3px;
+}
+
+.FanHeader-main h4 {
   padding-right: 120px;
   margin: 0;
   text-overflow: ellipsis;
@@ -46,37 +73,19 @@
   text-transform: uppercase;
 }
 
-.FanHeader .Title h4 sup {
-  position: relative;
-  font-size: 75%;
-  line-height: 0;
-  vertical-align: baseline;
-  top: -.5em;
-  margin-left:3px;
+.FanHeader-main .btn {
+  height: 36px;
+  width: 96px;
 }
 
-.FanHeader .Title ul {
-  margin: 0;
-  padding: 0 10px 0 0;
-  top: 0;
-  right: 0;
-  font-family: 'Open Sans', sans-serif;
-  position: absolute;
-  text-transform: none;
-  font-weight: 600;
-  font-size: inherit;
-  z-index: 1;
+.Fan-private-call {
+  width: 100%;
+  background: #EF4836;
+  color: white;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
 }
 
-.FanHeader .Title ul li {
-  line-height: 56px;
-  padding: 0;
-  margin-left: 5px;
-  display: inline-block;
-  text-transform: uppercase;
-}
-
-.FanHeader .Title ul li span {
-  font-weight: bold;
-  color: #00A2E3;
+.Fan-private-call.active {
+  opacity: 1;
 }

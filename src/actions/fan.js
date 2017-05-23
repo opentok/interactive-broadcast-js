@@ -6,7 +6,7 @@ import firebase from '../services/firebase';
 import { connectToInteractive, setBroadcastEventStatus, setBackstageConnected } from './broadcast';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
-import snapshot from '../services/snapshot';
+import takeSnapshot from '../services/snapshot';
 import io from '../services/socket-io';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
@@ -28,7 +28,7 @@ const setAbleToJoin: ActionCreator = (ableToJoin: boolean): FanAction => ({
 
 const createSnapshot = async (publisher: Publisher): ImgData => {
   try {
-    const fanSnapshot = await snapshot(publisher.getImgData()); // $FlowFixMe @TODO: resolve flow error
+    const fanSnapshot = await takeSnapshot(publisher.getImgData()); // $FlowFixMe @TODO: resolve flow error
     return fanSnapshot;
   } catch (error) {
     console.log('Failed to create fan snapshot'); // $FlowFixMe @TODO: resolve flow error
@@ -42,7 +42,12 @@ const updateActiveFanRecord: ThunkActionCreator = (fanUpdate: ActiveFanUpdate, e
     const { id, adminId } = event;
     const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${id}/activeFans/${fanId}`);
     try {
-      R.isNil(fanUpdate) ? ref.remove() : ref.update(fanUpdate);
+      if (R.isNil(fanUpdate)) {
+        ref.off();
+        ref.remove();
+      } else {
+        ref.update(fanUpdate);
+      }
     } catch (error) {
       console.log('Failed to update active fan record: ', error);
     }
@@ -150,7 +155,7 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
   };
 
 const createActiveFanRecord: ThunkActionCreator = (uid: UserId, name: string, event: BroadcastEvent): Thunk =>
-  async (): AsyncVoid => {
+  async (dispatch: Dispatch): AsyncVoid => {
     const { id, adminId } = event;
     /* Create the snapshot and send it to the producer via socket.io */
     const publisher = opentok.getPublisher('backstage');
@@ -162,24 +167,32 @@ const createActiveFanRecord: ThunkActionCreator = (uid: UserId, name: string, ev
       mobile: platform.manufacturer !== null,
       snapshot: await createSnapshot(publisher),
       streamId: publisher.stream.streamId,
+      isBackstage: false,
+      inPrivateCall: false,
     };
     const fanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${id}/activeFans/${uid}`);
     try {
       // Automatically remove the active fan record on disconnect event
       fanRef.onDisconnect().remove((error: Error): void => error && console.log(error));
       fanRef.set(record);
+      fanRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
+        const { inPrivateCall } = snapshot.val();
+        dispatch({ type: 'FAN_PRIVATE_CALL', inPrivateCall });
+      });
     } catch (error) {
       console.log(error);
     }
   };
 
-const onStreamChanged: ThunkActionCreator = (user: UserRole, event: StreamEventType, stream: Stream): Thunk =>
+const onStreamChanged: ThunkActionCreator = (user: UserRole, event: StreamEventType, stream: Stream, session: SessionName): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const state = getState();
     const isLive = R.equals('live', R.path(['broadcast', 'event', 'status'], state));
     const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
     const userHasJoined = R.equals(event, 'streamCreated');
     R.and(R.or(isLive, fanOnStage), userHasJoined) && opentok.subscribe('stage', stream);
+    // Subscribe to producer audio for private call
+    R.and(R.equals('producer', user), R.equals('backstage', session)) && opentok.subscribe('backstage', stream);
   };
 
 const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>
