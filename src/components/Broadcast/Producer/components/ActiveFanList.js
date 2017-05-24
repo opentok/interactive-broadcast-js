@@ -26,12 +26,14 @@ const connectionQuality = (quality: null | NetworkQuality): ReactComponent => {
 
 type ActiveFanActions = {
   chat: ActiveFan => void,
-  privateCall: ActiveFan => void
+  privateCall: ActiveFan => void,
+  sendFanToBackstage: ActiveFan => void,
+  kickFan: ParticipantType => void
 };
 
 const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
 const Fan = SortableElement(({ fan, sortable, actions, state }: { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, state: State }): ReactComponent => {
-  const { chat, sendFanToBackstage, kickFan } = actions;
+  const { chat, sendFanToBackstage, kickFan, privateCall } = actions;
   const backstageFan = R.path(['broadcast', 'participants', 'backstageFan'], state);
   const isOnBackstage = backstageFan.stream && fan.streamId && R.equals(backstageFan.stream.streamId, fan.streamId);
   return (
