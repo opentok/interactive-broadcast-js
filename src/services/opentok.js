@@ -60,7 +60,7 @@ const connect = async (instancesToConnect: InstancesToConnect): AsyncVoid => {
 const createEmptyPublisher = async (instance: SessionName): AsyncVoid => {
   const core = instances[instance];
   try {
-    const p = await core.startCall({ publishVideo: false, videoSource: null });
+    const p = await core.startCall({ publishVideo: false, publishAudio: false, videoSource: null });
     return;
   } catch (error) {
     throw error;
