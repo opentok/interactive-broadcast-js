@@ -50,9 +50,9 @@ const Fan = SortableElement(({ fan, sortable, actions, state }: { fan: ActiveFan
           { connectionQuality(fan.connectionQuality)}
         </div>
         <div className="actions">
-          <button className="btn white" onClick={R.partial(privateCall, [fan])}>Call</button>
           {!isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
           {isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to stage</button>}
+          <button className="btn white" onClick={R.partial(privateCall, [fan])}>Call</button>
           <button className="btn white" onClick={R.partial(chat, [fan])}>Chat</button>
           <button className="btn white" onClick={R.partial(kickFan, [isOnBackstage ? 'backstageFan' : 'fan'])}>Kick</button>
         </div>

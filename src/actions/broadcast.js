@@ -205,7 +205,7 @@ const updateParticipants: ThunkActionCreator = (participantType: ParticipantType
     switch (event) {
       case 'backstageFanLeft': {
         const participant = R.path(['broadcast', 'participants', 'backstageFan'], getState());
-        participant && R.equals(participant.stream.streamId, stream.streamId) && dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+        participant.stream && R.equals(participant.stream.streamId, stream.streamId) && dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
         break;
       }
       case 'streamCreated':

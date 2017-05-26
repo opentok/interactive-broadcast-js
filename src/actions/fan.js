@@ -176,8 +176,9 @@ const createActiveFanRecord: ThunkActionCreator = (uid: UserId, name: string, ev
       fanRef.onDisconnect().remove((error: Error): void => error && console.log(error));
       fanRef.set(record);
       fanRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
-        const { inPrivateCall } = snapshot.val();
-        dispatch({ type: 'FAN_PRIVATE_CALL', inPrivateCall });
+        const { inPrivateCall, isBackstage } = snapshot.val();
+        isBackstage && dispatch(setFanStatus('backstage'));
+        inPrivateCall && dispatch(setFanStatus('privateCall'));
       });
     } catch (error) {
       console.log(error);
@@ -190,9 +191,12 @@ const onStreamChanged: ThunkActionCreator = (user: UserRole, event: StreamEventT
     const isLive = R.equals('live', R.path(['broadcast', 'event', 'status'], state));
     const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
     const userHasJoined = R.equals(event, 'streamCreated');
-    R.and(R.or(isLive, fanOnStage), userHasJoined) && opentok.subscribe('stage', stream);
+    const isStage = R.equals('stage', session);
+    const subscribeStage = (isLive || fanOnStage) && userHasJoined && isStage;
+    const subscribeBackStage = R.equals('producer', user) && !isStage;
+    subscribeStage && opentok.subscribe('stage', stream);
     // Subscribe to producer audio for private call
-    R.and(R.equals('producer', user), R.equals('backstage', session)) && opentok.subscribe('backstage', stream);
+    subscribeBackStage && opentok.subscribe('backstage', stream);
   };
 
 const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>

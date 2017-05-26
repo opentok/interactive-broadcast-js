@@ -1,6 +1,5 @@
 // @flow
 import React from 'react';
-import classNames from 'classnames';
 import './FanHeader.css';
 
 type Props = {
@@ -9,11 +8,10 @@ type Props = {
   ableToJoin: boolean,
   getInLine: Unit,
   leaveLine: Unit,
-  backstageConnected: boolean,
-  inPrivateCall: boolean
+  backstageConnected: boolean
 };
 const FanHeader = (props: Props): ReactComponent => {
-  const { name, status, ableToJoin, getInLine, leaveLine, backstageConnected, inPrivateCall } = props;
+  const { name, status, ableToJoin, getInLine, leaveLine, backstageConnected } = props;
   const getInLineButton = (): ReactComponent =>
     !backstageConnected ?
       <button className="btn green getInLine" onClick={getInLine}>Get In Line</button> :
@@ -28,9 +26,6 @@ const FanHeader = (props: Props): ReactComponent => {
             { getInLineButton() }
           </div>
         }
-      </div>
-      <div className={classNames('Fan-private-call', { active: !!inPrivateCall })}>
-        You are in a private call with the Producer
       </div>
     </div>
   );

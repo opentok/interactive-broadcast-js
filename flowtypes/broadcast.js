@@ -173,7 +173,4 @@ declare type FanAction =
   { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |
   { type: 'SET_FAN_NAME', fanName: string } |
   { type: 'SET_FAN_STATUS', status: FanStatus } |
-  { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean } |
-  { type: 'FAN_PRIVATE_CALL', inPrivateCall: boolean };
-
-
+  { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean };

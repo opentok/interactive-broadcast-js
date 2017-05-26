@@ -19,3 +19,7 @@
 .FanStatusBar.green {
   background: #26A65B;
 }
+
+.FanStatusBar.red {
+  background: #EF4836;
+}
