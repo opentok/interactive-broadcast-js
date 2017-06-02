@@ -247,6 +247,35 @@ const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     signal('stage', { type: 'newBackstageFan' });
   };
 
+const sendToStage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    const stream = opentok.getStreamById('backstage', fan.streamId);
+    const state = getState();
+    const event = R.path(['broadcast', 'event'], state);
+    const currentFanOnStage = R.path(['broadcast', 'participants', 'fan'], state);
+    currentFanOnStage.stream && signal('stage', { type: 'disconnect', to: currentFanOnStage.stream.connection });
+    /* Remove the current user in stage */
+
+    /* Send the first signal to the fan */
+    signal('backstage', { type: 'joinHost', to: stream.connection });
+
+    /* update the record in firebase */
+    try {
+      const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('id', event)}/activeFans/${fan.id}`);
+      const activeFanRecord = await ref.once('value');
+      if (activeFanRecord.val()) {
+        ref.update({ isOnStage: true });
+      }
+    } catch (error) {
+      // @TODO Error handling
+      console.log(error);
+    }
+
+    /* Send the second signal to the fan after 5 secs */
+    setTimeout((): void => signal('backstage', { type: 'joinHostNow', to: stream.connection }), 5000);
+
+  };
+
 const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const chatId = `activeFan${fan.id}`;
@@ -331,4 +360,5 @@ module.exports = {
   startActiveFanCall,
   endActiveFanCall,
   chatWithParticipant,
+  sendToStage,
 };

@@ -5,7 +5,7 @@ import Icon from 'react-fontawesome';
 import R from 'ramda';
 import classNames from 'classnames';
 import { SortableContainer, SortableElement } from 'react-sortable-hoc';
-import { reorderActiveFans, chatWithActiveFan, startActiveFanCall, sendToBackstage } from '../../../../actions/producer';
+import { reorderActiveFans, chatWithActiveFan, startActiveFanCall, sendToBackstage, sendToStage } from '../../../../actions/producer';
 import { kickFanFromFeed } from '../../../../actions/broadcast';
 import { properCase } from '../../../../services/util';
 import './ActiveFanList.css';
@@ -33,11 +33,12 @@ type ActiveFanActions = {
 
 const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
 const Fan = SortableElement(({ fan, sortable, actions, state }: { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, state: State }): ReactComponent => {
-  const { chat, sendFanToBackstage, kickFan, privateCall } = actions;
+  const { chat, sendFanToBackstage, sendFanToStage, kickFan, privateCall } = actions;
   const backstageFan = R.path(['broadcast', 'participants', 'backstageFan'], state);
   const isOnBackstage = backstageFan.stream && fan.streamId && R.equals(backstageFan.stream.streamId, fan.streamId);
+  const isOnStage = fan.isOnStage;
   return (
-    <li className={classNames('ActiveFan', { sortable, backstage: isOnBackstage })}>
+    <li className={classNames('ActiveFan', { sortable, backstage: isOnBackstage, stage: isOnStage })}>
       <div className="ActiveFanImage">
         <img src={fan.snapshot || snapshot} alt="fan-snapshot" />
       </div>
@@ -50,9 +51,9 @@ const Fan = SortableElement(({ fan, sortable, actions, state }: { fan: ActiveFan
           { connectionQuality(fan.connectionQuality)}
         </div>
         <div className="actions">
-          {!isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
-          {isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to stage</button>}
-          <button className="btn white" onClick={R.partial(privateCall, [fan])}>Call</button>
+          {!isOnBackstage && !isOnStage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
+          {isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToStage, [fan])}>Send to stage</button>}
+          {!isOnStage && <button className="btn white" onClick={R.partial(privateCall, [fan])}>Call</button>}
           <button className="btn white" onClick={R.partial(chat, [fan])}>Chat</button>
           <button className="btn white" onClick={R.partial(kickFan, [isOnBackstage ? 'backstageFan' : 'fan'])}>Kick</button>
         </div>
@@ -88,6 +89,7 @@ class ActiveFanList extends Component {
     super(props);
     this.onSortEnd = this.props.reorderFans;
     this.sendFanToBackstage = this.props.sendFanToBackstage;
+    this.sendFanToStage = this.props.sendFanToStage;
   }
 
   render(): ReactComponent {
@@ -117,6 +119,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
     chat: (fan: ActiveFan): void => dispatch(chatWithActiveFan(fan)),
     privateCall: (fan: ActiveFan): void => dispatch(startActiveFanCall(fan)),
     sendFanToBackstage: (fan: ActiveFan): void => dispatch(sendToBackstage(fan)),
+    sendFanToStage: (fan: ActiveFan): void => dispatch(sendToStage(fan)),
     kickFan: (participantType: ParticipantType): void => dispatch(kickFanFromFeed(participantType)),
   },
 });

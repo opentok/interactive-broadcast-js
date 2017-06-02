@@ -18,6 +18,10 @@
     border-left-color: #00a3e3;
 }
 
+.ActiveFan.stage {
+    border-left-color: #26A65B;
+}
+
 .ActiveFan.sortable {
     cursor: move;
 }
@@ -73,7 +77,7 @@
 
 .ActiveFan .ActiveFanMain .actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 
 .ActiveFan .ActiveFanMain .actions .btn {

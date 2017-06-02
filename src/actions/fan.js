@@ -1,6 +1,7 @@
 // @flow
 import R from 'ramda';
 import platform from 'platform';
+import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
 import firebase from '../services/firebase';
 import { connectToInteractive, setBroadcastEventStatus, setBackstageConnected } from './broadcast';
@@ -79,6 +80,20 @@ const receivedChatMessage: ThunkActionCreator = (connection: Connection, message
     R.forEach(dispatch, existingChat ? R.tail(actions) : actions);
   };
 
+const leaveTheLine: ThunkActionCreator = (): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    const state = getState();
+    const event = R.path(['broadcast', 'event'], state);
+    const isLive = R.equals('live', event.status);
+    const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
+    await opentok.disconnectFromInstance('backstage');
+    if (fanOnStage) await isLive ? opentok.unpublish('stage') : opentok.endCall('stage');
+    dispatch(setBackstageConnected(false));
+    dispatch(updateActiveFanRecord(null, event, true));
+    dispatch(setFanStatus('disconnected'));
+
+  };
+
 
 const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
   async ({ type, data, from }: Signal): AsyncVoid => {
@@ -89,6 +104,7 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
     const fromProducer = fromData.userType === 'producer';
     const isStage = R.equals(R.path(['fan', 'status'], state), 'stage');
     const instance = isStage ? 'stage' : 'backstage';
+
     /* If the sender of this signal is not the Producer, we should do nothing */
     if (!fromProducer) return;
 
@@ -121,6 +137,12 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
       case 'disconnectBackstage':
         dispatch(setFanStatus('inLine'));
         break;
+      case 'disconnect': {
+        dispatch(leaveTheLine());
+        const message = 'Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.';
+        toastr.success(message, { showCloseButton: false });
+        break;
+      }
       case 'joinHost':
         {
           /* Unpublish from backstage */
@@ -294,20 +316,6 @@ const getInLine: ThunkActionCreator = (): Thunk =>
       onConfirm: (inputValue: string): void => dispatch(connectToBackstage(inputValue)),
     });
     dispatch(fanName ? connectToBackstage(fanName) : setInfo(options()));
-  };
-
-const leaveTheLine: ThunkActionCreator = (): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const state = getState();
-    const event = R.path(['broadcast', 'event'], state);
-    const isLive = R.equals('live', event.status);
-    const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
-    await opentok.disconnectFromInstance('backstage');
-    if (fanOnStage) await isLive ? opentok.unpublish('stage') : opentok.endCall('stage');
-    dispatch(setBackstageConnected(false));
-    dispatch(updateActiveFanRecord(null, event, true));
-    dispatch(setFanStatus('disconnected'));
-
   };
 
 module.exports = {
