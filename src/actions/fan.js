@@ -245,9 +245,8 @@ const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>
     }
   };
 
-const connectToPresence: ThunkActionCreator = (adminId: string, fanUrl: string): Thunk =>
+const connectToPresence: ThunkActionCreator = (uid: string, adminId: string, fanUrl: string): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const { uid } = await firebase.auth().signInAnonymously();
     const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`).once('value');
     const activeBroadcast = query.val();
     const { activeFans, interactiveLimit } = activeBroadcast;
@@ -277,7 +276,27 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
       await dispatch(validateUser(adminId, 'fan', userUrl));
 
       // Connect to firebase and check the number of viewers
-      await dispatch(connectToPresence(adminId, userUrl));
+      firebase.auth().onAuthStateChanged(async (user: object): AsyncVoid => {
+        if (user) {
+          const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${userUrl}/activeFans/${user.uid}`).once('value');
+          const fanConnected = query.val();
+          if (fanConnected) {
+            /* Let the user know that he/she is already connected in another tab */
+            const options = (): AlertPartialOptions => ({
+              text: 'It seems you have the event opened in another tab. Please make sure you have only one tab opened at a time.',
+              showConfirmButton: false,
+              html: true,
+              allowEscapeKey: false,
+            });
+            dispatch(setInfo(options()));
+          } else {
+            dispatch(connectToPresence(user.uid, adminId, userUrl));
+          }
+        } else {
+          const { uid } = await firebase.auth().signInAnonymously();
+          dispatch(connectToPresence(uid, adminId, userUrl));
+        }
+      });
 
     } catch (error) {
       console.log('error', error);

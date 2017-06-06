@@ -9,7 +9,7 @@ import { resetAlert } from '../../actions/alert';
 type DispatchProps = { reset: Unit };
 type Props = AlertOptions & DispatchProps;
 const Alert = (props: Props): ReactComponent => {
-  const { show, type, title, text, showConfirmButton = true, showCancelButton, onConfirm, onCancel, reset, html = false, inputPlaceholder = '' } = props;
+  const { show, type, title, text, showConfirmButton = true, showCancelButton, onConfirm, onCancel, reset, html = false, inputPlaceholder = '', allowEscapeKey = true } = props;
   return (
     <div className="Alert">
       <SweetAlert
@@ -21,7 +21,7 @@ const Alert = (props: Props): ReactComponent => {
         showCancelButton={showCancelButton}
         onConfirm={onConfirm || reset}
         onCancel={onCancel || reset}
-        onEscapeKey={reset}
+        onEscapeKey={allowEscapeKey && reset}
         inputPlaceholder={inputPlaceholder}
         html={html}
       />
