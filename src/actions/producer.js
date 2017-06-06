@@ -7,6 +7,7 @@ import { getEvent, getAdminCredentials, getEventWithCredentials } from '../servi
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
 import { setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown } from './broadcast';
+
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
 
 const notStarted = R.propEq('status', 'notStarted');
@@ -150,12 +151,16 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.fanUrl}`);
     ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
       const isInLine = (record: FanState): boolean => record.name;
-      const activeFans = R.prop('activeFans', snapshot.val() || {}) || {};
-      const update = R.filter(isInLine, activeFans);
+      const activeBroadcast = snapshot.val() || {};
+      const viewers = R.prop('activeFans', activeBroadcast) || {};
+      const interactiveLimit = R.prop('interactiveLimit', activeBroadcast) || 0;
+      const update = R.filter(isInLine, viewers);
       const currentFans = R.path(['broadcast', 'activeFans', 'map'], getState());
       const fansNoLongerActive: ChatId[] = R.difference(R.keys(currentFans), R.keys(update));
       R.forEach((fanId: ChatId): void => dispatch({ type: 'REMOVE_CHAT', chatId: fanId }), fansNoLongerActive);
       dispatch({ type: 'UPDATE_ACTIVE_FANS', update });
+      dispatch({ type: 'UPDATE_VIEWERS', viewers: R.length(R.keys(viewers)) });
+      dispatch({ type: 'SET_INTERACTIVE_LIMIT', interactiveLimit });
     });
   };
 

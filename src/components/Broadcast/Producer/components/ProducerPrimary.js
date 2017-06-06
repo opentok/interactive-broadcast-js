@@ -24,11 +24,13 @@ class ProducerPrimary extends Component {
   }
 
   render(): ReactComponent {
-    const { inPrivateCall } = this.props.broadcast;
+    const { inPrivateCall, viewers, interactiveLimit } = this.props.broadcast;
     return (
       <div className="ProducerPrimary admin-page-content">
         <div className="ProducerPrimary-info">
-          <div className="viewers"><Icon name="user" /> Viewers 0 / 10</div>
+          <div className="viewers">
+            <Icon name="user" /> {interactiveLimit ? `Viewers ${viewers} / ${interactiveLimit}` : 'Retrieving viewers . . .'}
+          </div>
           <div className="time"><Icon name="clock-o" /> Elapsed time --:--:--</div>
           <div className={classNames('private-call', { active: !!inPrivateCall })}>
             You are in a private call with { inPrivateCall ? `the ${properCase(R.defaultTo('')(inPrivateCall))}` : '...' }
