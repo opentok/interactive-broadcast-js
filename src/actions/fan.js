@@ -251,7 +251,7 @@ const connectToPresence: ThunkActionCreator = (adminId: string, fanUrl: string):
     const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`).once('value');
     const activeBroadcast = query.val();
     const { activeFans, interactiveLimit } = activeBroadcast;
-    const ableToJoin = !interactiveLimit || !activeFans || (activeFans && activeFans.length < interactiveLimit);
+    const ableToJoin = !interactiveLimit || !activeFans || (activeFans && R.length(R.keys(activeFans)) < interactiveLimit);
     if (ableToJoin) {
       /* Create new record to update the presence */
       dispatch(createActiveFanRecord(uid, adminId, fanUrl));

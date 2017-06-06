@@ -9,11 +9,6 @@ const updateStageCountdown: ActionCreator = (stageCountdown: boolean): Broadcast
   stageCountdown,
 });
 
-const updateStageCountdown: ActionCreator = (stageCountdown: boolean): BroadcastAction => ({
-  type: 'UPDATE_STAGE_COUNTDOWN',
-  stageCountdown,
-});
-
 const setBackstageConnected: ActionCreator = (connected: boolean): BroadcastAction => ({
   type: 'BACKSTAGE_CONNECTED',
   connected,

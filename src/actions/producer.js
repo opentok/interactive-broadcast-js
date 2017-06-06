@@ -150,7 +150,7 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.fanUrl}`);
     ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
       const isInLine = (record: FanState): boolean => record.name;
-      const activeFans = R.prop('activeFans', snapshot.val() || {});
+      const activeFans = R.prop('activeFans', snapshot.val() || {}) || {};
       const update = R.filter(isInLine, activeFans);
       const currentFans = R.path(['broadcast', 'activeFans', 'map'], getState());
       const fansNoLongerActive: ChatId[] = R.difference(R.keys(currentFans), R.keys(update));
