@@ -31,7 +31,6 @@ const initialState = (): BroadcastState => ({
   event: null,
   connected: false,
   backstageConnected: false,
-  presenceConnected: false,
   publishOnlyEnabled: false,
   inPrivateCall: null,
   publishers: {
@@ -98,8 +97,6 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('connected', action.connected, state);
     case 'BACKSTAGE_CONNECTED':
       return R.assoc('backstageConnected', action.connected, state);
-    case 'BROADCAST_PRESENCE_CONNECTED':
-      return R.assoc('presenceConnected', action.connected, state);
     case 'START_PRIVATE_PARTICIPANT_CALL':
       return R.assoc('inPrivateCall', action.participant, state);
     case 'END_PRIVATE_PARTICIPANT_CALL':

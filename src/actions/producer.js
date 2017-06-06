@@ -6,8 +6,7 @@ import { setInfo, resetAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
-import { connectToPresence, setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown } from './broadcast';
-
+import { setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown } from './broadcast';
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
 
 const notStarted = R.propEq('status', 'notStarted');
@@ -148,9 +147,11 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
 const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const adminId = firebase.auth().currentUser.uid;
-    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.id}`);
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.fanUrl}`);
     ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
-      const update = R.prop('activeFans', snapshot.val() || {});
+      const isInLine = (record: FanState): boolean => record.name;
+      const activeFans = R.prop('activeFans', snapshot.val() || {});
+      const update = R.filter(isInLine, activeFans);
       const currentFans = R.path(['broadcast', 'activeFans', 'map'], getState());
       const fansNoLongerActive: ChatId[] = R.difference(R.keys(currentFans), R.keys(update));
       R.forEach((fanId: ChatId): void => dispatch({ type: 'REMOVE_CHAT', chatId: fanId }), fansNoLongerActive);
@@ -163,7 +164,6 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
     const credentials = R.pick(credentialProps, await getAdminCredentials(event.id));
     await dispatch(connectToInteractive(credentials));
-    dispatch(connectToPresence());
     createEmptyPublisher('stage');
     createEmptyPublisher('backstage');
     dispatch(updateActiveFans(event));
@@ -261,7 +261,7 @@ const sendToStage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
 
     /* update the record in firebase */
     try {
-      const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('id', event)}/activeFans/${fan.id}`);
+      const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
       const activeFanRecord = await ref.once('value');
       if (activeFanRecord.val()) {
         ref.update({ isOnStage: true });
@@ -322,7 +322,7 @@ const startActiveFanCall: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     if (existingChat) {
       try {
         dispatch({ type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: fan.id, inPrivateCall: true });
-        const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('id', event)}/activeFans/${fan.id}`);
+        const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
         await ref.update({ inPrivateCall: true });
         opentok.subscribe('backstage', opentok.getStreamById('backstage', fan.streamId));
         opentok.publishAudio('backstage', true);
@@ -346,7 +346,7 @@ const endActiveFanCall: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     dispatch({ type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: fan.id, inPrivateCall: false });
 
     try {
-      const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('id', event)}/activeFans/${fan.id}`);
+      const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
       const activeFanRecord = await ref.once('value');
       if (activeFanRecord.val()) {
         ref.update({ inPrivateCall: false });

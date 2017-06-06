@@ -3,7 +3,11 @@ import R from 'ramda';
 import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
-import io from '../services/socket-io';
+
+const updateStageCountdown: ActionCreator = (stageCountdown: boolean): BroadcastAction => ({
+  type: 'UPDATE_STAGE_COUNTDOWN',
+  stageCountdown,
+});
 
 const updateStageCountdown: ActionCreator = (stageCountdown: boolean): BroadcastAction => ({
   type: 'UPDATE_STAGE_COUNTDOWN',
@@ -232,17 +236,6 @@ const updateParticipants: ThunkActionCreator = (participantType: ParticipantType
   };
 
 /**
- * Connect to socket.io
- */
-const connectToPresence: ThunkActionCreator = (): Thunk =>
-  (dispatch: Dispatch) => {
-    const onConnect = () => {
-      dispatch({ type: 'BROADCAST_PRESENCE_CONNECTED', connected: true });
-    };
-    io.connected ? onConnect() : io.on('connect', onConnect);
-  };
-
-/**
  * Connect to OpenTok sessions
  */
 const connectToInteractive: ThunkActionCreator =
@@ -358,7 +351,6 @@ module.exports = {
   setBroadcastState,
   opentokConfig,
   connectToInteractive,
-  connectToPresence,
   setPublishOnly,
   resetBroadcastEvent,
   startCountdown,
