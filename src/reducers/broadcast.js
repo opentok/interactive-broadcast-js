@@ -52,6 +52,7 @@ const initialState = (): BroadcastState => ({
     order: [],
   },
   chats: {},
+  stageCountdown: -1,
 });
 
 const activeFansUpdate = (activeFans: ActiveFans, update: ActiveFanMap): ActiveFans => {
@@ -132,6 +133,8 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assocPath(['chats', action.chatId, 'messages'], R.append(action.message, R.path(['chats', action.chatId, 'messages'], state)), state);
     case 'MINIMIZE_CHAT':
       return R.assocPath(['chats', action.chatId, 'minimized'], action.minimize, state);
+    case 'UPDATE_STAGE_COUNTDOWN':
+      return R.assoc('stageCountdown', action.stageCountdown, state);
     default:
       return state;
   }

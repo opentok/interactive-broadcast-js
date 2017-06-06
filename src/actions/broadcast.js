@@ -5,6 +5,11 @@ import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 import io from '../services/socket-io';
 
+const updateStageCountdown: ActionCreator = (stageCountdown: boolean): BroadcastAction => ({
+  type: 'UPDATE_STAGE_COUNTDOWN',
+  stageCountdown,
+});
+
 const setBackstageConnected: ActionCreator = (connected: boolean): BroadcastAction => ({
   type: 'BACKSTAGE_CONNECTED',
   connected,
@@ -369,4 +374,5 @@ module.exports = {
   kickFanFromFeed,
   minimizeChat,
   displayChat,
+  updateStageCountdown,
 };

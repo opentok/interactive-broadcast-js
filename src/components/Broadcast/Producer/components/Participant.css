@@ -32,6 +32,20 @@
     background-color: #e6e6e6;
 }
 
+.Participant-video .countdown-overlay {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(61, 61, 61, 0.51);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Participant-video .countdown-overlay span {
+  font-size: 75px;
+  color: #FFFFFF;
+}
+
 .Participant .Participant-muted{
   width: 18% !important;
   display: block;

@@ -6,7 +6,7 @@ import { setInfo, resetAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
-import { connectToPresence, setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall } from './broadcast';
+import { connectToPresence, setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown } from './broadcast';
 
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
 
@@ -271,9 +271,20 @@ const sendToStage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
       console.log(error);
     }
 
-    /* Send the second signal to the fan after 5 secs */
-    setTimeout((): void => signal('backstage', { type: 'joinHostNow', to: stream.connection }), 5000);
-
+    /* Display the countdown and send the signal */
+    let counter = 5;
+    let timer;
+    const sendSignal = (): void => signal('backstage', { type: 'joinHostNow', to: stream.connection });
+    const updateCounter = () => {
+      dispatch(updateStageCountdown(counter));
+      if (counter >= 0) {
+        counter -= 1;
+      } else {
+        clearInterval(timer);
+        sendSignal();
+      }
+    };
+    timer = setInterval(updateCounter, 1000);
   };
 
 const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
@@ -312,7 +323,6 @@ const startActiveFanCall: ThunkActionCreator = (fan: ActiveFan): Thunk =>
       try {
         dispatch({ type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: fan.id, inPrivateCall: true });
         const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('id', event)}/activeFans/${fan.id}`);
-        console.log('should be here update ref things update okok')
         await ref.update({ inPrivateCall: true });
         opentok.subscribe('backstage', opentok.getStreamById('backstage', fan.streamId));
         opentok.publishAudio('backstage', true);

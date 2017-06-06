@@ -167,7 +167,8 @@ declare type BroadcastAction =
   { type: 'REMOVE_CHAT', chatId: ChatId } |
   { type: 'DISPLAY_CHAT', chatId: ChatId, display: boolean } |
   { type: 'MINIMIZE_CHAT', chatId: ChatId, minimize: boolean } |
-  { type: 'NEW_CHAT_MESSAGE', chatId: ChatId, message: ChatMessage };
+  { type: 'NEW_CHAT_MESSAGE', chatId: ChatId, message: ChatMessage } |
+  { type: 'UPDATE_STAGE_COUNTDOWN', stageCountdown: number };
 
 declare type FanAction =
   { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |

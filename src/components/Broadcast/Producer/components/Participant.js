@@ -12,6 +12,7 @@ import { connectPrivateCall, chatWithParticipant } from '../../../../actions/pro
 import './Participant.css';
 
 const isBackstageFan = R.equals('backstageFan');
+const isOnStageFan = R.equals('fan');
 const getHeaderLabel = (type: ParticipantType): string => R.toUpper(isBackstageFan(type) ? 'backstage fan' : type);
 
 type OwnProps = {
@@ -33,10 +34,10 @@ type DispatchProps = {
 type Props = OwnProps & BaseProps & DispatchProps;
 
 const Participant = (props: Props): ReactComponent => {
-  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat, kickFan } = props;
-  const broadcast = R.propOr({}, 'broadcast', props);
+  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat, kickFan, broadcast } = props;
   const url = R.prop(`${type}Url`, createUrls(broadcast.event || {}));
   const me = R.prop(type, broadcast.participants) || {};
+  const stageCountdown = broadcast.stageCountdown;
   const inPrivateCall = R.equals(broadcast.inPrivateCall, type);
 
   const statusIconClass = classNames('icon', { green: me.connected });
@@ -49,8 +50,13 @@ const Participant = (props: Props): ReactComponent => {
         <span className="label" >{ getHeaderLabel(type) } </span>
         <span><Icon className={statusIconClass} name="circle" />{status}</span>
       </div>
-      <div className="Participant-video" id={`video${type}`} />
-
+      <div className="Participant-video" id={`video${type}`}>
+        { isOnStageFan(type) && stageCountdown >= 0 &&
+          <div className="countdown-overlay">
+            <span className="countdown-text">{stageCountdown}</span>
+          </div>
+        }
+      </div>
       { isBackstageFan(type) ?
         <div className="Participant-move-fan">
           <button className="move btn transparent">Move to fan feed</button>
