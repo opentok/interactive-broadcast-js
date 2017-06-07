@@ -53,7 +53,7 @@ const request = (method: HttpMethod, route: string, data?: *, requiresAuth: bool
 
 /** Execute a request using fetch */
 const execute = (method: HttpMethod, route: string, body: * = null, requiresAuth: boolean = true, authToken?: string): Promise<*> =>
-  new Promise((resolve: Promise.resolve<*>, reject: Promise.reject<Error>) => {
+  new Promise((resolve: Promise.resolve<>, reject: Promise.reject<>) => {
     fetch(request(method, route, body, requiresAuth, authToken))
       .then(checkStatus)
       .then(parseResponse)
@@ -75,7 +75,7 @@ const del = (route: string, requiresAuth: boolean = true): Promise<*> => execute
 /** Auth */
 const getAuthTokenUser = (adminId: string, userType: string, userUrl: string): Promise<AuthToken> =>
   post(`auth/token-${userType}`, R.assoc(`${userType}Url`, userUrl, { adminId }), false);
-const getAuthToken = (idToken: string): Promise<AuthToken> => post('auth/token', { idToken }, false);
+const getAuthToken = (idToken: string): Promise<{ token: AuthToken }> => post('auth/token', { idToken }, false);
 
 /** User */
 const getUser = (userId: string): Promise<User> => get(`admin/${userId}`);
@@ -93,7 +93,7 @@ const updateEventStatus = (id: string, status: EventStatus): Promise<BroadcastEv
 const deleteEvent = (id: string): Promise<boolean> => del(`event/${id}`);
 const getMostRecentEvent = (id: string): Promise<BroadcastEvent> => get(`event/get-current-admin-event?adminId=${id}`);
 const getAdminCredentials = (eventId: EventId): Promise<UserCredentials> => post(`event/create-token-producer/${eventId}`);
-const getEventWithCredentials = (data: { adminId: UserId, userType: UserRole, slug: string }, authToken: AuthToken): Promise<HostCelebEventData> =>
+const getEventWithCredentials = (data: { adminId: UserId, userType: UserRole }, authToken: AuthToken): Promise<HostCelebEventData> =>
   post(`event/create-token-${data.userType}`, data, true, authToken);
 /** Exports */
 

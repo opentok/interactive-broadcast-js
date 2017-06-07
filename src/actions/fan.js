@@ -4,7 +4,7 @@ import platform from 'platform';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
 import firebase from '../services/firebase';
-import { connectToInteractive, setBroadcastEventStatus, setBackstageConnected } from './broadcast';
+import { setBroadcastState, updateParticipants, setBroadcastEventStatus, setBackstageConnected } from './broadcast';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 import takeSnapshot from '../services/snapshot';
@@ -37,20 +37,6 @@ const createSnapshot = async (publisher: Publisher): ImgData => {
   }
 };
 
-const removeActiveFanRecord: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
-  async (): AsyncVoid => {
-    const fanId = firebase.auth().currentUser.uid;
-    const { fanUrl, adminId } = event;
-    const record = {
-      id: fanId,
-    };
-    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
-    try {
-      ref.set(record);
-    } catch (error) {
-      console.log('Failed to remove active fan record: ', error);
-    }
-  };
 
 const receivedChatMessage: ThunkActionCreator = (connection: Connection, message: ChatMessage): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
@@ -78,6 +64,21 @@ const receivedChatMessage: ThunkActionCreator = (connection: Connection, message
     R.forEach(dispatch, existingChat ? R.tail(actions) : actions);
   };
 
+const removeActiveFanRecord: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
+  async (): AsyncVoid => {
+    const fanId = firebase.auth().currentUser.uid;
+    const { fanUrl, adminId } = event;
+    const record = {
+      id: fanId,
+    };
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
+    try {
+      ref.set(record);
+    } catch (error) {
+      console.log('Failed to remove active fan record: ', error);
+    }
+  };
+
 const leaveTheLine: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const state = getState();
@@ -91,7 +92,6 @@ const leaveTheLine: ThunkActionCreator = (): Thunk =>
     dispatch(setFanStatus('disconnected'));
 
   };
-
 
 const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
   async ({ type, data, from }: Signal): AsyncVoid => {
@@ -135,12 +135,15 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
       case 'disconnectBackstage':
         dispatch(setFanStatus('inLine'));
         break;
-      case 'disconnect': {
-        dispatch(leaveTheLine());
-        const message = 'Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.';
-        toastr.success(message, { showCloseButton: false });
-        break;
-      }
+      case 'disconnect':
+        {
+          dispatch(leaveTheLine());
+          const message =
+            `Thank you for participating, you are no longer sharing video/voice.
+            You can continue to watch the session at your leisure.'`;
+          toastr.success(message, { showCloseButton: false });
+          break;
+        }
       case 'joinHost':
         {
           /* Unpublish from backstage */
@@ -173,6 +176,111 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         break;
     }
   };
+
+/**
+ * Build the configuration options for the opentok service
+ */
+const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, getState: GetState): CoreInstanceOptions[] => {
+
+  const broadcast = R.defaultTo({})(R.prop('broadcast', getState));
+  // Set common listeners for all user types here
+  const eventListeners: CoreInstanceListener = (instance: Core) => {
+
+    // Assign listener for state changes
+    const subscribeEvents: SubscribeEventType[] = ['subscribeToCamera', 'unsubscribeFromCamera'];
+    const handleSubscribeEvent = (state: CoreState): void => dispatch(setBroadcastState(state));
+    R.forEach((event: SubscribeEventType): void => instance.on(event, handleSubscribeEvent), subscribeEvents);
+
+    // Assign listener for stream changes
+    const otStreamEvents: StreamEventType[] = ['streamCreated', 'streamDestroyed'];
+    const handleStreamEvent: StreamEventHandler = ({ type, stream }: OTStreamEvent) => {
+      const isStage = R.propEq('name', 'stage', instance);
+      const { userType } = JSON.parse(stream.connection.data);
+      const state = getState();
+      const isLive = R.equals('live', R.path(['broadcast', 'event', 'status'], state));
+      const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
+      const userHasJoined = R.equals(type, 'streamCreated');
+      // const isStage = R.equals('stage', session);
+      const subscribeStage = (isLive || fanOnStage) && userHasJoined && isStage;
+      const subscribeBackStage = R.equals('producer', userType) && !isStage;
+      subscribeStage && opentok.subscribe('stage', stream);
+      // Subscribe to producer audio for private call
+      subscribeBackStage && opentok.subscribe('backstage', stream);
+      if (isStage) {
+        dispatch(updateParticipants(userType, type, stream));
+      }
+    };
+
+    R.forEach((event: StreamEventType): void => instance.on(event, handleStreamEvent), otStreamEvents);
+
+    // Assign signal listener
+    instance.on('signal', onSignal(dispatch, getState));
+  };
+
+  const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = true): CoreOptions => ({
+    name,
+    credentials,
+    streamContainers(pubSub: PubSub, source: VideoType, data: { userType: UserRole }): string {
+      return `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`;
+    },
+    communication: {
+      autoSubscribe,
+      callProperties: {
+        fitMode: 'contain',
+      },
+    },
+    controlsContainer: null,
+  });
+
+  const stage = (): CoreInstanceOptions => {
+    const { apiKey, stageSessionId, stageToken } = userCredentials;
+    const credentials = {
+      apiKey,
+      sessionId: stageSessionId,
+      token: stageToken,
+    };
+    const isBroadcastLive: boolean = R.propEq('status', 'live', broadcast);
+    const autoPublish: boolean = false;
+    const autoSubscribe: boolean = isBroadcastLive;
+    return {
+      name: 'stage',
+      coreOptions: coreOptions('stage', credentials, 'fan', autoSubscribe),
+      eventListeners,
+      opentokOptions: { autoPublish },
+    };
+  };
+
+  const backstage = (): CoreInstanceOptions => {
+    const { apiKey, sessionId, backstageToken } = userCredentials;
+    const credentials = {
+      apiKey,
+      sessionId,
+      token: backstageToken,
+    };
+    const autoPublish: boolean = true;
+    return {
+      name: 'backstage',
+      coreOptions: coreOptions('backstage', credentials, 'backstageFan', false),
+      eventListeners,
+      opentokOptions: { autoPublish },
+    };
+  };
+
+  return [stage(), backstage()];
+
+};
+
+/**
+ * Connect to OpenTok sessions
+ */
+const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    const instances: CoreInstanceOptions[] = opentokConfig(userCredentials, dispatch, getState);
+    opentok.init(instances);
+    await opentok.connect(['stage']);
+    dispatch(setBroadcastState(opentok.state('stage')));
+  };
+
 
 const createActiveFanRecord: ThunkActionCreator = (uid: UserId, adminId: string, fanUrl: string): Thunk =>
   async (): AsyncVoid => {
@@ -221,19 +329,6 @@ const updateActiveFanRecord: ThunkActionCreator = (name: string, event: Broadcas
     }
   };
 
-const onStreamChanged: ThunkActionCreator = (user: UserRole, event: StreamEventType, stream: Stream, session: SessionName): Thunk =>
-  (dispatch: Dispatch, getState: GetState) => {
-    const state = getState();
-    const isLive = R.equals('live', R.path(['broadcast', 'event', 'status'], state));
-    const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
-    const userHasJoined = R.equals(event, 'streamCreated');
-    const isStage = R.equals('stage', session);
-    const subscribeStage = (isLive || fanOnStage) && userHasJoined && isStage;
-    const subscribeBackStage = R.equals('producer', user) && !isStage;
-    subscribeStage && opentok.subscribe('stage', stream);
-    // Subscribe to producer audio for private call
-    subscribeBackStage && opentok.subscribe('backstage', stream);
-  };
 
 const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
@@ -257,12 +352,12 @@ const connectToPresence: ThunkActionCreator = (uid: string, adminId: string, fan
       dispatch(setAbleToJoin);
       /* Get the event data */
       const data = { adminId, fanUrl, userType: 'fan' };
-      const eventData: FanEventData = await getEventWithCredentials(data, getState().auth.authToken);
+      const eventData: BroadcastEvent = await getEventWithCredentials(data, R.prop('authToken', getState().auth));
       dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
       /* Connect to interactive */
       const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
       const credentials = R.pick(credentialProps, eventData);
-      dispatch(connectToInteractive(credentials, 'fan', { onSignal: onSignal(dispatch, getState), onStreamChanged }, eventData));
+      dispatch(connectToInteractive(credentials, eventData));
     } else {
       console.log('Unable to join to interactive');
       // @TODO: Should display the HLS version or a message.
@@ -276,7 +371,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
       await dispatch(validateUser(adminId, 'fan', userUrl));
 
       // Connect to firebase and check the number of viewers
-      firebase.auth().onAuthStateChanged(async (user: object): AsyncVoid => {
+      firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
         if (user) {
           const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${userUrl}/activeFans/${user.uid}`).once('value');
           const fanConnected = query.val();

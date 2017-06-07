@@ -58,7 +58,3 @@ declare type UserFormData = {
 };
 
 declare type UserUpdateFormData = {id: UserId } & UserFormData;
-
-
-
-

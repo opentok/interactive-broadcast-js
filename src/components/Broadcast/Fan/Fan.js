@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
-import { toastr } from 'react-redux-toastr';
 import { setBroadcastEventStatus } from '../../../actions/broadcast';
 import { initializeBroadcast, getInLine, leaveTheLine } from '../../../actions/fan';
 import FanHeader from './components/FanHeader';
@@ -24,13 +23,16 @@ type BaseProps = {
   inPrivateCall: boolean,
   status: EventStatus,
   broadcast: BroadcastState,
+  backstageConnected: boolean,
   participants: BroadcastParticipants,
   fanStatus: FanStatus,
   producerChat: ChatState
 };
 type DispatchProps = {
   init: FanInitOptions => void,
-  changeEventStatus: EventStatus => void
+  changeEventStatus: EventStatus => void,
+  joinLine: Unit,
+  leaveLine: Unit
 };
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
@@ -59,9 +61,9 @@ class Fan extends Component {
   }
 
   render(): ReactComponent {
-    const { eventData, status, participants = {}, inPrivateCall, getInLine, leaveLine, backstageConnected, fanStatus, producerChat } = this.props;
+    const { eventData, status, participants = {}, inPrivateCall, joinLine, leaveLine, backstageConnected, fanStatus, producerChat } = this.props;
     if (!eventData) return <Loading />;
-    const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
+    const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants);
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
     const isClosed = R.equals(status, 'closed');
     const isLive = R.equals(status, 'live');
@@ -72,7 +74,7 @@ class Fan extends Component {
             name={eventData.name}
             status={status}
             ableToJoin
-            getInLine={getInLine}
+            getInLine={joinLine}
             leaveLine={leaveLine}
             backstageConnected={backstageConnected}
             inPrivateCall={inPrivateCall}
@@ -97,7 +99,7 @@ class Fan extends Component {
 }
 
 const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
-  const { hostUrl, fanUrl } = ownProps.params;
+  const { fanUrl } = ownProps.params;
   return {
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),
@@ -118,7 +120,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
 ({
   init: (options: FanInitOptions): void => dispatch(initializeBroadcast(options)),
   changeEventStatus: (status: EventStatus): void => dispatch(setBroadcastEventStatus(status)),
-  getInLine: (): void => dispatch(getInLine()),
+  joinLine: (): void => dispatch(getInLine()),
   leaveLine: (): void => dispatch(leaveTheLine()),
 });
 

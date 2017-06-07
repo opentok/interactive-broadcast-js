@@ -41,8 +41,10 @@ declare type BroadcastParticipants = {
   backstageFan: ParticipantState
 };
 
+declare type InteractiveFan = { uid: UserId };
+
 declare type ActiveFan = {
-  id: string,
+  id: UserId,
   name: string,
   browser: string,
   mobile: boolean,

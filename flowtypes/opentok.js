@@ -24,6 +24,7 @@ declare class OTEvent {
 }
 
 declare type StreamEventType = 'streamCreated' | 'streamDestroyed' | 'streamPropertyChanged';
+declare type ParticipantEventType = 'streamCreated' | 'streamDestroyed' | 'backstageFanLeft' | 'startCall';
 declare type SubscribeEventType = 'subscribeToCamera' | 'unsubscribeFromCamera';
 declare type PubSubEventType = 'startCall' | 'subscribeToCamera' | 'unsubscribeFromCamera';
 type SessionEventType = 'sessionConnected' | 'sessionDisconnected' | 'sessionReconnected' | 'sessionReconnecting';
@@ -206,11 +207,11 @@ declare type OTListeners = {
   onSignal: SignalListener
 };
 
-// declare type OptionalOTListeners = {
-//   onStreamChanged?: ThunkActionCreator,
-//   onStateChanged?: ThunkActionCreator,
-//   onSignal: SignalListener
-// };
+declare type OptionalOTListeners = {
+  onStreamChanged?: ThunkActionCreator,
+  onStateChanged?: ThunkActionCreator,
+  onSignal: SignalListener
+};
 
 declare class Core {
   connect: () => Promise<{connections: number}>,

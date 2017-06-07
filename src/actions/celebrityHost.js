@@ -156,7 +156,7 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
       const data = R.assoc(`${userType}Url`, slug, { adminId, userType });
-      const eventData: HostCelebEventData = await getEventWithCredentials(data, getState().auth.authToken);
+      const eventData: HostCelebEventData = await getEventWithCredentials(data, R.prop('authToken', getState().auth));
       dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
     } catch (error) {
       console.log(error);

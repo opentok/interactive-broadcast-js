@@ -4,7 +4,7 @@ import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 
-const updateStageCountdown: ActionCreator = (stageCountdown: boolean): BroadcastAction => ({
+const updateStageCountdown: ActionCreator = (stageCountdown: number): BroadcastAction => ({
   type: 'UPDATE_STAGE_COUNTDOWN',
   stageCountdown,
 });
@@ -29,104 +29,6 @@ const setPublishOnly: ActionCreator = (publishOnlyEnabled: boolean): BroadcastAc
   publishOnlyEnabled,
 });
 
-/**
- * Build the configuration options for the opentok service
- */
-const opentokConfig = (options: OpentokConfigOptions): CoreInstanceOptions[] => {
-
-  const { userCredentials, userType, listeners } = options;
-  const broadcast = R.defaultTo({})(R.prop('broadcast', options));
-  // Set common listeners for all user types here
-  const eventListeners: CoreInstanceListener = (instance: Core) => {
-    const { onStateChanged, onStreamChanged, onSignal } = listeners;
-
-    // Assign listener for state changes
-    const subscribeEvents: SubscribeEventType[] = ['subscribeToCamera', 'unsubscribeFromCamera'];
-    const handleSubscribeEvent = (state: CoreState): void => onStateChanged(state);
-    R.forEach((event: SubscribeEventType): void => instance.on(event, handleSubscribeEvent), subscribeEvents);
-
-    // Assign listener for stream changes
-    const otStreamEvents: StreamEventType[] = ['streamCreated', 'streamDestroyed'];
-    const handleStreamEvent: StreamEventHandler = ({ type, stream }: OTStreamEvent) => {
-      const isStage = R.propEq('name', 'stage', instance);
-      const streamCreated = R.equals(type, 'streamCreated');
-      const isNotFan = R.not(R.equals(userType, 'fan'));
-      const shouldSubscribe = R.all(R.equals(true), [isStage, streamCreated, isNotFan]);
-      shouldSubscribe && instance.subscribe(stream);
-      const connectionData: { userType: UserRole } = JSON.parse(stream.connection.data);
-      onStreamChanged(connectionData.userType, type, stream, isStage);
-    };
-
-    R.forEach((event: StreamEventType): void => instance.on(event, handleStreamEvent), otStreamEvents);
-
-    // Assign signal listener
-    instance.on('signal', onSignal);
-  };
-
-  const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = true): CoreOptions => ({
-    name,
-    credentials,
-    streamContainers(pubSub: PubSub, source: VideoType, data: { userType: UserRole }): string {
-      return `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`;
-    },
-    communication: {
-      autoSubscribe,
-      callProperties: {
-        fitMode: 'contain',
-      },
-    },
-    controlsContainer: null,
-  });
-
-  const stage = (): CoreInstanceOptions => {
-    const { apiKey, stageSessionId, stageToken } = userCredentials;
-    const credentials = {
-      apiKey,
-      sessionId: stageSessionId,
-      token: stageToken,
-    };
-    const isHostOrCeleb: boolean = R.contains(userType, ['host', 'celebrity']);
-    const isFanAndBroadcastLive: boolean = R.and(R.equals('fan', userType), R.propEq('status', 'live', broadcast));
-    const autoPublish: boolean = isHostOrCeleb; // May need to check more expressions here
-    const autoSubscribe: boolean = isFanAndBroadcastLive; // May need to check more expressions here
-    return {
-      name: 'stage',
-      coreOptions: coreOptions('stage', credentials, userType, autoSubscribe),
-      eventListeners,
-      opentokOptions: { autoPublish },
-    };
-  };
-
-  const backstage = (): CoreInstanceOptions => {
-    const { apiKey, sessionId, backstageToken } = userCredentials;
-    const credentials = {
-      apiKey,
-      sessionId,
-      token: backstageToken,
-    };
-    const isFan: boolean = R.contains(userType, ['activeFan', 'fan', 'backstageFan']);
-    const autoPublish: boolean = isFan;
-    return {
-      name: 'backstage',
-      coreOptions: coreOptions('backstage', credentials, 'backstageFan', !isFan),
-      eventListeners,
-      opentokOptions: { autoPublish },
-    };
-  };
-
-  switch (userType) {
-    case 'producer':
-      return [stage(), backstage()];
-    case 'host':
-      return [stage()];
-    case 'celebrity':
-      return [stage()];
-    case 'fan':
-      return [stage(), backstage()];
-    default:
-      return [];
-  }
-};
 
 // TODO: This might be easier if the type of non-admin/logged-in user were kept in state
 const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, connectToProducer?: boolean = false): Thunk =>
@@ -204,12 +106,14 @@ const kickFanFromFeed: ThunkActionCreator = (participantType: ParticipantType): 
 /**
  * Update the participants state when someone joins or leaves
  */
-const updateParticipants: ThunkActionCreator = (participantType: ParticipantType, event: StreamEventType, stream: Stream): Thunk =>
+const updateParticipants: ThunkActionCreator = (participantType: ParticipantType, event: ParticipantEventType, stream: Stream): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     switch (event) {
       case 'backstageFanLeft': {
         const participant = R.path(['broadcast', 'participants', 'backstageFan'], getState());
-        participant.stream && R.equals(participant.stream.streamId, stream.streamId) && dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+        if (!!participant.stream && R.equals(participant.stream.streamId, stream.streamId)) {
+          dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+        }
         break;
       }
       case 'streamCreated':
@@ -230,33 +134,6 @@ const updateParticipants: ThunkActionCreator = (participantType: ParticipantType
     }
   };
 
-/**
- * Connect to OpenTok sessions
- */
-const connectToInteractive: ThunkActionCreator =
-  (userCredentials: UserCredentials, userType: UserRole, roleListeners: OptionalOTListeners, broadcast?: BroadcastEvent): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
-    const { onStateChanged, onStreamChanged, onSignal } = roleListeners;
-    const listeners: OTListeners = {
-      onStateChanged: (state: CoreState) => {
-        onStateChanged && dispatch(onStateChanged(state));
-        dispatch(setBroadcastState(state));
-      },
-      onStreamChanged: (user: UserRole, event: StreamEventType, stream: Stream, isStage: boolean) => {
-        const session = isStage ? 'stage' : 'backstage';
-        onStreamChanged && dispatch(onStreamChanged(user, event, stream, session));
-        isStage && dispatch(updateParticipants(user, event, stream));
-      },
-      onSignal,
-    };
-    const instances: CoreInstanceOptions[] = opentokConfig({ userCredentials, userType, listeners, broadcast });
-
-    opentok.init(instances);
-    /* Only the producer should be connected to both sessions from the begining */
-    const instancesToConnect = userType === 'producer' ? ['stage', 'backstage'] : ['stage'];
-    await opentok.connect(instancesToConnect);
-    dispatch(setBroadcastState(opentok.state('stage')));
-  };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
@@ -344,8 +221,6 @@ const displayChat: ActionCreator = (chatId: ChatId, display?: boolean = true): B
 
 module.exports = {
   setBroadcastState,
-  opentokConfig,
-  connectToInteractive,
   setPublishOnly,
   resetBroadcastEvent,
   startCountdown,

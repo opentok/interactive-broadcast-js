@@ -15,7 +15,7 @@ declare type AlertOptions = {
   type: AlertType,
   title?: string,
   text?: string,
-  onConfirm?: Unit,
+  onConfirm?: (*) => void,
   onCancel?: Unit,
   showConfirmButton?: boolean,
   showCancelButton?: boolean,
@@ -25,7 +25,7 @@ declare type AlertOptions = {
 declare type AlertPartialOptions = {
   title?: string,
   text?: string,
-  onConfirm?: Unit,
+  onConfirm?: (*) => void,
   onCancel?: Unit,
   showConfirmButton?: boolean,
   showCancelButton?: boolean
