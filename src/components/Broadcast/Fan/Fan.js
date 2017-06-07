@@ -14,7 +14,7 @@ import { disconnect } from '../../../services/opentok';
 import './Fan.css';
 
 /* beautify preserve:start */
-type InitialProps = { params: { hostUrl: string, fanUrl: string, adminId: string } };
+type InitialProps = { params: { fanUrl: string, adminId: string } };
 type BaseProps = {
   adminId: string,
   userType: 'host' | 'celeb',
@@ -36,8 +36,6 @@ type DispatchProps = {
 };
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
-
-// const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
 class Fan extends Component {
 

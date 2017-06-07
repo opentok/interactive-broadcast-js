@@ -2,7 +2,7 @@
 import R from 'ramda';
 import { browserHistory } from 'react-router';
 import { updateStatus } from './events';
-import { setInfo, resetAlert } from './alert';
+import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
@@ -168,13 +168,38 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
     const credentials = R.pick(credentialProps, await getAdminCredentials(event.id));
+
+    // Register the producer in firebase
+    const uid = firebase.auth().currentUser.uid;
+    const query = await firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage`).once('value');
+    const stageState = query.val();
+
+    /* Let's check if the user has another tab opened */
+    if (stageState && stageState[uid] && stageState[uid].userType === 'producer') {
+      /* Let the user know that he/she is already connected in another tab */
+      dispatch(setBlockUserAlert());
+      return;
+    }
+
+    const ref = firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage/${uid}`);
+    const record = { userType: 'producer' };
+    try {
+      ref.onDisconnect().remove((error: Error): void => error && console.log(error));
+      ref.set(record);
+    } catch (error) {
+      console.log('Failed to create the record: ', error);
+    }
+
+    // Connect to the session
     await dispatch(connectToInteractive(credentials));
     createEmptyPublisher('stage');
     createEmptyPublisher('backstage');
     dispatch(updateActiveFans(event));
     dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
+
     /* Let the fans know that the admin has connected */
     signal('stage', { type: 'startEvent' });
+
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>

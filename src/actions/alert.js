@@ -58,6 +58,19 @@ const setInfo: ThunkActionCreator = (options: AlertPartialOptions): Thunk =>
     dispatch(setAlert(R.merge(defaultOptions, options)));
   };
 
+const setBlockUserAlert: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch) => {
+    const options = {
+      show: true,
+      title: '',
+      text: 'It seems you have the event opened in another tab. Please make sure you have only one tab opened at a time.',
+      showConfirmButton: false,
+      html: true,
+      allowEscapeKey: false,
+    };
+    dispatch(setAlert(options));
+  };
+
 module.exports = {
   setAlert,
   setError,
@@ -65,4 +78,5 @@ module.exports = {
   setSuccess,
   setWarning,
   resetAlert,
+  setBlockUserAlert,
 };

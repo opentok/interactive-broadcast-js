@@ -4,6 +4,8 @@ import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
 import { startCountdown, setBroadcastEventStatus, updateParticipants, setBroadcastState, startPrivateCall, endPrivateCall } from './broadcast';
 import { getEventWithCredentials } from '../services/api';
+import { setInfo, setBlockUserAlert } from './alert';
+import firebase from '../services/firebase';
 import opentok from '../services/opentok';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
@@ -169,14 +171,58 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
     try {
       // Get/set an Auth Token
       await dispatch(validateUser(adminId, userType, userUrl));
+
       // Get the event data + OT credentials
       await dispatch(setBroadcastEventWithCredentials(adminId, userType, userUrl));
 
-      // Connect to the session
+      // Get the eventData
       const eventData = R.path(['broadcast', 'event'], getState());
-      const { apiKey, stageToken, stageSessionId, status } = eventData;
-      const credentials = { apiKey, stageSessionId, stageToken };
-      status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
+
+      // Register the celebrity/host in firebase
+      firebase.auth().onAuthStateChanged(async (user: object): AsyncVoid => {
+        let userIsPresent = false;
+        const { uid } = user || await firebase.auth().signInAnonymously();
+        const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/stage`).once('value');
+        const stageState = query.val();
+        const participantsKeys = R.keys(stageState);
+        const checkUserPresence = (key: string) => {
+          if (stageState[key].userType === userType) userIsPresent = true;
+        };
+        R.forEach(checkUserPresence, participantsKeys);
+
+        /* First let's check if the user has another tab opened */
+        if (stageState && stageState[uid]) {
+          /* Let the user know that he/she is already connected in another tab */
+          dispatch(setBlockUserAlert());
+          return;
+        }
+
+        if (!userIsPresent) {
+          const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/stage/${uid}`);
+          const record = { userType };
+          try {
+            ref.onDisconnect().remove((error: Error): void => error && console.log(error));
+            ref.set(record);
+          } catch (error) {
+            console.log('Failed to create the record: ', error);
+          }
+          // Connect to the session
+          const { apiKey, stageToken, stageSessionId, status } = eventData;
+          const credentials = { apiKey, stageSessionId, stageToken };
+          status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
+        } else {
+          /* Let the user know that he/she is already connected in another tab */
+          const options = (): AlertPartialOptions => ({
+            title: `<div style='color: #3dbfd9'>There already is a ${userType} using this url.</div>`,
+            text: '<h4>If this is you please close all browsers sessions and try again.</h4>',
+            showConfirmButton: false,
+            html: true,
+            type: 'error',
+            allowEscapeKey: false,
+          });
+          dispatch(setInfo(options()));
+        }
+      });
     } catch (error) {
       console.log('error', error);
     }

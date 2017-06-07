@@ -5,7 +5,7 @@ import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
 import firebase from '../services/firebase';
 import { setBroadcastState, updateParticipants, setBroadcastEventStatus, setBackstageConnected } from './broadcast';
-import { setInfo, resetAlert } from './alert';
+import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
 import takeSnapshot from '../services/snapshot';
 import { getEventWithCredentials } from '../services/api';
@@ -376,14 +376,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
           const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${userUrl}/activeFans/${user.uid}`).once('value');
           const fanConnected = query.val();
           if (fanConnected) {
-            /* Let the user know that he/she is already connected in another tab */
-            const options = (): AlertPartialOptions => ({
-              text: 'It seems you have the event opened in another tab. Please make sure you have only one tab opened at a time.',
-              showConfirmButton: false,
-              html: true,
-              allowEscapeKey: false,
-            });
-            dispatch(setInfo(options()));
+            dispatch(setBlockUserAlert());
           } else {
             dispatch(connectToPresence(user.uid, adminId, userUrl));
           }
