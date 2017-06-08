@@ -57,4 +57,4 @@ declare type UserFormData = {
   httpSupport: boolean
 };
 
-declare type UserUpdateFormData = {id: UserId } & UserFormData;
+declare type UserUpdateFormData = { id: UserId } & UserFormData;

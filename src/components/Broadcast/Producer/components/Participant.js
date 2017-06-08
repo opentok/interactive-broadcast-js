@@ -28,7 +28,8 @@ type DispatchProps = {
   toggleVideo: Unit,
   toggleVolume: Unit,
   privateCall: Unit,
-  chat: Unit
+  chat: Unit,
+  kickFan: Unit
 };
 
 type Props = OwnProps & BaseProps & DispatchProps;

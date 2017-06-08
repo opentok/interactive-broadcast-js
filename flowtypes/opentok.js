@@ -191,6 +191,8 @@ declare type CoreState = {
   }
 }
 
+declare type CoreStateWithPublisher = CoreState & { publisher?: Publisher };
+
 declare type SubscriberEventData = { subscriber: Subscriber } & CoreState;
 
 declare type StreamEventHandler = OTStreamEvent => void;
@@ -198,8 +200,10 @@ declare type StreamEventHandler = OTStreamEvent => void;
 declare type OTEventListener = OTEvent => void;
 declare type StreamEventListener = (UserRole, StreamEventType, Stream) => void;
 declare type StateChangeListener = CoreState => void;
+declare type PubSubEventListener = (CoreStateWithPublisher, PubSubEventType) => void;
+
 declare type SignalListener = Signal => (void | AsyncVoid);
-declare type OTListener = OTEventListener | StreamEventHandler | StateChangeListener | SignalListener;
+declare type OTListener = OTEventListener | StreamEventHandler | StateChangeListener | PubSubEventListener | SignalListener;
 
 declare type OTListeners = {
   onStreamChanged: StreamEventListener,
@@ -210,6 +214,7 @@ declare type OTListeners = {
 declare type OptionalOTListeners = {
   onStreamChanged?: ThunkActionCreator,
   onStateChanged?: ThunkActionCreator,
+
   onSignal: SignalListener
 };
 

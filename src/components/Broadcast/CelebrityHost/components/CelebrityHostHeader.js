@@ -10,7 +10,7 @@ type Props = {
   status: EventStatus,
   togglePublishOnly: boolean => void,
   publishOnlyEnabled: boolean,
-  inPrivateCall: null | ParticipantType // eslint-disable-line react/no-unused-prop-types
+  inPrivateCall: PrivateCallState // eslint-disable-line react/no-unused-prop-types
 };
 const CelebrityHostHeader = (props: Props): ReactComponent => {
   const { userType, name, status, togglePublishOnly, publishOnlyEnabled } = props;

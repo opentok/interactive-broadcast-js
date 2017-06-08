@@ -18,25 +18,26 @@ type Props = {
   fanStatus: FanStatus
 };
 const FanBody = (props: Props): ReactComponent => {
-  const { isClosed, isLive, image, participants = {}, hasStreams, backstageConnected, fanStatus } = props;
+  const { isClosed, isLive, image, participants, hasStreams, backstageConnected, fanStatus } = props;
   const fanOnStage = R.equals('stage', fanStatus);
   const showImage = (!isLive || !hasStreams) && !fanOnStage;
-  const fanBodyClasses = classNames('FanBody');
   const hidePublisher = !backstageConnected || fanOnStage;
   const shouldSubscribe = isLive || fanOnStage;
   return (
-    <div className={fanBodyClasses}>
+    <div className="FanBody">
       { showImage &&
         <div className="imageHolder">
           <img src={image || defaultImg} alt="event" />
         </div>
       }
-      { !isClosed && userTypes.map((type: ParticipantType): ReactComponent =>
-        <VideoHolder
-          key={`videoStream${type}`}
-          connected={(participants[type] && participants[type].connected && shouldSubscribe) || (fanOnStage && type === 'fan')}
-          userType={type}
-        />)}
+      { !isClosed &&
+        userTypes.map((type: ParticipantType): ReactComponent =>
+          <VideoHolder
+            key={`videoStream${type}`}
+            connected={(participants[type] && participants[type].connected && shouldSubscribe) || (fanOnStage && type === 'fan')}
+            userType={type}
+          />)
+      }
       <div className={classNames('VideoWrap', 'smallVideo', { hide: hidePublisher })} id="videobackstageFan" />
       <div id="videoproducer" className="producerContainer" />
     </div>

@@ -50,7 +50,7 @@ const deleteUser: ThunkActionCreator = (userId: UserId): Thunk =>
     dispatch(setWarning(options));
   };
 
-const updateUserRecord: ThunkActionCreator = (userData: UserFormData): Thunk =>
+const updateUserRecord: ThunkActionCreator = (userData: UserUpdateFormData): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
       await update(userData);

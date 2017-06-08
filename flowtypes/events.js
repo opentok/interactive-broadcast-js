@@ -31,7 +31,7 @@ declare type BroadcastEvent = {
   updatedAt: string
 }
 
-declare type BroadcastEventMap = {[id: string]: BroadcastEvent};
+declare type BroadcastEventMap = {[id: EventId]: BroadcastEvent};
 
 declare type EventStatus = 'notStarted' | 'preshow' | 'live' | 'closed';
 declare type EventFilter = 'all' | 'current' | 'archived';

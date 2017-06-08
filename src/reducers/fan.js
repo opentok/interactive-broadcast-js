@@ -3,7 +3,7 @@ import R from 'ramda';
 
 const initialState = (): FanState => ({
   ableToJoin: false,
-  setFanName: 'Anonymous',
+  fanName: 'Anonymous',
   status: 'disconnected',
   inPrivateCall: false,
 });
@@ -20,6 +20,5 @@ const fan = (state: FanState = initialState(), action: FanAction): FanState => {
       return state;
   }
 };
-
 
 export default fan;

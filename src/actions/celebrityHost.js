@@ -9,7 +9,6 @@ import firebase from '../services/firebase';
 import opentok from '../services/opentok';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
-const instance = 'stage';
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
@@ -39,13 +38,13 @@ const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener =>
         }
         break;
       case 'videoOnOff':
-        fromProducer && toggleLocalVideo(instance, signalData.video === 'on');
+        fromProducer && toggleLocalVideo('stage', signalData.video === 'on');
         break;
       case 'muteAudio':
-        fromProducer && toggleLocalAudio(instance, signalData.mute === 'off');
+        fromProducer && toggleLocalAudio('stage', signalData.mute === 'off');
         break;
       case 'changeVolume':
-        fromProducer && changeVolume(instance, signalData.userType, signalData.volume);
+        fromProducer && changeVolume('stage', signalData.userType, signalData.volume);
         break;
       case 'chatMessage':
         dispatch(receivedChatMessage(from, signalData, userType));
@@ -79,9 +78,9 @@ const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserDa
     // const { onStateChanged, onStreamChanged, onSignal } = listeners;
 
     // Assign listener for state changes
-    const handlePubSubEvent = (state: CoreState, event: PubSubEventType) => {
+    const handlePubSubEvent = (state: CoreStateWithPublisher, event: PubSubEventType) => {
       if (R.equals(event, 'startCall')) {
-        dispatch(updateParticipants(userType, event, state.publisher.stream));
+        dispatch(updateParticipants(userType, event, R.path(['publisher', 'stream'], state)));
       }
       dispatch(setBroadcastState(state));
     };
@@ -140,7 +139,6 @@ const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserDa
   return [stage()];
 };
 
-
 /**
  * Connect to OpenTok sessions
  */
@@ -161,7 +159,8 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
       const eventData: HostCelebEventData = await getEventWithCredentials(data, R.prop('authToken', getState().auth));
       dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
     } catch (error) {
-      console.log(error);
+      // @TODO Error handling
+      console.log(error); // eslint-disable-line no-console
     }
   };
 
@@ -179,7 +178,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
       const eventData = R.path(['broadcast', 'event'], getState());
 
       // Register the celebrity/host in firebase
-      firebase.auth().onAuthStateChanged(async (user: object): AsyncVoid => {
+      firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
         let userIsPresent = false;
         const { uid } = user || await firebase.auth().signInAnonymously();
         const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/stage`).once('value');
@@ -201,10 +200,11 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
           const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/stage/${uid}`);
           const record = { userType };
           try {
+            // eslint-disable-next-line no-console
             ref.onDisconnect().remove((error: Error): void => error && console.log(error));
             ref.set(record);
           } catch (error) {
-            console.log('Failed to create the record: ', error);
+            console.log('Failed to create the record: ', error); // eslint-disable-line no-console
           }
           // Connect to the session
           const { apiKey, stageToken, stageSessionId, status } = eventData;
@@ -224,7 +224,8 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
         }
       });
     } catch (error) {
-      console.log('error', error);
+      // @TODO Error handling
+      console.log('error', error); // eslint-disable-line no-console
     }
   };
 

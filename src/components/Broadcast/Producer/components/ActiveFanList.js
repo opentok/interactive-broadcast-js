@@ -28,13 +28,15 @@ type ActiveFanActions = {
   chat: ActiveFan => void,
   privateCall: ActiveFan => void,
   sendFanToBackstage: ActiveFan => void,
-  kickFan: ParticipantType => void
+  kickFan: ParticipantType => void,
+  sendFanToStage: ActiveFan => void
 };
 
 const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
-const Fan = SortableElement(({ fan, sortable, actions, state }: { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, state: State }): ReactComponent => {
+type FanProps = { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, backstageFan: ParticipantState };
+const Fan = SortableElement(({ fan, sortable, actions, backstageFan }: FanProps): ReactComponent => {
   const { chat, sendFanToBackstage, sendFanToStage, kickFan, privateCall } = actions;
-  const backstageFan = R.path(['broadcast', 'participants', 'backstageFan'], state);
+  // const backstageFan = R.path(['broadcast', 'participants', 'backstageFan'], state);
   const isOnBackstage = backstageFan.stream && fan.streamId && R.equals(backstageFan.stream.streamId, fan.streamId);
   const isOnStage = fan.isOnStage;
   return (
@@ -62,19 +64,20 @@ const Fan = SortableElement(({ fan, sortable, actions, state }: { fan: ActiveFan
   );
 });
 
-const SortableFanList: { fans: ActiveFan[], actions: ActiveFanActions, state: State } => ReactComponent =
-  SortableContainer(({ fans, actions, state }: { fans: ActiveFan[], actions: ActiveFanActions, state: State }): ReactComponent => {
+type SortableContainerProps = { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: ParticipantState };
+const SortableFanList: { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: ParticipantState } => ReactComponent =
+  SortableContainer(({ fans, actions, backstageFan }: SortableContainerProps): ReactComponent => {
     const sortable = fans.length > 1;
     return (
       <ul className={classNames('ActiveFanList', { sortable })} >
         {fans.map((fan: ActiveFan, index: number): ReactComponent => (
-          <Fan key={`fan-${fan.id}`} index={index} fan={fan} sortable={sortable} actions={actions} state={state} /> // eslint-disab
+          <Fan key={`fan-${fan.id}`} index={index} fan={fan} sortable={sortable} actions={actions} backstageFan={backstageFan} /> // eslint-disab
         ))}
       </ul>
     );
   });
 
-type BaseProps = { activeFans: ActiveFans };
+type BaseProps = { activeFans: ActiveFans, backstageFan: ParticipantState };
 type DispatchProps = {
   reorderFans: ActiveFanOrderUpdate => void,
   actions: ActiveFanActions
@@ -84,23 +87,25 @@ type Props = BaseProps & DispatchProps;
 class ActiveFanList extends Component {
   props: Props;
   onSortEnd: ActiveFanOrderUpdate => void;
+  sendFanToBackstage: ActiveFan => void;
+  sendFanToStage: ActiveFan => void;
 
   constructor(props: Props) {
     super(props);
     this.onSortEnd = this.props.reorderFans;
-    this.sendFanToBackstage = this.props.sendFanToBackstage;
-    this.sendFanToStage = this.props.sendFanToStage;
+    this.sendFanToBackstage = this.props.actions.sendFanToBackstage;
+    this.sendFanToStage = this.props.actions.sendFanToStage;
   }
 
   render(): ReactComponent {
     const { onSortEnd } = this;
-    const { actions, state } = this.props;
+    const { actions, backstageFan } = this.props;
     const { map, order } = this.props.activeFans;
     const buildList = (acc: ActiveFan[], id: UserId): ActiveFan[] => R.append(R.prop(id, map), acc);
     return (
       <SortableFanList
         fans={R.reduce(buildList, [], order)}
-        onSortEnd={onSortEnd} actions={actions} state={state}
+        onSortEnd={onSortEnd} actions={actions} backstageFan={backstageFan}
         lockAxis="y"
         helperClass="ProducerSidePanel-reordering"
       />
@@ -109,9 +114,9 @@ class ActiveFanList extends Component {
 }
 
 const mapStateToProps = (state: State): BaseProps => ({
-  state,
+  activeFans: state.broadcast.activeFans,
+  backstageFan: state.broadcast.participants.backstageFan,
 });
-
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps => ({
   reorderFans: (update: ActiveFanOrderUpdate): void => dispatch(reorderActiveFans(update)),

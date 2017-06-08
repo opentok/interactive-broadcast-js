@@ -52,7 +52,8 @@ declare type ActiveFan = {
   streamId: string,
   snapshot: null | string,
   inPrivateCall: boolean,
-  isBackstage: boolean
+  isBackstage: boolean,
+  isOnStage: boolean
 };
 
 declare type ActiveFanWithConnection = ActiveFan & { connection: Connection };
@@ -76,13 +77,14 @@ declare type ActiveFans = {
 
 declare type ChatId = ParticipantType | string;
 declare type ProducerChats = {[chatId: ChatId]: ChatState };
+declare type PrivateCallState = null | ParticipantType | string; // String will be used for active fans (e.g. activeFan${activeFan.id})
+
 
 declare type BroadcastState = {
   event: null | BroadcastEvent,
   connected: boolean,
-  presenceConnected: boolean,
   publishOnlyEnabled: boolean,
-  inPrivateCall: null | ParticipantType | string, // String will be used for active fans (e.g. activeFan${activeFan.id})
+  inPrivateCall: PrivateCallState,
   publishers: {
     camera: null | { [publisherId: string]: Publisher}
   },
@@ -92,14 +94,17 @@ declare type BroadcastState = {
   meta: null | CoreMeta,
   participants: BroadcastParticipants,
   activeFans: ActiveFans,
-  chats: ProducerChats
+  chats: ProducerChats,
+  stageCountdown: number,
+  viewers: number,
+  interactiveLimit: number
 };
 
 declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
 
 declare type FanState = {
   ableToJoin: boolean,
-  setFanName: string,
+  fanName: string,
   status: FanStatus,
   inPrivateCall: boolean
 };
@@ -169,7 +174,9 @@ declare type BroadcastAction =
   { type: 'DISPLAY_CHAT', chatId: ChatId, display: boolean } |
   { type: 'MINIMIZE_CHAT', chatId: ChatId, minimize: boolean } |
   { type: 'NEW_CHAT_MESSAGE', chatId: ChatId, message: ChatMessage } |
-  { type: 'UPDATE_STAGE_COUNTDOWN', stageCountdown: number };
+  { type: 'UPDATE_STAGE_COUNTDOWN', stageCountdown: number } |
+  { type: 'UPDATE_VIEWERS', viewers: number } |
+  { type: 'SET_INTERACTIVE_LIMIT', interactiveLimit: number };
 
 declare type FanAction =
   { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |

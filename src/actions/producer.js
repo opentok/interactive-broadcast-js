@@ -150,15 +150,15 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     const adminId = firebase.auth().currentUser.uid;
     const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.fanUrl}`);
     ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
-      const isInLine = (record: FanState): boolean => record.name;
+      const isInLine = (record: ActiveFan): boolean => R.has('name', record);
       const activeBroadcast = snapshot.val() || {};
-      const viewers = R.prop('activeFans', activeBroadcast) || {};
-      const interactiveLimit = R.prop('interactiveLimit', activeBroadcast) || 0;
-      const update = R.filter(isInLine, viewers);
+      const viewers: ActiveFanMap = R.propOr({}, 'activeFans', activeBroadcast);
+      const interactiveLimit: number = R.propOr(0, 'interactiveLimit', activeBroadcast);
+      const fansInLine = R.filter(isInLine, viewers);
       const currentFans = R.path(['broadcast', 'activeFans', 'map'], getState());
-      const fansNoLongerActive: ChatId[] = R.difference(R.keys(currentFans), R.keys(update));
+      const fansNoLongerActive: ChatId[] = R.difference(R.keys(currentFans), R.keys(fansInLine));
       R.forEach((fanId: ChatId): void => dispatch({ type: 'REMOVE_CHAT', chatId: fanId }), fansNoLongerActive);
-      dispatch({ type: 'UPDATE_ACTIVE_FANS', update });
+      dispatch({ type: 'UPDATE_ACTIVE_FANS', update: fansInLine });
       dispatch({ type: 'UPDATE_VIEWERS', viewers: R.length(R.keys(viewers)) });
       dispatch({ type: 'SET_INTERACTIVE_LIMIT', interactiveLimit });
     });
@@ -304,7 +304,7 @@ const sendToStage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     /* Display the countdown and send the signal */
     let counter = 5;
     let timer;
-    const sendSignal = (): void => signal('backstage', { type: 'joinHostNow', to: stream.connection });
+    const sendSignal = (): Promise<> => signal('backstage', { type: 'joinHostNow', to: stream.connection });
     const updateCounter = () => {
       dispatch(updateStageCountdown(counter));
       if (counter >= 0) {

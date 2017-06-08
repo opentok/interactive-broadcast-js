@@ -36,7 +36,7 @@ const comparator = (sorting: EventSorting): Comparator => {
 const filterAndSort = ({ map, filter, sorting }: EventsState): BroadcastEvent[] =>
   R.compose(
     R.sort(comparator(sorting)),
-    R.filter(statusFilter(filter)), // eslint-disable-line comma-dangle
+    R.filter(statusFilter(filter)),
   )(R.values(map));
 
 module.exports = {

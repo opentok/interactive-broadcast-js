@@ -73,7 +73,7 @@ const del = (route: string, requiresAuth: boolean = true): Promise<*> => execute
 /** Exports */
 
 /** Auth */
-const getAuthTokenUser = (adminId: string, userType: string, userUrl: string): Promise<AuthToken> =>
+const getAuthTokenUser = (adminId: string, userType: string, userUrl: string): Promise<{token: AuthToken}> =>
   post(`auth/token-${userType}`, R.assoc(`${userType}Url`, userUrl, { adminId }), false);
 const getAuthToken = (idToken: string): Promise<{ token: AuthToken }> => post('auth/token', { idToken }, false);
 

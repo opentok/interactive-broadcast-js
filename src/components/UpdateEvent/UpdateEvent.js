@@ -9,11 +9,11 @@ import EventForm from './components/EventForm';
 import './UpdateEvent.css';
 
 /* beautify preserve:start */
-type InitialProps = { params: { id?: string } };
+type InitialProps = { params: { id?: EventId } };
 type BaseProps = {
-  user: User,
-  events: BroadcastEventMap,
-  eventId: EventId
+  user: CurrentUserState,
+  events: null | BroadcastEventMap,
+  eventId: null | EventId
 };
 type DispatchProps = {
   loadEvents: UserId => void,
@@ -26,13 +26,12 @@ type Props = InitialProps & BaseProps & DispatchProps;
 class UpdateEvent extends Component {
   props: Props;
   state: {
-    errors: null | { fields: {
-        [field: string]: string }, text: string },
+    errors: null | { fields: { [field: string]: boolean }, message: string },
     dateTimeSet: boolean
   };
   onUpdate: string => void;
   onSubmit: BroadcastEventFormData => void;
-  validateAndFormat: BroadcastEventFormData => boolean;
+  validateAndFormat: BroadcastEventFormData => null | BroadcastEventFormData;
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -44,9 +43,8 @@ class UpdateEvent extends Component {
     this.onUpdate = this.onUpdate.bind(this);
   }
   componentDidMount() {
-    const { user } = this.props;
     if (!this.props.events) {
-      this.props.loadEvents(user.id);
+      this.props.loadEvents(R.path(['user', 'id'], this.props));
     }
   }
 
@@ -93,7 +91,7 @@ class UpdateEvent extends Component {
     };
 
     return R.compose(
-      R.assoc('adminId', this.props.user.id),
+      R.assoc('adminId', R.path(['user', 'id'], this.props)),
       R.evolve(formatting),
       R.omit(R.append('fanAudioUrl', fieldsToOmit)) // eslint-disable-line comma-dangle
     )(data);
@@ -135,10 +133,11 @@ class UpdateEvent extends Component {
 }
 
 const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => ({
-  eventId: ownProps.params.id,
-  events: state.events.map,
+  eventId: R.pathOr(null, ['params', 'id'], ownProps),
+  events: R.path(['events', 'map'], state),
   user: state.currentUser,
 });
+
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps => ({
   loadEvents: (userId: UserId) => {
     dispatch(getBroadcastEvents(userId));

@@ -9,7 +9,8 @@ import { resetAlert } from '../../actions/alert';
 type DispatchProps = { reset: Unit };
 type Props = AlertOptions & DispatchProps;
 const Alert = (props: Props): ReactComponent => {
-  const { show, type, title, text, showConfirmButton = true, showCancelButton, onConfirm, onCancel, reset, html = false, inputPlaceholder = '', allowEscapeKey = true } = props;
+  const { show, type, title, text, showConfirmButton = true, showCancelButton } = props;
+  const { onConfirm, onCancel, reset, html = false, inputPlaceholder = '', allowEscapeKey = true } = props;
   const onEscapeKey = allowEscapeKey ? reset : (): boolean => false;
   return (
     <div className="Alert">

@@ -19,7 +19,9 @@ declare type AlertOptions = {
   onCancel?: Unit,
   showConfirmButton?: boolean,
   showCancelButton?: boolean,
-  html?: string
+  html?: string,
+  inputPlaceholder?: string,
+  allowEscapeKey?: boolean
 };
 
 declare type AlertPartialOptions = {
