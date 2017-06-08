@@ -2,7 +2,7 @@
 import R from 'ramda';
 import { browserHistory } from 'react-router';
 import { getEvents, createEvent, updateEvent, updateEventStatus, deleteEvent } from '../services/api';
-import { setInfo, setSuccess, setWarning, resetAlert } from './alert';
+import { setInfo, setSuccess, setWarning, setError, resetAlert } from './alert';
 
 const setEvents: ActionCreator = (events: BroadcastEventMap): EventsAction => ({
   type: 'SET_EVENTS',
@@ -85,7 +85,7 @@ const createBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
       };
       R.forEach(dispatch, [setSuccess(options), setOrUpdateEvent(event), setMostRecentEvent(event)]);
     } catch (error) {
-      console.log(error);
+      dispatch(setError(`Duplicate event name: ${data.name}.`));
     }
   };
 
