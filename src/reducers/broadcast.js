@@ -120,7 +120,11 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
     case 'REORDER_BROADCAST_ACTIVE_FANS':
       return R.assocPath(['activeFans', 'order'], updateFanOrder(state.activeFans, action.update), state);
     case 'START_NEW_FAN_CHAT':
-      return R.assocPath(['chats', `activeFan${action.fan.id}`], initialChatState('producer', undefined, 'activeFan', action.fan), state);
+      {
+        const minimizeActiveFanChat = (chat: ChatState): ChatState => R.propEq('toType', 'activeFan', chat) ? R.assoc('minimized', true, chat) : chat;
+        const minimizedChats = R.assoc('chats', R.map(minimizeActiveFanChat, state.chats), state);
+        return R.assocPath(['chats', `activeFan${action.fan.id}`], initialChatState('producer', undefined, 'activeFan', action.fan), minimizedChats);
+      }
     case 'START_NEW_PARTICIPANT_CHAT':
       {
         const { participant, participantType } = action;
@@ -135,7 +139,19 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
     case 'NEW_CHAT_MESSAGE':
       return R.assocPath(['chats', action.chatId, 'messages'], R.append(action.message, R.path(['chats', action.chatId, 'messages'], state)), state);
     case 'MINIMIZE_CHAT':
-      return R.assocPath(['chats', action.chatId, 'minimized'], action.minimize, state);
+      {
+        let modifiedState;
+        if (R.contains('activeFan', action.chatId)) {
+          const minimizeActiveFanChat = (chat: ChatState): ChatState =>
+            R.propEq('toType', 'activeFan', chat) ? R.assoc('minimized', true, chat) : chat;
+          modifiedState = R.assoc('chats', R.map(minimizeActiveFanChat, state.chats), state);
+        } else {
+          modifiedState = state;
+        }
+        return R.assocPath(['chats', action.chatId, 'minimized'], action.minimize, modifiedState);
+
+      }
+
     case 'UPDATE_STAGE_COUNTDOWN':
       return R.assoc('stageCountdown', action.stageCountdown, state);
     default:

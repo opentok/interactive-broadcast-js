@@ -323,7 +323,11 @@ const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     const existingChat = R.path(['broadcast', 'chats', chatId], getState());
     const connection = opentok.getConnection('backstage', fan.streamId);
     if (existingChat) {
-      dispatch({ type: 'DISPLAY_CHAT', chatId, display: true });
+      const actions = [
+        { type: 'DISPLAY_CHAT', chatId, display: true },
+        { type: 'MINIMIZE_CHAT', chatId, minimize: false },
+      ];
+      R.forEach(dispatch, actions);
     } else {
       dispatch({ type: 'START_NEW_FAN_CHAT', fan: R.assoc('connection', connection, fan) });
     }

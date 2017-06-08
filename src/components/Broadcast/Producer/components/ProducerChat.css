@@ -18,3 +18,46 @@
 .ProducerChat .Chat.celebrity .ChatForm button {
     background-color: #a27ae8;
 }
+
+.Active-Fan-Chats {
+    width: 260px;
+}
+
+.Active-Fan-Chats .btn.toggle-list {
+    width: 100%;
+}
+
+.Active-Fan-Chats .btn.toggle-list .icon {
+    margin-right: 5px;
+}
+
+.Active-Fan-Chats .non-active-list-container {
+    margin-left: 5px;
+    width: 100%;
+}
+
+.Active-Fan-Chats ul.non-active-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.Active-Fan-Chats ul.non-active-list li {
+    width: 100%;
+    color: #00a3e3;
+    background-color: white;
+    border: 1px 0px 1px solid lightgrey;
+}
+
+.Active-Fan-Chats ul.non-active-list li button {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 35px;
+}
+
+.Active-Fan-Chats ul.non-active-list li button .icon {
+    margin-right: 5px;
+}

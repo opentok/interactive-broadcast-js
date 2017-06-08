@@ -3,7 +3,7 @@ import R from 'ramda';
 
 const initialState = (): FanState => ({
   ableToJoin: false,
-  fanName: 'Anonymous',
+  fanName: '',
   status: 'disconnected',
   inPrivateCall: false,
 });

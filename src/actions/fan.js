@@ -421,7 +421,7 @@ const getInLine: ThunkActionCreator = (): Thunk =>
       confirmButtonColor: '#00a3e3',
       onConfirm: (inputValue: string): void => dispatch(connectToBackstage(inputValue)),
     });
-    dispatch(fanName ? connectToBackstage(fanName) : setInfo(options()));
+    dispatch(R.isEmpty(fanName) ? setInfo(options()) : connectToBackstage(fanName));
   };
 
 module.exports = {
