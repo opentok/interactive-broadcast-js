@@ -44,7 +44,7 @@ type EventFormState = {
     redirectUrl: string,
     dateTimeStart: string,
     dateTimeEnd: string,
-    composed: boolean
+    uncomposed: boolean
   }
 };
 
@@ -75,7 +75,7 @@ class EventForm extends Component {
         hostUrl: '',
         celebrityUrl: '',
         redirectUrl: '',
-        composed: true,
+        uncomposed: true,
       },
     };
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -106,7 +106,7 @@ class EventForm extends Component {
     const field = e.target.name;
     const file = R.head(e.target.files);
     const ref = firebase.storage().ref().child(`eventImages/${shortid.generate()}`);
-    ref.put(file).then((snapshot: * ) => {
+    ref.put(file).then((snapshot: *) => {
       const imageURL = snapshot.downloadURL;
       this.setState({ fields: R.assoc(field, imageURL, this.state.fields) });
       this.props.uploadImageSuccess();
@@ -228,7 +228,7 @@ class EventForm extends Component {
           <span className="label">Archive Event</span>
         </div>
         <div className="input-container checkbox">
-          <input type="checkbox" name="composed" checked={fields.composed} onChange={handleChange} />
+          <input type="checkbox" name="uncomposed" checked={fields.uncomposed} onChange={handleChange} />
           <span className="label">Archive Individual Streams (Uncheck for Composed Video)</span>
         </div>
 
@@ -240,7 +240,7 @@ class EventForm extends Component {
   }
 }
 
-const mapDispatchToProps: MapDispatchToProps < DispatchProps > = (dispatch: Dispatch): DispatchProps =>
+const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
     uploadImage: () => {
       dispatch(uploadEventImage());

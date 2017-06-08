@@ -54,6 +54,7 @@ const initialState = (): BroadcastState => ({
   stageCountdown: -1,
   viewers: 0,
   interactiveLimit: 0,
+  archiving: false,
 });
 
 const activeFansUpdate = (activeFans: ActiveFans, update: ActiveFanMap): ActiveFans => {
@@ -115,6 +116,8 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('activeFans', activeFansUpdate(state.activeFans, action.update), state);
     case 'UPDATE_VIEWERS':
       return R.assoc('viewers', action.viewers, state);
+    case 'SET_ARCHIVING':
+      return R.assoc('archiving', action.archiving, state);
     case 'SET_INTERACTIVE_LIMIT':
       return R.assoc('interactiveLimit', action.interactiveLimit, state);
     case 'REORDER_BROADCAST_ACTIVE_FANS':

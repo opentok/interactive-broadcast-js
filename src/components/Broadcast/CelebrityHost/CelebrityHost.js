@@ -41,7 +41,6 @@ class CelebrityHost extends Component {
   init: Unit;
   changeEventStatus: Unit;
   signalListener: SignalListener;
-  changeStatus: EventStatus => void;
 
   constructor(props: Props) {
     super(props);

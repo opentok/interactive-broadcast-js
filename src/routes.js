@@ -6,6 +6,7 @@ import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import Users from './components/Users/Users';
 import UpdateEvent from './components/UpdateEvent/UpdateEvent';
+import ViewEvent from './components/ViewEvent/ViewEvent';
 import Producer from './components/Broadcast/Producer/Producer';
 import AuthRoutes from './components/AuthRoutes/AuthRoutes';
 import CelebrityHost from './components/Broadcast/CelebrityHost/CelebrityHost';
@@ -25,6 +26,7 @@ const routes = (
         <Route path="events/new" component={UpdateEvent} />
         <Route path="events/:id/edit" component={UpdateEvent} />
         <Route path="events/:id" component={Producer} />
+        <Route path="events/:id/view" component={ViewEvent} />
       </Route>
     </Route>
   </Router>);

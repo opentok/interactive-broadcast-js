@@ -51,6 +51,22 @@
     justify-content: center;
 }
 
+.ProducerHeader-controls .event-status {
+  display: inline-block;
+  font-size: 12px;
+  padding: 1.5px;
+  border: none;
+  margin: 0 0 0 4px;
+  border-radius: 3px;
+  border-color: #26A65B;
+  color: #26A65B;
+  font-weight: 400;
+  min-width: 60px;
+  text-align: center;
+  border: 2px solid;
+
+}
+
 .ProducerHeader-controls>button {
     height: 30px;
     margin: 0 2px;

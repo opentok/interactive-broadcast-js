@@ -154,6 +154,7 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
       const activeBroadcast = snapshot.val() || {};
       const viewers: ActiveFanMap = R.propOr({}, 'activeFans', activeBroadcast);
       const interactiveLimit: number = R.propOr(0, 'interactiveLimit', activeBroadcast);
+      const archiving = R.prop('archiving', activeBroadcast);
       const fansInLine = R.filter(isInLine, viewers);
       const currentFans = R.path(['broadcast', 'activeFans', 'map'], getState());
       const fansNoLongerActive: ChatId[] = R.difference(R.keys(currentFans), R.keys(fansInLine));
@@ -161,6 +162,7 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
       dispatch({ type: 'UPDATE_ACTIVE_FANS', update: fansInLine });
       dispatch({ type: 'UPDATE_VIEWERS', viewers: R.length(R.keys(viewers)) });
       dispatch({ type: 'SET_INTERACTIVE_LIMIT', interactiveLimit });
+      dispatch({ type: 'SET_ARCHIVING', archiving });
     });
   };
 
@@ -203,7 +205,15 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
-  (dispatch: Dispatch) => {
+  (dispatch: Dispatch, getState: GetState) => {
+    const event = R.path(['broadcast', 'event'], getState());
+    const uid = firebase.auth().currentUser.uid;
+    const ref = firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage/${uid}`);
+    try {
+      ref.remove((error: Error): void => error && console.log(error));
+    } catch (error) {
+      console.log('Failed to remove the record: ', error);
+    }
     disconnect();
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };

@@ -13,7 +13,7 @@ type DispatchProps = { deleteEvent: BroadcastEvent => void, closeEvent: string =
 type Props = BaseProps & DispatchProps;
 const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent => {
   const style = (color: string): string => classNames('btn', 'action', color);
-  const { id, status, archiveUrl } = event;
+  const { id, status, archiveUrl, uncomposed } = event;
 
   const start = (): ReactComponent =>
     <Link to={`events/${id}`} key={`action-start-${id}`} >
@@ -46,9 +46,17 @@ const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent
     </button>;
 
   const download = (): ReactComponent =>
-    <button className={style('download')} key={`action-download-${id}`} onClick={(): void => console.log('downloading', id)} >
+    <button className={style('download')} key={`action-download-${id}`} onClick={() => { window.location = archiveUrl; }} >
       <Icon name="cloud-download" /> Download
     </button>;
+
+  const viewArchive = (): ReactComponent =>
+    <Link to={`events/${id}/view`} key={`action-view-${id}`} >
+      <button className={style('download')} key={`action-viewArchive-${id}`} >
+        <Icon name="play-circle-o" /> Watch video
+      </button>
+    </Link>;
+
 
   const actionButtons = (): ReactComponent[] => {
     switch (status) {
@@ -59,7 +67,7 @@ const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent
       case 'live':
         return [view('live'), end()];
       case 'closed':
-        return R.isNil(archiveUrl) ? [] : [download()];
+        return R.isNil(archiveUrl) ? [] : uncomposed ? [download()] : [viewArchive()];
       default:
         return [];
     }

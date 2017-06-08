@@ -23,7 +23,7 @@ declare type BroadcastEvent = {
   archiveUrl?: string,
   rtmpUrl?: string,
   redirectUrl: string,
-  composed: boolean,
+  uncomposed: boolean,
   showStartedAt: string,
   showEndedAt: string,
   adminId: string,
@@ -70,7 +70,7 @@ declare type BroadcastEventFormData = {
     hostUrl: string,
     celebrityUrl: string,
     redirectUrl?: string,
-    composed: boolean
+    uncomposed: boolean
 }
 
 declare type BroadcastEventUpdateFormData = BroadcastEventFormData & { id: string }
