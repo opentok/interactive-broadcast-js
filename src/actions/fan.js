@@ -396,7 +396,7 @@ const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
     /* Close the prompt */
     dispatch(resetAlert());
     /* Save the fan name in the storage */
-    dispatch(setFanName(fanName || 'Anonymous'));
+    dispatch(setFanName(fanName));
     /* Connect to backstage session */
     await opentok.connect(['backstage']);
     /* Save the new backstage connection state */
@@ -419,7 +419,7 @@ const getInLine: ThunkActionCreator = (): Thunk =>
       allowEscapeKey: false,
       html: true,
       confirmButtonColor: '#00a3e3',
-      onConfirm: (inputValue: string): void => dispatch(connectToBackstage(inputValue)),
+      onConfirm: (inputValue: string): void => dispatch(connectToBackstage(inputValue || 'Anonymous')),
     });
     dispatch(R.isEmpty(fanName) ? setInfo(options()) : connectToBackstage(fanName));
   };

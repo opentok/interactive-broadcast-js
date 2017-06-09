@@ -6,7 +6,7 @@ import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
-import { setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown } from './broadcast';
+import { setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown, kickFanFromFeed } from './broadcast';
 
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
 
@@ -275,7 +275,10 @@ const reorderActiveFans: ActionCreator = (update: ActiveFanOrderUpdate): Broadca
 });
 
 const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
-  (dispatch: Dispatch) => {
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    /* Remove the current backstagefan */
+    const participant = R.path(['broadcast', 'participants', 'backstageFan'], getState());
+    participant.stream && await dispatch(kickFanFromFeed('backstageFan'));
     /* Get the stream */
     const stream = opentok.getStreamById('backstage', fan.streamId);
     /* Add the participant to the backstage fan feed and start subscribing */
