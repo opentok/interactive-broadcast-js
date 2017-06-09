@@ -46,12 +46,12 @@ const Participant = (props: Props): ReactComponent => {
   const status = me.connected ? 'Online' : 'Offline';
   return (
     <div className="Participant">
-      { !me.audio && me.connected && <div className="Participant-muted">MUTED</div> }
       <div className="Participant-header">
         <span className="label" >{ getHeaderLabel(type) } </span>
         <span><Icon className={statusIconClass} name="circle" />{status}</span>
       </div>
       <div className="Participant-video" id={`video${type}`}>
+        { !me.audio && me.connected && <div className="Participant-muted">MUTED</div> }
         { isOnStageFan(type) && stageCountdown >= 0 &&
           <div className="countdown-overlay">
             <span className="countdown-text">{stageCountdown}</span>
