@@ -42,10 +42,6 @@ class CelebrityHost extends Component {
   changeEventStatus: Unit;
   signalListener: SignalListener;
 
-  constructor(props: Props) {
-    super(props);
-  }
-
   componentDidMount() {
     const { adminId, userType, userUrl, init } = this.props;
     const options = {
