@@ -141,25 +141,6 @@ const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };
 
-
-/**
- * Update the event status
- */
-const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStatus): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
-    try {
-      const actions = [
-        updateStatus(eventId, newStatus),
-        setBroadcastEventStatus(newStatus),
-      ];
-      R.forEach(dispatch, actions);
-      const type = newStatus === 'live' ? 'goLive' : 'finishEvent';
-      opentok.signal('stage', { type });
-    } catch (error) {
-      console.log('error on change status ==>', error);
-    }
-  };
-
 /**
  * Start the go live countdown
  */
@@ -226,7 +207,6 @@ module.exports = {
   startCountdown,
   publishOnly,
   toggleParticipantProperty,
-  changeStatus,
   setBroadcastEventStatus,
   updateParticipants,
   startPrivateCall,

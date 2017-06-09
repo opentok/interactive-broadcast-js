@@ -6,7 +6,7 @@ import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
-import { setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown, kickFanFromFeed } from './broadcast';
+import { setBroadcastEventStatus, setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown } from './broadcast';
 
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
 
@@ -405,6 +405,29 @@ const endActiveFanCall: ThunkActionCreator = (fan: ActiveFan): Thunk =>
 
   };
 
+/**
+ * Update the event status
+ */
+const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStatus): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    try {
+      const goLive = newStatus === 'live';
+      const type = goLive ? 'goLive' : 'finishEvent';
+      /* If the event goes live, the producer should stop publishing to stage session */
+      goLive && await opentok.unpublish('stage');
+      /* Update the new status in firebase and update the state */
+      const actions = [
+        updateStatus(eventId, newStatus),
+        setBroadcastEventStatus(newStatus),
+      ];
+      R.forEach(dispatch, actions);
+      /* Send a signal to everyone connected to stage with the new status */
+      opentok.signal('stage', { type });
+    } catch (error) {
+      console.log('error on change status ==>', error);
+    }
+  };
+
 module.exports = {
   initializeBroadcast,
   resetBroadcastEvent,
@@ -418,4 +441,5 @@ module.exports = {
   endActiveFanCall,
   chatWithParticipant,
   sendToStage,
+  changeStatus,
 };
