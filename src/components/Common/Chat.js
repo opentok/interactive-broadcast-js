@@ -6,7 +6,6 @@ import classNames from 'classnames';
 import Icon from 'react-fontawesome';
 import { properCase } from '../../services/util';
 import { sendChatMessage, minimizeChat, displayChat } from '../../actions/broadcast';
-import { startActiveFanCall, endActiveFanCall } from '../../actions/producer';
 import './Chat.css';
 
 const Message = (message: ChatMessage): ReactComponent => {
@@ -22,14 +21,14 @@ const Message = (message: ChatMessage): ReactComponent => {
 };
 
 type BaseProps = {
-  chat: ChatState
+  chat: ChatState,
+  actions?: ReactComponent
 };
 
 type DispatchProps ={
   sendMessage: (ChatMessagePartial) => void,
   minimize: Unit,
-  hide: Unit,
-  privateCall: Unit
+  hide: Unit
 };
 
 type Props = BaseProps & DispatchProps;
@@ -40,7 +39,6 @@ class Chat extends Component {
   state: { newMessageText: string };
   messageContainer: HTMLDivElement;
   updateScrollPosition: Unit;
-  privateCall: Unit;
   handleChange: SyntheticInputEvent => void;
   handleSubmit: SyntheticInputEvent => void;
 
@@ -83,7 +81,8 @@ class Chat extends Component {
 
   render(): ReactComponent {
     const { displayed, minimized, messages, toType, to } = this.props.chat;
-    const { minimize, hide, privateCall } = this.props;
+    const { minimize, hide } = this.props;
+    const ChatActions = R.propOr(null, 'actions', this.props);
     const { newMessageText } = this.state;
     const { handleSubmit, handleChange } = this;
     const chattingWithActiveFan = R.equals(toType, 'activeFan');
@@ -95,12 +94,7 @@ class Chat extends Component {
           <button className="btn minimize" onClick={minimize}>Chat with { chattingWith }</button>
           <button className="btn" onClick={hide}><Icon className="icon" name="close" /></button>
         </div>
-        { chattingWithActiveFan &&
-          <div className="ChatActions">
-            <button className="btn white" onClick={() => console.log('send backstage')}>Send to Backstage</button>
-            <button className="btn white" onClick={privateCall}>{ inPrivateCall ? 'Hang Up' : 'Call' }</button>
-          </div>
-        }
+        { ChatActions }
         <div id={`videoActiveFan${R.prop('id', to)}`} className={classNames('ChatPrivateCall', { inPrivateCall })} />
         { !minimized &&
           <div className="ChatMain">
@@ -128,10 +122,6 @@ const mapDispatchToProps: MapDispatchWithOwn<DispatchProps, BaseProps> = (dispat
   sendMessage: (message: ChatMessagePartial): void => dispatch(sendChatMessage(ownProps.chat.chatId, message)),
   minimize: (): void => dispatch(minimizeChat(ownProps.chat.chatId, !ownProps.chat.minimized)),
   hide: (): void => dispatch(displayChat(ownProps.chat.chatId, false)),
-  privateCall: () => {
-    const action = ownProps.chat.inPrivateCall ? endActiveFanCall : startActiveFanCall;
-    dispatch(action(ownProps.chat.to));
-  },
 });
 
 export default connect(null, mapDispatchToProps)(Chat);

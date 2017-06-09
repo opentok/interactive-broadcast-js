@@ -6,7 +6,15 @@ import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
-import { setBroadcastEventStatus, setBroadcastState, updateParticipants, startPrivateCall, endPrivateCall, updateStageCountdown } from './broadcast';
+import {
+  setBroadcastEventStatus,
+  kickFanFromFeed,
+  setBroadcastState,
+  updateParticipants,
+  startPrivateCall,
+  endPrivateCall,
+  updateStageCountdown,
+} from './broadcast';
 
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
 
@@ -277,7 +285,9 @@ const reorderActiveFans: ActionCreator = (update: ActiveFanOrderUpdate): Broadca
 const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     /* Remove the current backstagefan */
-    const participant = R.path(['broadcast', 'participants', 'backstageFan'], getState());
+    const state = getState();
+    const participant = R.path(['broadcast', 'participants', 'backstageFan'], state);
+    const event = R.path(['broadcast', 'event'], state);
     participant.stream && await dispatch(kickFanFromFeed('backstageFan'));
     /* Get the stream */
     const stream = opentok.getStreamById('backstage', fan.streamId);
@@ -286,8 +296,20 @@ const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     opentok.subscribe('backstage', stream);
     /* Let the fan know that he is on backstage */
     signal('backstage', { type: 'joinBackstage', to: stream.connection });
+
     /* Let the celeb & host know that there is a new fan on backstage */
     signal('stage', { type: 'newBackstageFan' });
+        /* update the record in firebase */
+    try {
+      const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
+      const activeFanRecord = await ref.once('value');
+      if (activeFanRecord.val()) {
+        ref.update({ isBackstage: true });
+      }
+    } catch (error) {
+      // @TODO Error handling
+      console.log(error);
+    }
   };
 
 const sendToStage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
@@ -307,7 +329,7 @@ const sendToStage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
       const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
       const activeFanRecord = await ref.once('value');
       if (activeFanRecord.val()) {
-        ref.update({ isOnStage: true });
+        ref.update({ isOnStage: true, isBackstage: false });
       }
     } catch (error) {
       // @TODO Error handling

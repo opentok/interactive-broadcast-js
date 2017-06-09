@@ -23,13 +23,7 @@ type Props = InitialProps & BaseProps & DispatchProps;
 
 class UpdateEvent extends Component {
   props: Props;
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      errors: null,
-      dateTimeSet: false,
-    };
-  }
+
   componentDidMount() {
     if (!this.props.events) {
       this.props.loadEvents(R.path(['user', 'id'], this.props));

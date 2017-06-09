@@ -97,7 +97,8 @@ declare type BroadcastState = {
   chats: ProducerChats,
   stageCountdown: number,
   viewers: number,
-  interactiveLimit: number
+  interactiveLimit: number,
+  archiving: boolean
 };
 
 declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
@@ -176,7 +177,8 @@ declare type BroadcastAction =
   { type: 'NEW_CHAT_MESSAGE', chatId: ChatId, message: ChatMessage } |
   { type: 'UPDATE_STAGE_COUNTDOWN', stageCountdown: number } |
   { type: 'UPDATE_VIEWERS', viewers: number } |
-  { type: 'SET_INTERACTIVE_LIMIT', interactiveLimit: number };
+  { type: 'SET_INTERACTIVE_LIMIT', interactiveLimit: number } |
+  { type: 'SET_ARCHIVING', archiving: boolean };
 
 declare type FanAction =
   { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |

@@ -4,12 +4,14 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import Icon from 'react-fontawesome';
 import Chat from '../../../Common/Chat';
-import { minimizeChat, displayChat } from '../../../../actions/broadcast';
+import { minimizeChat, displayChat, kickFanFromFeed } from '../../../../actions/broadcast';
+import { sendToBackstage, sendToStage, startActiveFanCall, endActiveFanCall } from '../../../../actions/producer';
 import './ProducerChat.css';
 
 const renderChat = (chat: ChatState): ReactComponent => <Chat key={chat.chatId} chat={chat} />;
+const renderChatWithActions = (chat: ChatState, actions: ReactComponent): ReactComponent =>
+  <Chat key={chat.chatId} chat={chat} actions={actions} />;
 
-type ActiveFanChatsProps = { chats: ProducerChats, toggleActiveChat: ChatId => void };
 class ActiveFanChats extends Component {
   props: Props;
   state: {
@@ -18,7 +20,7 @@ class ActiveFanChats extends Component {
   toggleShowingList: Unit;
   toggleChat: ChatId => void;
 
-  constructor(props: ActiveFanChatsProps) {
+  constructor(props: Props) {
     super(props);
     this.state = { showingList: false };
     this.toggleShowingList = this.toggleShowingList.bind(this);
@@ -37,12 +39,13 @@ class ActiveFanChats extends Component {
 
   render(): ReactComponent {
     const { toggleChat } = this;
-    const { chats } = this.props;
+    const { chats, actions, activeFans } = this.props;
     const { showingList } = this.state;
     const { toggleShowingList } = this;
     const nonActive = R.either(R.propEq('minimized', true), R.propEq('displayed', false));
     const [nonActiveChats, activeChats] = R.partition(nonActive, chats);
     const nonActiveOpenChats = R.reject(R.propEq('displayed', false), nonActiveChats);
+    const { kickFan, sendFanToBackstage, sendFanToStage, startCall, endCall } = actions;
     const nonActiveChatItem = (chat: ChatState): ReactComponent =>
       <li key={chat.chatId}>
         <button className="btn blue" onClick={R.partial(toggleChat, [chat.chatId])}>
@@ -51,9 +54,38 @@ class ActiveFanChats extends Component {
         </button>
       </li>;
 
+    const activeFanChatActions = (chat: ChatState): ReactComponent => {
+      const fan: ActiveFan = R.prop(R.path(['to', 'id'], chat), activeFans);
+
+      const getStageAction = (): { stageAction: Unit, stageText: string } => {
+        if (fan.isBackstage) {
+          return { stageAction: R.partial(sendFanToStage, [fan]), stageText: 'Send To Stage' };
+        } else if (fan.isOnStage) {
+          return { stageAction: R.partial(kickFan, ['backstageFan']), stageText: 'Kick Fan' };
+        }
+        return { stageAction: R.partial(sendFanToBackstage, [fan]), stageText: 'Send to Backstage' };
+      };
+
+      const getPrivateCallAction = (): { callAction: Unit, callText: string } => {
+        const { inPrivateCall } = fan;
+        const callText = inPrivateCall ? 'Hang Up' : 'Call';
+        const callAction = R.partial(inPrivateCall ? endCall : startCall, [chat.to]);
+        return { callAction, callText };
+      };
+
+      const { stageAction, stageText } = getStageAction();
+      const { callAction, callText } = getPrivateCallAction();
+
+      return (
+        <div className="ChatActions">
+          <button className="btn white" onClick={stageAction}>{stageText}</button>
+          <button className="btn white" onClick={callAction}>{callText}</button>
+        </div>);
+    };
+
     return R.isEmpty(chats) ? null :
     <div className="Active-Fan-Chats">
-      { R.map(renderChat, R.values(activeChats)) }
+      { R.map((c: ChatState): ReactComponent => renderChatWithActions(c, activeFanChatActions(c)), R.values(activeChats)) }
       { !R.isEmpty(nonActiveOpenChats) &&
         <div className="non-active-list-container">
           { showingList ?
@@ -72,21 +104,43 @@ class ActiveFanChats extends Component {
   }
 }
 
+type ActiveFanActions = {
+  sendFanToBackstage: ActiveFan => void,
+  kickFan: ParticipantType => void,
+  sendFanToStage: ActiveFan => void,
+  startCall: ActiveFanWithConnection => void,
+  endCall: ActiveFanWithConnection => void
+};
 type InitialProps = { chats: ProducerChats };
-type DispatchProps = { toggleActiveChat: ChatId => void };
-type Props = InitialProps & DispatchProps;
-const ProducerChat = ({ chats, toggleActiveChat }: Props): ReactComponent => {
+type BaseProps = { activeFans: ActiveFanMap };
+type DispatchProps = {
+  toggleActiveChat: ChatId => void,
+  actions: ActiveFanActions
+};
+type Props = InitialProps & BaseProps & DispatchProps;
+const ProducerChat = ({ chats, activeFans, actions, toggleActiveChat }: Props): ReactComponent => {
   const [activeFanChats, participantChats] = R.partition(R.propEq('toType', 'activeFan'), chats);
   return (
     <div className="ProducerChat">
       { R.map(renderChat, R.values(participantChats))}
-      <ActiveFanChats chats={activeFanChats} toggleActiveChat={toggleActiveChat} />
+      <ActiveFanChats chats={activeFanChats} activeFans={activeFans} actions={actions} toggleActiveChat={toggleActiveChat} />
     </div>
   );
 };
 
-const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps => ({
-  toggleActiveChat: (id: ChatId): void => R.forEach(dispatch, [minimizeChat(id, false), displayChat(id, true)]),
+const mapStateToProps = (state: State): BaseProps => ({
+  activeFans: R.path(['broadcast', 'activeFans', 'map'], state),
 });
 
-export default connect(null, mapDispatchToProps)(ProducerChat);
+const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps => ({
+  toggleActiveChat: (id: ChatId): void => R.forEach(dispatch, [minimizeChat(id, false), displayChat(id, true)]),
+  actions: {
+    sendFanToBackstage: (fan: ActiveFan): void => dispatch(sendToBackstage(fan)),
+    sendFanToStage: (fan: ActiveFan): void => dispatch(sendToStage(fan)),
+    kickFan: (participantType: ParticipantType): void => dispatch(kickFanFromFeed(participantType)),
+    startCall: (fan: ActiveFanWithConnection): void => dispatch(startActiveFanCall(fan)),
+    endCall: (fan: ActiveFanWithConnection): void => dispatch(endActiveFanCall(fan)),
+  },
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProducerChat);

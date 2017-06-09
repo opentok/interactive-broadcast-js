@@ -9,11 +9,14 @@ import createUrls from '../../../../services/eventUrls';
 import { changeStatus } from '../../../../actions/producer';
 import './ProducerHeader.css';
 
-type BaseProps = {
-  broadcast: BroadcastState,
-  currentUser: User,
+type InitialProps = {
   showingSidePanel: boolean,
   toggleSidePanel: Unit
+};
+
+type BaseProps = {
+  broadcast: BroadcastState,
+  currentUser: User
 };
 
 type DispatchProps = {
@@ -21,7 +24,7 @@ type DispatchProps = {
   endShow: string => void
 };
 
-type Props = BaseProps & DispatchProps;
+type Props = InitialProps & BaseProps & DispatchProps;
 
 const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentUser, goLive, endShow }: Props): ReactComponent => {
   const event = R.defaultTo({})(broadcast.event);
@@ -78,5 +81,5 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
       dispatch(changeStatus(id, 'closed'));
     },
   });
-const mapStateToProps = (state: State): Props => R.pick(['currentUser', 'broadcast'], state);
+const mapStateToProps = (state: State): BaseProps => R.pick(['currentUser', 'broadcast'], state);
 export default connect(mapStateToProps, mapDispatchToProps)(ProducerHeader);
