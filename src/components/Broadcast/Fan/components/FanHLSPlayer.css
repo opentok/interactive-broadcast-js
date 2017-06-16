@@ -1,0 +1,8 @@
+.FanHLSPlayer {
+  width: 100%;
+}
+
+#hlsjslive {
+  background-color: #000000;
+  max-height: 500px;
+}

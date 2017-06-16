@@ -3,6 +3,7 @@ import React from 'react';
 import classNames from 'classnames';
 import R from 'ramda';
 import VideoHolder from '../../../Common/VideoHolder';
+import FanHLSPlayer from './FanHLSPlayer';
 import './FanBody.css';
 import defaultImg from '../../../../images/TAB_VIDEO_PREVIEW_LS.jpg';
 
@@ -15,14 +16,17 @@ type Props = {
   participants: BroadcastParticipants,
   hasStreams: boolean,
   backstageConnected: boolean,
-  fanStatus: FanStatus
+  fanStatus: FanStatus,
+  ableToJoin: boolean,
+  hlsUrl: string
 };
 const FanBody = (props: Props): ReactComponent => {
-  const { isClosed, isLive, image, participants, hasStreams, backstageConnected, fanStatus } = props;
+  const { isClosed, isLive, image, participants, hasStreams, backstageConnected, fanStatus, ableToJoin, hlsUrl } = props;
   const fanOnStage = R.equals('stage', fanStatus);
-  const showImage = (!isLive || !hasStreams) && !fanOnStage;
+  const showImage = (!isLive || (!hasStreams && ableToJoin)) && !fanOnStage;
   const hidePublisher = !backstageConnected || fanOnStage;
   const shouldSubscribe = isLive || fanOnStage;
+  const showHLSPlayer = isLive && !ableToJoin && hlsUrl;
   return (
     <div className="FanBody">
       { showImage &&
@@ -38,6 +42,7 @@ const FanBody = (props: Props): ReactComponent => {
             userType={type}
           />)
       }
+      { showHLSPlayer && <FanHLSPlayer isLive={isLive} hlsUrl={hlsUrl} /> }
       <div className={classNames('VideoWrap', 'smallVideo', { hide: hidePublisher })} id="videobackstageFan" />
       <div id="videoproducer" className="producerContainer" />
     </div>

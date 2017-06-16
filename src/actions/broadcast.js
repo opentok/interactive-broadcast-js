@@ -1,6 +1,5 @@
 // @flow
 import R from 'ramda';
-import { updateStatus } from './events';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 
@@ -29,6 +28,10 @@ const setPublishOnly: ActionCreator = (publishOnlyEnabled: boolean): BroadcastAc
   publishOnlyEnabled,
 });
 
+const setBroadcastEvent: ActionCreator = (event: BroadcastEvent): BroadcastAction => ({
+  type: 'SET_BROADCAST_EVENT',
+  event,
+});
 
 // TODO: This might be easier if the type of non-admin/logged-in user were kept in state
 const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, connectToProducer?: boolean = false): Thunk =>
@@ -217,4 +220,5 @@ module.exports = {
   minimizeChat,
   displayChat,
   updateStageCountdown,
+  setBroadcastEvent,
 };

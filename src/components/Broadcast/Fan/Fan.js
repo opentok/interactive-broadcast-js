@@ -59,7 +59,18 @@ class Fan extends Component {
   }
 
   render(): ReactComponent {
-    const { eventData, status, participants, inPrivateCall, joinLine, leaveLine, backstageConnected, fanStatus, producerChat } = this.props;
+    const {
+      eventData,
+      status,
+      participants,
+      inPrivateCall,
+      joinLine,
+      leaveLine,
+      backstageConnected,
+      fanStatus,
+      producerChat,
+      ableToJoin,
+    } = this.props;
     if (!eventData) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
@@ -71,7 +82,7 @@ class Fan extends Component {
           <FanHeader
             name={eventData.name}
             status={status}
-            ableToJoin
+            ableToJoin={ableToJoin}
             getInLine={joinLine}
             leaveLine={leaveLine}
             backstageConnected={backstageConnected}
@@ -86,6 +97,8 @@ class Fan extends Component {
             isLive={isLive}
             fanStatus={fanStatus}
             backstageConnected={backstageConnected}
+            ableToJoin={ableToJoin}
+            hlsUrl={eventData.hlsUrl}
           />
           <div className="FanChat" >
             { producerChat && <Chat chat={producerChat} /> }

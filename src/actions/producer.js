@@ -14,6 +14,7 @@ import {
   startPrivateCall,
   endPrivateCall,
   updateStageCountdown,
+  setBroadcastEvent,
 } from './broadcast';
 
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
@@ -147,7 +148,7 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
     try {
       const data = R.assoc(`${userType}Url`, slug, { adminId, userType });
       const eventData: HostCelebEventData = await getEventWithCredentials(data, R.path(['auth', 'authToken'], getState()));
-      dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
+      dispatch(setBroadcastEvent(eventData));
     } catch (error) {
       console.log(error);
     }
@@ -180,36 +181,39 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     const credentials = R.pick(credentialProps, await getAdminCredentials(event.id));
 
     // Register the producer in firebase
-    const uid = firebase.auth().currentUser.uid;
-    const query = await firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage`).once('value');
-    const stageState = query.val();
+    firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
+      const uid = user.uid;
 
-    /* Let's check if the user has another tab opened */
-    if (stageState && stageState[uid] && stageState[uid].userType === 'producer') {
-      /* Let the user know that he/she is already connected in another tab */
-      dispatch(setBlockUserAlert());
-      return;
-    }
+      const query = await firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage`).once('value');
+      const stageState = query.val();
 
-    const ref = firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage/${uid}`);
-    const record = { userType: 'producer' };
-    try {
-      ref.onDisconnect().remove((error: Error): void => error && console.log(error));
-      ref.set(record);
-    } catch (error) {
-      console.log('Failed to create the record: ', error);
-    }
+      /* Let's check if the user has another tab opened */
+      if (stageState && stageState[uid] && stageState[uid].userType === 'producer') {
+        /* Let the user know that he/she is already connected in another tab */
+        dispatch(setBlockUserAlert());
+        return;
+      }
 
-    // Connect to the session
-    await dispatch(connectToInteractive(credentials));
-    createEmptyPublisher('stage');
-    createEmptyPublisher('backstage');
-    dispatch(updateActiveFans(event));
-    dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
+      const ref = firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage/${uid}`);
+      const record = { userType: 'producer' };
+      try {
+        ref.onDisconnect().remove((error: Error): void => error && console.log(error));
+        ref.set(record);
+      } catch (error) {
+        console.log('Failed to create the record: ', error);
+      }
 
-    /* Let the fans know that the admin has connected */
-    signal('stage', { type: 'startEvent' });
+      // Connect to the session
+      await dispatch(connectToInteractive(credentials));
+      createEmptyPublisher('stage');
+      createEmptyPublisher('backstage');
+      dispatch(updateActiveFans(event));
+      dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
 
+      /* Let the fans know that the admin has connected */
+      signal('stage', { type: 'startEvent' });
+
+    });
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
@@ -234,7 +238,7 @@ const initializeBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
       const actions = [
         updateStatus(eventId, 'preshow'),
         connectBroadcast(event),
-        { type: 'SET_BROADCAST_EVENT', event: R.evolve(setStatus, event) },
+        setBroadcastEvent(R.evolve(setStatus, event)),
       ];
       R.forEach(dispatch, notStarted(event) ? actions : R.tail(actions));
     } catch (error) {

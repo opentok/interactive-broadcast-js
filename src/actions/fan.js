@@ -4,7 +4,7 @@ import platform from 'platform';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
 import firebase from '../services/firebase';
-import { setBroadcastState, updateParticipants, setBroadcastEventStatus, setBackstageConnected } from './broadcast';
+import { setBroadcastEvent, setBroadcastState, updateParticipants, setBroadcastEventStatus, setBackstageConnected } from './broadcast';
 import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
 import takeSnapshot from '../services/snapshot';
@@ -343,24 +343,47 @@ const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>
 const connectToPresence: ThunkActionCreator = (uid: string, adminId: string, fanUrl: string): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`).once('value');
-    const activeBroadcast = query.val();
+    const closedEvent = { status: 'closed' };
+    const activeBroadcast = query.val() || closedEvent;
     const { activeFans, interactiveLimit } = activeBroadcast;
-    const ableToJoin = !interactiveLimit || !activeFans || (activeFans && R.length(R.keys(activeFans)) < interactiveLimit);
+    const useSafari = platform.name === 'Safari';
+    /* Check if the fan is able to join to the interactive broadcast. If not, the fan will see the HLS video */
+    const ableToJoin = !useSafari && (!interactiveLimit || !activeFans || (activeFans && R.length(R.keys(activeFans)) < interactiveLimit));
+    dispatch(setAbleToJoin(ableToJoin));
     if (ableToJoin) {
       /* Create new record to update the presence */
       dispatch(createActiveFanRecord(uid, adminId, fanUrl));
-      dispatch(setAbleToJoin);
       /* Get the event data */
       const data = { adminId, fanUrl, userType: 'fan' };
       const eventData: BroadcastEvent = await getEventWithCredentials(data, R.prop('authToken', getState().auth));
-      dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
+      dispatch(setBroadcastEvent(eventData));
       /* Connect to interactive */
       const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
       const credentials = R.pick(credentialProps, eventData);
       dispatch(connectToInteractive(credentials, eventData));
     } else {
-      console.log('Unable to join to interactive');
-      // @TODO: Should display the HLS version or a message.
+      const eventData = {
+        name: activeBroadcast.name,
+        status: activeBroadcast.status,
+        startImage: activeBroadcast.startImage,
+        endImage: activeBroadcast.endImage,
+        hlsUrl: activeBroadcast.hlsUrl,
+      };
+      dispatch(setBroadcastEvent(eventData));
+
+      /* Let's keep the store updated in case the producer change the event status. */
+      const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`);
+      ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
+        /* Check if the event status and/or hlsUrl have changed */
+        const updates = snapshot.val() || closedEvent;
+        eventData.status = updates.status;
+        eventData.hlsUrl = updates.hlsUrl;
+
+        /* If the event is closing, let's give a few seconds more to the fan to finish the last part of the event */
+        const hlsDelay = 15; // seconds
+        const delay = updates.status === 'closed' ? hlsDelay * 1000 : 0;
+        setTimeout((): void => dispatch(setBroadcastEvent(eventData)), delay);
+      });
     }
   };
 

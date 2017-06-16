@@ -42,6 +42,7 @@ type EventFormState = {
     celebrityUrl: string,
     archiveEvent: boolean,
     redirectUrl: string,
+    rtmpUrl: string,
     dateTimeStart: string,
     dateTimeEnd: string,
     uncomposed: boolean
@@ -75,6 +76,7 @@ class EventForm extends Component {
         hostUrl: '',
         celebrityUrl: '',
         redirectUrl: '',
+        rtmpUrl: '',
         uncomposed: true,
       },
     };
@@ -221,6 +223,12 @@ class EventForm extends Component {
           <div className="label">Redirect URL (optional)</div>
           <Icon className="icon" name="link" style={{ color: 'darkgrey' }} />
           <input type="url" className="enabled" name="redirectUrl" value={fields.redirectUrl} onChange={handleChange} />
+        </div>
+
+        <div className="input-container">
+          <div className="label">RTMP URL (optional)</div>
+          <Icon className="icon" name="link" style={{ color: 'darkgrey' }} />
+          <input type="url" className="enabled" name="rtmpUrl" value={fields.rtmpUrl} onChange={handleChange} />
         </div>
 
         <div className="input-container checkbox">

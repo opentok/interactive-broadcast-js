@@ -2,7 +2,15 @@
 import R from 'ramda';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
-import { startCountdown, setBroadcastEventStatus, updateParticipants, setBroadcastState, startPrivateCall, endPrivateCall } from './broadcast';
+import {
+  setBroadcastEvent,
+  startCountdown,
+  setBroadcastEventStatus,
+  updateParticipants,
+  setBroadcastState,
+  startPrivateCall,
+  endPrivateCall,
+} from './broadcast';
 import { getEventWithCredentials } from '../services/api';
 import { setInfo, setBlockUserAlert } from './alert';
 import firebase from '../services/firebase';
@@ -157,7 +165,7 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
     try {
       const data = R.assoc(`${userType}Url`, slug, { adminId, userType });
       const eventData: HostCelebEventData = await getEventWithCredentials(data, R.prop('authToken', getState().auth));
-      dispatch({ type: 'SET_BROADCAST_EVENT', event: eventData });
+      dispatch(setBroadcastEvent(eventData));
     } catch (error) {
       // @TODO Error handling
       console.log(error); // eslint-disable-line no-console
@@ -196,7 +204,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
           return;
         }
 
-        if (!userIsPresent) {
+        if (!userIsPresent) { // Prevent duplicated celeb/host
           const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/stage/${uid}`);
           const record = { userType };
           try {
@@ -206,7 +214,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
           } catch (error) {
             console.log('Failed to create the record: ', error); // eslint-disable-line no-console
           }
-          // Connect to the session
+          /* Connect to the session */
           const { apiKey, stageToken, stageSessionId, status } = eventData;
           const credentials = { apiKey, stageSessionId, stageToken };
           status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
