@@ -44,8 +44,6 @@ const connect = async (instancesToConnect: InstancesToConnect): AsyncVoid => {
     const instanceOptions = options[name];
     listeners[name](instance); // Connect listeners
     const connection = await instance.connect();
-    window.core = window.core || {};
-    window.core[name] = instance;
     return instanceOptions.autoPublish ? instance.startCall() : connection;
   };
 
@@ -194,7 +192,7 @@ const unsubscribeAll = (instance: SessionName, audioOnly?: boolean = false): Cor
 const subscribe = async (instance: SessionName, stream: Stream): AsyncVoid => {
   try {
     const core = instances[instance];
-    core.subscribe(stream);
+    await core.subscribe(stream);
   } catch (error) {
     console.log('subscribe error', error);
   }
@@ -232,6 +230,53 @@ const unpublish = async (instance: SessionName): AsyncVoid => {
   }
 };
 
+const createTestSubscriber = async (instance: SessionName): Promise<TestSubscriber> => {
+  const core = instances[instance];
+  const session = core.getSession();
+
+  const createContainerElements = (): { publisherContainer: string, subscriberContainer: string } => {
+    const container = document.createElement('div');
+    const publisherEl = document.createElement('div');
+    publisherEl.id = 'testPublisher';
+    const subscriberEl = document.createElement('div');
+    subscriberEl.id = 'testSubscriber';
+    container.style.display = 'none';
+    container.appendChild(publisherEl);
+    container.appendChild(subscriberEl);
+    document.body && document.body.appendChild(container);
+    return { publisherContainer: publisherEl.id, subscriberContainer: subscriberEl.id };
+  };
+
+  const createPublisherStream = (publisherContainer: string): Promise<TestStream> =>
+    new Promise((resolve: Promise.resolve<TestStream>, reject: Promise.reject<Error>) => {
+      const publisher = session.publish(publisherContainer, (err: Error) => { // $FlowFixMe
+        err ? reject(err) : resolve(publisher.stream);
+      });
+    });
+
+  const createSubscriber = (stream: TestStream, subscriberContainer: string): Promise<TestSubscriber> =>
+    new Promise((resolve: Promise.resolve<TestSubscriber>, reject: Promise.reject<Error>) => {
+      const props = { audioVolume: 0, testNetwork: true };
+      const subscriber: TestSubscriber = session.subscribe(stream, subscriberContainer, props, (err: Error) => { // $FlowFixMe
+        err ? reject(err) : resolve(subscriber);
+      });
+    });
+
+  // This publisher uses the default resolution (640x480 pixels) and frame rate (30fps).
+  // For other resoultions you may need to adjust the bandwidth conditions in
+  // testStreamingCapability().
+  try {
+    const { publisherContainer, subscriberContainer } = createContainerElements();
+    const testStream = await createPublisherStream(publisherContainer);
+    const subscriber = await createSubscriber(testStream, subscriberContainer);
+    return subscriber;
+  } catch (error) {
+    console.log(error);
+    return Promise.reject(new Error('Failed to create test subscriber'));
+  }
+};
+
+
 module.exports = {
   init,
   connect,
@@ -241,6 +286,7 @@ module.exports = {
   getStreamByUserType,
   getStreamById,
   createEmptyPublisher,
+  createTestSubscriber,
   createEmptySubscriber,
   publishAudio,
   signal,

@@ -74,67 +74,6 @@ declare type Connection = {
   data: string
 }
 
-// const events = {
-//   session: [
-//     'archiveStarted',
-//     'archiveStopped',
-//     'connectionCreated',
-//     'connectionDestroyed',
-//     'sessionConnected',
-//     'sessionDisconnected',
-//     'sessionReconnected',
-//     'sessionReconnecting',
-//     'signal',
-//     'streamCreated',
-//     'streamDestroyed',
-//     'streamPropertyChanged',
-//   ],
-//   core: [
-//     'connected',
-//     'startScreenShare',
-//     'endScreenShare',
-//     'error',
-//   ],
-//   communication: [
-//     'startCall',
-//     'endCall',
-//     'callPropertyChanged',
-//     'subscribeToCamera',
-//     'subscribeToScreen',
-//     'subscribeToSip',
-//     'unsubscribeFromCamera',
-//     'unsubscribeFromSip',
-//     'unsubscribeFromScreen',
-//     'startViewingSharedScreen',
-//     'endViewingSharedScreen',
-//   ],
-//   textChat: [
-//     'showTextChat',
-//     'hideTextChat',
-//     'messageSent',
-//     'errorSendingMessage',
-//     'messageReceived',
-//   ],
-//   screenSharing: [
-//     'startScreenSharing',
-//     'endScreenSharing',
-//     'screenSharingError',
-//   ],
-//   annotation: [
-//     'startAnnotation',
-//     'linkAnnotation',
-//     'resizeCanvas',
-//     'annotationWindowClosed',
-//     'endAnnotation',
-//   ],
-//   archiving: [
-//     'startArchive',
-//     'stopArchive',
-//     'archiveReady',
-//     'archiveError',
-//   ],
-// };
-
 declare type Stream = {
   connection: Connection,
   creationTime: number,
@@ -146,6 +85,43 @@ declare type Stream = {
   videoDimensions: { width: number, height: number },
   videoType: VideoType
 }
+
+/**
+ * Network test
+ */
+
+declare type QualityRating = 1 | 2 | 3 | 4 | 5;
+declare type TestVideoDimensions = { width: 1280, height: 720 } | { width: 640, height: 480 } | { width: 320, height: 240 };
+declare type TestStream = {
+  connection: Connection,
+  creationTime: number,
+  frameRate: number,
+  hasAudio: boolean,
+  hasVideo: boolean,
+  name: string,
+  streamId: string,
+  videoDimensions: TestVideoDimensions,
+  videoType: VideoType
+};
+
+declare type BaseStats = {
+  bytesReceived: number,
+  packetsLost: number,
+  packetsReceieved: number
+};
+declare type AudioStats = BaseStats;
+declare type VideoStats = BaseStats;
+declare type AudioProperty = $Keys<BaseStats>;
+declare type VideoProperty = $Keys<VideoStats>;
+
+declare type Stats = {
+  audio: AudioStats,
+  video: VideoStats,
+  timestamp: number
+};
+declare type TestSubscriber = { stream: TestStream, getStats: (callback: (error: Error | null, stats: Stats) => void) => void };
+
+/* ********** */
 
 declare type SignalParams = {
   type: string,

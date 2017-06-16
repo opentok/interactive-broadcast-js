@@ -10,7 +10,7 @@ import { kickFanFromFeed } from '../../../../actions/broadcast';
 import { properCase } from '../../../../services/util';
 import './ActiveFanList.css';
 
-const connectionQuality = (quality: null | NetworkQuality): ReactComponent => {
+const networkQuality = (quality: null | NetworkQuality): ReactComponent => {
   const qualityClass = classNames('quality', R.defaultTo('retrieving')(quality));
   return (
     <div className="connection">
@@ -50,7 +50,7 @@ const Fan = SortableElement(({ fan, sortable, actions, backstageFan }: FanProps)
             <Icon name={R.toLower(fan.browser)} style={{ marginRight: '3px' }} />
             <span className="name">{fan.name}</span>
           </div>
-          { connectionQuality(fan.connectionQuality)}
+          { networkQuality(fan.networkQuality)}
         </div>
         <div className="actions">
           {!isOnBackstage && !isOnStage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}

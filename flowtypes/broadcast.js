@@ -12,7 +12,7 @@ declare type ParticipantAVProps = {
 declare type SessionName = 'stage' | 'backstage';
 declare type InstancesToConnect = Array<SessionName>;
 
-declare type NetworkQuality = 'good' | 'fair' | 'poor';
+declare type NetworkQuality = 'great' | 'good' | 'poor';
 declare type ImgData = null | string;
 declare type onSnapshotReady = Unit;
 
@@ -48,7 +48,7 @@ declare type ActiveFan = {
   name: string,
   browser: string,
   mobile: boolean,
-  connectionQuality: null | NetworkQuality,
+  networkQuality: null | NetworkQuality,
   streamId: string,
   snapshot: null | string,
   inPrivateCall: boolean,
@@ -64,7 +64,7 @@ declare type ActiveFanUpdate = null | {
   id?: string,
   name?: string,
   browser?: string,
-  connectionQuality?: null | NetworkQuality,
+  networkQuality?: null | NetworkQuality,
   mobile?: boolean,
   snapshot?: string,
   streamId?: string

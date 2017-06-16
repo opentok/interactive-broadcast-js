@@ -57,6 +57,7 @@
 
 .ActiveFan .ActiveFanMain .info .connection {
     font-size: 11px;
+    font-weight: 600;
 }
 
 .ActiveFan .ActiveFanMain .info .connection .quality.retrieving {
@@ -67,17 +68,17 @@
     color: #EF4836;
 }
 
-.ActiveFan .ActiveFanMain .info .connection .quality.fair {
+.ActiveFan .ActiveFanMain .info .connection .quality.good {
     color: rgba(243, 156, 18, .80);
 }
 
-.ActiveFan .ActiveFanMain .info .connection .quality.good {
+.ActiveFan .ActiveFanMain .info .connection .quality.great {
     color: #30c06c;
 }
 
 .ActiveFan .ActiveFanMain .actions {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
 }
 
 .ActiveFan .ActiveFanMain .actions .btn {

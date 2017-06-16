@@ -8,6 +8,7 @@ import { setBroadcastEvent, setBroadcastState, updateParticipants, setBroadcastE
 import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
 import takeSnapshot from '../services/snapshot';
+import networkTest from '../services/networkQuality';
 import { getEventWithCredentials } from '../services/api';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
@@ -281,10 +282,54 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
     dispatch(setBroadcastState(opentok.state('stage')));
   };
 
+/**
+ * Start checking and reporting the network quality of the fan every 15 seconds
+ */
+const setupNetworkTest = async (fanId: UserId, adminId: UserId, fanUrl: string): AsyncVoid => {
+  try {
+    // Get an existing host or celebrity subscriber object
+    const hostOrCelebSubscriber = (): TestSubscriber | void => {
+      const coreState = opentok.state('stage');
+      const isHostOrCeleb = ({ stream }: { stream: Stream }): boolean => {
+        const { userType } = JSON.parse(R.pathOr(null, ['connection', 'data'], stream));
+        return R.contains(userType, ['host', 'celebrity']);
+      };
+      return R.find(isHostOrCeleb, R.values(coreState.subscribers.camera));
+    };
+    // Use an available subscriber or create a new test subscriber
+    const getSubscriber = async (): Promise<TestSubscriber> => hostOrCelebSubscriber() || opentok.createTestSubscriber('backstage');
+
+    let subscriber: TestSubscriber = await getSubscriber();
+    const updateNetworkQuality = async (): AsyncVoid => {
+      const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
+      const networkQuality: QualityRating => NetworkQuality = R.cond([
+        [R.isNil, R.always(null)],
+        [R.equals(5), R.always('great')],
+        [R.lte(3), R.always('good')],
+        [R.gt(3), R.always('poor')],
+      ]);
+      try {
+        // If the subscriber is no longer available, get or create a new one
+        if (!subscriber.stream) {
+          subscriber = await getSubscriber();
+        }
+        const qualityRating: QualityRating = await networkTest({ subscriber });
+        ref.update({ networkQuality: networkQuality(qualityRating) });
+      } catch (error) {
+        console.log(error);
+        ref.update({ networkQuality: null });
+      }
+    };
+    updateNetworkQuality();
+    setInterval(updateNetworkQuality, 15 * 1000);
+  } catch (error) {
+    console.log('Failed to set up network test', error);
+    setTimeout(setupNetworkTest, 3000);
+  }
+};
 
 const createActiveFanRecord: ThunkActionCreator = (uid: UserId, adminId: string, fanUrl: string): Thunk =>
   async (): AsyncVoid => {
-
     /* Create a record in firebase */
     const record = {
       id: uid,
@@ -319,6 +364,7 @@ const updateActiveFanRecord: ThunkActionCreator = (name: string, event: Broadcas
     const fanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
     try {
       fanRef.update(record);
+      setupNetworkTest(fanId, adminId, fanUrl);
       fanRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
         const { inPrivateCall, isBackstage } = snapshot.val();
         isBackstage && dispatch(setFanStatus('backstage'));
@@ -340,7 +386,7 @@ const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>
     }
   };
 
-const connectToPresence: ThunkActionCreator = (uid: string, adminId: string, fanUrl: string): Thunk =>
+const connectToPresence: ThunkActionCreator = (uid: UserId, adminId: UserId, fanUrl: string): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`).once('value');
     const closedEvent = { status: 'closed' };
@@ -360,7 +406,7 @@ const connectToPresence: ThunkActionCreator = (uid: string, adminId: string, fan
       /* Connect to interactive */
       const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
       const credentials = R.pick(credentialProps, eventData);
-      dispatch(connectToInteractive(credentials, eventData));
+      dispatch(connectToInteractive(credentials, uid, adminId, fanUrl));
     } else {
       const eventData = {
         name: activeBroadcast.name,
