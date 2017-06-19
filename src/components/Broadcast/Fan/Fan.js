@@ -19,14 +19,15 @@ type BaseProps = {
   adminId: string,
   userType: 'host' | 'celeb',
   userUrl: string,
-  eventData: BroadcastEvent,
+  event: null | BroadcastEvent,
   inPrivateCall: boolean,
   status: EventStatus,
   broadcast: BroadcastState,
   backstageConnected: boolean,
   participants: BroadcastParticipants,
   fanStatus: FanStatus,
-  producerChat: ChatState
+  producerChat: ChatState,
+  ableToJoin: boolean
 };
 type DispatchProps = {
   init: FanInitOptions => void,
@@ -55,12 +56,12 @@ class Fan extends Component {
 
   componentWillReceiveProps(nextProps: Props) {
     // Need to check for change to event status here
-    if (R.pathEq(['eventData', 'status'], 'closed', nextProps)) { disconnect(); }
+    if (R.pathEq(['event', 'status'], 'closed', nextProps)) { disconnect(); }
   }
 
   render(): ReactComponent {
-    const {
-      eventData,
+    const { // $FlowFixMe
+      event,
       status,
       participants,
       inPrivateCall,
@@ -71,7 +72,7 @@ class Fan extends Component {
       producerChat,
       ableToJoin,
     } = this.props;
-    if (!eventData) return <Loading />;
+    if (!event) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
     const isClosed = R.equals(status, 'closed');
@@ -80,7 +81,7 @@ class Fan extends Component {
       <div className="Fan">
         <div className="Container">
           <FanHeader
-            name={eventData.name}
+            name={event.name}
             status={status}
             ableToJoin={ableToJoin}
             getInLine={joinLine}
@@ -91,14 +92,14 @@ class Fan extends Component {
           <FanStatusBar fanStatus={fanStatus} />
           <FanBody
             hasStreams={hasStreams}
-            image={isClosed ? eventData.endImage : eventData.startImage}
+            image={isClosed ? event.endImage : event.startImage}
             participants={participants}
             isClosed={isClosed}
             isLive={isLive}
             fanStatus={fanStatus}
             backstageConnected={backstageConnected}
             ableToJoin={ableToJoin}
-            hlsUrl={eventData.hlsUrl}
+            hlsUrl={event.hlsUrl}
           />
           <div className="FanChat" >
             { producerChat && <Chat chat={producerChat} /> }
@@ -116,7 +117,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     userType: R.path(['route', 'userType'], ownProps),
     userUrl: fanUrl,
     inPrivateCall: R.path(['fan', 'inPrivateCall'], state),
-    eventData: R.path(['broadcast', 'event'], state),
+    event: R.path(['broadcast', 'event'], state),
     status: R.path(['broadcast', 'event', 'status'], state),
     broadcast: R.path(['broadcast'], state),
     participants: R.path(['broadcast', 'participants'], state),

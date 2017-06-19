@@ -15,12 +15,24 @@ const getStreamByUserType = (instance: SessionName, userType: UserRole): Stream 
   return R.find(streamByUserType, R.values(core.state().streams));
 };
 
+/**
+ * Get a stream by its id
+ */
 const getStreamById = (instance: SessionName, streamId: string): Stream => {
   const core = instances[instance];
   return core.state().streams[streamId];
 };
 
-const getAllSubscribers = (instance: SessionName): Subscriber[] => R.values(R.prop(instance, instances).state().subscribers.camera);
+/**
+ * Get all the subscribers for an instance
+ */
+const getAllSubscribers = (instance: SessionName): Subscriber[] =>
+  R.compose(
+    R.flatten, // Flatten into a single array
+    R.values, // Get just the map values (i.e. subscriber objects)
+    R.map(R.values), // "Unnest" the subscribers
+    R.pick(['camera', 'sip']), // Take only the camera and sip subscribers
+  )(R.prop(instance, instances).state().subscribers); // Get a map of all subscribers by type
 
 /**
  * Create instances of core
@@ -76,8 +88,9 @@ const publishAudio = async (instance: SessionName, shouldPublish: boolean): Asyn
   const publisher = getPublisher(instance);
   if (shouldPublish) {
     if (publisher) {
-      publisher.publishAudio(true);
+      setTimeout((): void => publisher.publishAudio(true), 0);
     } else {
+      // Since the producer is creating an empty publisher when joining, we should never get here =)
       try {
         await instances[instance].startCall({ publishVideo: false });
         return;
@@ -150,13 +163,14 @@ const getConnection = (instance: SessionName, streamId: string): Connection => {
 /**
  * Subscribe to all streams in the session instance
  */
-const subscribeAll = (instance: SessionName, audioOnly?: boolean = false): Object => { // eslint-disable-line flowtype/no-weak-types
+const subscribeAll = async (instance: SessionName, audioOnly?: boolean = false): Promise<CoreState> => {
   const core = instances[instance];
   if (audioOnly) {
     R.forEach((s: Subscriber): Subscriber => s.subscribeToAudio(true), getAllSubscribers(instance));
   } else {
     const streams = core.state().streams;
-    Object.values(streams).forEach(core.subscribe);
+    const subscriptionPromises = Object.values(streams).map(core.subscribe);
+    await Promise.all(subscriptionPromises);
   }
   return core.state();
 };
@@ -214,7 +228,7 @@ const unsubscribe = (instance: SessionName, stream: Stream) => {
   core.unsubscribe(subscriber);
 };
 
-const unSubscribeFromAudio: ((SessionName, Stream) => void) = R.partialRight(toggleSubscribeAudio, [false]);
+const unsubscribeFromAudio: ((SessionName, Stream) => void) = R.partialRight(toggleSubscribeAudio, [false]);
 
 const startCall = async (instance: SessionName): AsyncVoid => instances[instance].startCall({ publishVideo: true, publishAudio: true });
 
@@ -299,7 +313,7 @@ module.exports = {
   subscribe,
   subscribeToAudio,
   unsubscribe,
-  unSubscribeFromAudio,
+  unsubscribeFromAudio,
   getPublisher,
   startCall,
   endCall,

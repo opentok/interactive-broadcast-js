@@ -33,13 +33,13 @@ const setBroadcastEvent: ActionCreator = (event: BroadcastEvent): BroadcastActio
   event,
 });
 
-// TODO: This might be easier if the type of non-admin/logged-in user were kept in state
 const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, connectToProducer?: boolean = false): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
-    opentok.unsubscribeAll('stage', true);
+    const instance = R.equals(participant, 'backstageFan') ? 'backstage' : 'stage';
+    opentok.unsubscribeAll('stage', true, connectToProducer);
     if (connectToProducer) {
-      const producerStream = opentok.getStreamByUserType('stage', 'producer');
-      opentok.subscribeToAudio('stage', producerStream);
+      const producerStream = opentok.getStreamByUserType(instance, 'producer');
+      opentok.subscribeToAudio(instance, producerStream);
     }
     dispatch({ type: 'START_PRIVATE_PARTICIPANT_CALL', participant });
   };
@@ -47,14 +47,14 @@ const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, conn
 const endPrivateCall: ThunkActionCreator = (participant: ParticipantType, userInCallDisconnected?: boolean = false): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     // See TODO above. We have no way of knowing who the current user is unless we pass the value around
+    const instance = R.equals(participant, 'backstageFan') ? 'backstage' : 'stage';
     const currentUserInCall = R.equals(participant, R.path(['broadcast', 'inPrivateCall'], getState()));
     if (R.and(currentUserInCall, !userInCallDisconnected)) {
       opentok.subscribeAll('stage', true);
-      opentok.unSubscribeFromAudio('stage', opentok.getStreamByUserType('stage', 'producer'));
+      opentok.unsubscribeFromAudio(instance, opentok.getStreamByUserType(instance, 'producer'));
     }
     dispatch({ type: 'END_PRIVATE_PARTICIPANT_CALL' });
   };
-
 
 /**
  * Toggle a participants audio, video, or volume
@@ -208,12 +208,12 @@ module.exports = {
   setPublishOnly,
   resetBroadcastEvent,
   startCountdown,
+  startPrivateCall,
+  endPrivateCall,
   publishOnly,
   toggleParticipantProperty,
   setBroadcastEventStatus,
   updateParticipants,
-  startPrivateCall,
-  endPrivateCall,
   setBackstageConnected,
   sendChatMessage,
   kickFanFromFeed,

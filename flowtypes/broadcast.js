@@ -110,6 +110,7 @@ declare type FanState = {
   inPrivateCall: boolean
 };
 
+declare type FanType = 'activeFan' | 'backstageFan' | 'fan';
 declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
 
 declare type FanInitOptions = { adminId: UserId, userUrl: string };
@@ -184,4 +185,5 @@ declare type FanAction =
   { type: 'SET_NEW_FAN_ACKD', newFanSignalAckd: boolean } |
   { type: 'SET_FAN_NAME', fanName: string } |
   { type: 'SET_FAN_STATUS', status: FanStatus } |
-  { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean };
+  { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean } |
+  { type: 'SET_FAN_PRIVATE_CALL', inPrivateCall: boolean };

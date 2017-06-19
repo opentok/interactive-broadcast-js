@@ -11,8 +11,6 @@ import {
   kickFanFromFeed,
   setBroadcastState,
   updateParticipants,
-  startPrivateCall,
-  endPrivateCall,
   updateStageCountdown,
   setBroadcastEvent,
 } from './broadcast';
@@ -268,16 +266,26 @@ const startCountdown: ThunkActionCreator = (): Thunk =>
   };
 
 /**
- * Start a private call with a broadcast participant or active fan
+ * Start a private call with a broadcast participant
  */
 const connectPrivateCall: ThunkActionCreator = (participant: ParticipantType): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+
     const startCall = R.not(R.equals(participant, R.path(['broadcast', 'inPrivateCall'], getState())));
     const type = startCall ? 'privateCall' : 'endPrivateCall';
     const data = { callWith: participant };
-    publishAudio('stage', startCall);
+    const instance = R.equals(participant, 'backstageFan') ? 'backstage' : 'stage';
+    if (startCall) {
+      await publishAudio(instance, startCall);
+      opentok.unsubscribeAll('stage', true);
+      opentok.subscribeToAudio(instance, opentok.getStreamByUserType(instance, participant));
+    } else {
+      await Promise.all([publishAudio(instance, false), opentok.subscribeAll('stage', true)]);
+    }
     signalStage({ type, data });
-    const action = startCall ? startPrivateCall(participant) : endPrivateCall();
+    const action = startCall ?
+      { type: 'START_PRIVATE_PARTICIPANT_CALL', participant } :
+      { type: 'END_PRIVATE_PARTICIPANT_CALL' };
     dispatch(action);
   };
 
@@ -397,8 +405,9 @@ const startActiveFanCall: ThunkActionCreator = (fan: ActiveFan): Thunk =>
         dispatch({ type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: fan.id, inPrivateCall: true });
         const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
         await ref.update({ inPrivateCall: true });
-        opentok.subscribe('backstage', opentok.getStreamById('backstage', fan.streamId));
+        opentok.unsubscribeAll('stage', true);
         opentok.publishAudio('backstage', true);
+        opentok.subscribe('backstage', opentok.getStreamById('backstage', fan.streamId));
       } catch (error) {
         // @TODO Error handling
         console.log('Failed to start private call with active fan', error);
@@ -414,10 +423,10 @@ const endActiveFanCall: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     const { broadcast } = getState();
     const { event } = broadcast;
     const fanStream = opentok.getStreamById('backstage', fan.streamId);
-    opentok.unsubscribe('backstage', fanStream);
     opentok.publishAudio('backstage', false);
+    opentok.unsubscribe('backstage', fanStream);
+    opentok.subscribeAll('stage', true);
     dispatch({ type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: fan.id, inPrivateCall: false });
-
     try {
       const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
       const activeFanRecord = await ref.once('value');

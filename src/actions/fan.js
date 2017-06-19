@@ -4,7 +4,15 @@ import platform from 'platform';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
 import firebase from '../services/firebase';
-import { setBroadcastEvent, setBroadcastState, updateParticipants, setBroadcastEventStatus, setBackstageConnected } from './broadcast';
+import {
+  setBroadcastEvent,
+  setBroadcastState,
+  updateParticipants,
+  setBroadcastEventStatus,
+  setBackstageConnected,
+  startPrivateCall,
+  endPrivateCall,
+} from './broadcast';
 import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
 import takeSnapshot from '../services/snapshot';
@@ -96,17 +104,16 @@ const leaveTheLine: ThunkActionCreator = (): Thunk =>
 
 const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
   async ({ type, data, from }: Signal): AsyncVoid => {
-    const state = getState();
+    const { fan } = getState();
     const signalData = data ? JSON.parse(data) : {};
     const signalType = R.last(R.split(':', type));
     const fromData = JSON.parse(from.data);
     const fromProducer = fromData.userType === 'producer';
-    const isStage = R.equals(R.path(['fan', 'status'], state), 'stage');
+    const isStage = R.equals(R.prop('status', fan), 'stage');
+    const fanType = isStage ? 'fan' : 'backstageFan';
     const instance = isStage ? 'stage' : 'backstage';
-
     /* If the sender of this signal is not the Producer, we should do nothing */
     if (!fromProducer) return;
-
     switch (signalType) {
       case 'goLive':
         dispatch(setBroadcastEventStatus('live'));
@@ -124,8 +131,12 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
       case 'chatMessage':
         dispatch(receivedChatMessage(from, signalData));
         break;
-      case 'privateCall': // @TODO
-      case 'endPrivateCall': // @TODO
+      case 'privateCall':
+        fromProducer && dispatch(startPrivateCall(signalData.callWith, R.equals(signalData.callWith, fanType)));
+        break;
+      case 'endPrivateCall':
+        fromProducer && dispatch(endPrivateCall(fanType));
+        break;
       case 'openChat': // @TODO
       case 'finishEvent':
         dispatch(setBroadcastEventStatus('closed'));
@@ -344,6 +355,14 @@ const createActiveFanRecord: ThunkActionCreator = (uid: UserId, adminId: string,
     }
   };
 
+const handlePrivateCall: ThunkActionCreator = (inPrivateCall: boolean): Thunk =>
+  (dispatch: Dispatch) => {
+    const producerStream = opentok.getStreamByUserType('backstage', 'producer');
+    const action = inPrivateCall ? 'subscribeToAudio' : 'unsubscribeFromAudio';
+    opentok[action]('backstage', producerStream);
+    dispatch({ type: 'SET_FAN_PRIVATE_CALL', inPrivateCall });
+  };
+
 const updateActiveFanRecord: ThunkActionCreator = (name: string, event: BroadcastEvent): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const fanId = firebase.auth().currentUser.uid;
@@ -368,7 +387,7 @@ const updateActiveFanRecord: ThunkActionCreator = (name: string, event: Broadcas
       fanRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
         const { inPrivateCall, isBackstage } = snapshot.val();
         isBackstage && dispatch(setFanStatus('backstage'));
-        inPrivateCall && dispatch(setFanStatus('privateCall'));
+        dispatch(handlePrivateCall(inPrivateCall));
       });
     } catch (error) {
       console.log(error);
@@ -421,7 +440,7 @@ const connectToPresence: ThunkActionCreator = (uid: UserId, adminId: UserId, fan
       const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`);
       ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
         /* Check if the event status and/or hlsUrl have changed */
-        const updates: ActiveBroadcast = snapshot.val() || closedEvent;
+        const updates = snapshot.val() || closedEvent;
         eventData.status = updates.status;
         eventData.hlsUrl = updates.hlsUrl;
 
@@ -450,7 +469,8 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
             dispatch(connectToPresence(user.uid, adminId, userUrl));
           }
         } else {
-          await firebase.auth().signInAnonymously();
+          const { uid } = await firebase.auth().signInAnonymously();
+          dispatch(connectToPresence(uid, adminId, userUrl));
         }
       });
 

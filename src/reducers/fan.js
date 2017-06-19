@@ -12,6 +12,8 @@ const fan = (state: FanState = initialState(), action: FanAction): FanState => {
   switch (action.type) {
     case 'SET_FAN_STATUS':
       return R.assoc('status', action.status, state);
+    case 'SET_FAN_PRIVATE_CALL':
+      return R.assoc('inPrivateCall', action.inPrivateCall, state);
     case 'SET_FAN_NAME':
       return R.assoc('fanName', action.fanName, state);
     case 'SET_ABLE_TO_JOIN':

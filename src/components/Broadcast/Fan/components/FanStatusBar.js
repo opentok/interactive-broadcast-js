@@ -24,10 +24,6 @@ const FanStatusBar = (props: Props): ReactComponent => {
       statusText = 'You Are On Stage';
       statusClass = 'green';
       break;
-    case 'privateCall':
-      statusText = 'You are in a private call with the Producer';
-      statusClass = 'red';
-      break;
     default:
       statusText = '';
       break;
