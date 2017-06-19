@@ -69,6 +69,7 @@
     width: 100%;
     justify-content: flex-start;
     margin-bottom: 6px;
+    overflow-wrap: break-word;
 }
 
 .ChatMessages .Message.isMe {
