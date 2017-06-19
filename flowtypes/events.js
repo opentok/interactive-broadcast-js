@@ -31,6 +31,15 @@ declare type BroadcastEvent = {
   updatedAt: string
 }
 
+declare type ActiveBroadcast = {
+  hlsUrl?: string,
+  name?: string,
+  status: EventStatus,
+  startImage?: string,
+  endImage?: string,
+  archiveUrl?: string
+}
+
 declare type BroadcastEventMap = {[id: EventId]: BroadcastEvent};
 
 declare type EventStatus = 'notStarted' | 'preshow' | 'live' | 'closed';
