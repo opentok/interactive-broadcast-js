@@ -34,6 +34,7 @@ const uploadEventImageSuccess: ThunkActionCreator = (): Thunk =>
     const options: AlertPartialOptions = {
       title: 'Event Image Upload',
       text: 'Your image has been uploaded.',
+      showConfirmButton: true,
       onConfirm: (): void => dispatch(resetAlert()),
     };
     dispatch(setSuccess(options));
