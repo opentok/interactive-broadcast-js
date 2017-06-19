@@ -59,7 +59,7 @@ class ActiveFanChats extends Component {
 
       const getStageAction = (): { stageAction: Unit, stageText: string } => {
         if (fan.isBackstage) {
-          return { stageAction: R.partial(sendFanToStage, [fan]), stageText: 'Send To Stage' };
+          return { stageAction: sendFanToStage, stageText: 'Send To Stage' };
         } else if (fan.isOnStage) {
           return { stageAction: R.partial(kickFan, ['backstageFan']), stageText: 'Kick Fan' };
         }
@@ -136,7 +136,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   toggleActiveChat: (id: ChatId): void => R.forEach(dispatch, [minimizeChat(id, false), displayChat(id, true)]),
   actions: {
     sendFanToBackstage: (fan: ActiveFan): void => dispatch(sendToBackstage(fan)),
-    sendFanToStage: (fan: ActiveFan): void => dispatch(sendToStage(fan)),
+    sendFanToStage: (): void => dispatch(sendToStage()),
     kickFan: (participantType: ParticipantType): void => dispatch(kickFanFromFeed(participantType)),
     startCall: (fan: ActiveFanWithConnection): void => dispatch(startActiveFanCall(fan)),
     endCall: (fan: ActiveFanWithConnection): void => dispatch(endActiveFanCall(fan)),

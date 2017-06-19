@@ -440,7 +440,7 @@ const connectToPresence: ThunkActionCreator = (uid: UserId, adminId: UserId, fan
       const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`);
       ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
         /* Check if the event status and/or hlsUrl have changed */
-        const updates = snapshot.val() || closedEvent;
+        const updates: ActiveBroadcast = snapshot.val() || closedEvent;
         eventData.status = updates.status;
         eventData.hlsUrl = updates.hlsUrl;
 
@@ -469,8 +469,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
             dispatch(connectToPresence(user.uid, adminId, userUrl));
           }
         } else {
-          const { uid } = await firebase.auth().signInAnonymously();
-          dispatch(connectToPresence(uid, adminId, userUrl));
+          await firebase.auth().signInAnonymously();
         }
       });
 

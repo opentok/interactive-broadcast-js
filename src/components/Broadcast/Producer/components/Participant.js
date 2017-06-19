@@ -8,7 +8,7 @@ import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
 import ControlIcon from './ControlIcon';
 import { toggleParticipantProperty, kickFanFromFeed } from '../../../../actions/broadcast';
-import { connectPrivateCall, chatWithParticipant } from '../../../../actions/producer';
+import { connectPrivateCall, chatWithParticipant, sendToStage } from '../../../../actions/producer';
 import './Participant.css';
 
 const isBackstageFan = R.equals('backstageFan');
@@ -35,7 +35,7 @@ type DispatchProps = {
 type Props = OwnProps & BaseProps & DispatchProps;
 
 const Participant = (props: Props): ReactComponent => {
-  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat, kickFan, broadcast } = props;
+  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat, kickFan, broadcast, sendFanToStage } = props;
   const url = R.prop(`${type}Url`, createUrls(broadcast.event || {}));
   const me = R.prop(type, broadcast.participants) || {};
   const stageCountdown = broadcast.stageCountdown;
@@ -60,7 +60,7 @@ const Participant = (props: Props): ReactComponent => {
       </div>
       { isBackstageFan(type) ?
         <div className="Participant-move-fan">
-          <button className="move btn transparent">Move to fan feed</button>
+          <button className="move btn transparent" onClick={sendFanToStage}>Move to fan feed</button>
         </div> :
         <div className="Participant-url">
           <span className="url">{ url }</span>
@@ -115,6 +115,7 @@ const mapDispatchToProps: MapDispatchWithOwn<DispatchProps, OwnProps> = (dispatc
   privateCall: (): void => dispatch(connectPrivateCall(ownProps.type)),
   kickFan: (): void => dispatch(kickFanFromFeed(ownProps.type)),
   chat: (): void => dispatch(chatWithParticipant(ownProps.type)),
+  sendFanToStage: (): void => dispatch(sendToStage()),
 });
 
 
