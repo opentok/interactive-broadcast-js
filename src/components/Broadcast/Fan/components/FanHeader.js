@@ -10,10 +10,11 @@ type Props = {
   inPrivateCall: boolean,
   getInLine: Unit,
   leaveLine: Unit,
-  backstageConnected: boolean
+  backstageConnected: boolean,
+  disconnected: boolean
 };
 const FanHeader = (props: Props): ReactComponent => {
-  const { name, status, ableToJoin, getInLine, leaveLine, backstageConnected, inPrivateCall } = props;
+  const { name, status, ableToJoin, getInLine, leaveLine, backstageConnected, inPrivateCall, disconnected } = props;
   const getInLineButton = (): ReactComponent =>
     !backstageConnected ?
       <button className="btn green getInLine" onClick={getInLine}>Get In Line</button> :
@@ -31,6 +32,9 @@ const FanHeader = (props: Props): ReactComponent => {
       </div>
       <div className={classNames('Fan-private-call', { active: !!inPrivateCall })}>
         You are in a private call with the Producer
+      </div>
+      <div className={classNames('Fan-private-call', { active: !!disconnected })}>
+        Unable to establish connection, please check your network connection and refresh.
       </div>
     </div>
   );

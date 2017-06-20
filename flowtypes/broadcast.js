@@ -98,7 +98,9 @@ declare type BroadcastState = {
   stageCountdown: number,
   viewers: number,
   interactiveLimit: number,
-  archiving: boolean
+  archiving: boolean,
+  reconnecting: boolean,
+  disconnected: boolean
 };
 
 declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
@@ -179,6 +181,8 @@ declare type BroadcastAction =
   { type: 'UPDATE_STAGE_COUNTDOWN', stageCountdown: number } |
   { type: 'UPDATE_VIEWERS', viewers: number } |
   { type: 'SET_INTERACTIVE_LIMIT', interactiveLimit: number } |
+  { type: 'SET_DISCONNECTED', disconnected: boolean } |
+  { type: 'SET_RECONNECTING', reconnecting: boolean } |
   { type: 'SET_ARCHIVING', archiving: boolean };
 
 declare type FanAction =

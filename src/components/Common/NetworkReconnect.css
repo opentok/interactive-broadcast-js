@@ -1,0 +1,44 @@
+.ReconnectionOverlay  {
+  background-color: black;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
+  background-color: rgba(0, 0, 0, 0.4);
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.ReconnectionOverlay .ReconnectionMask  {
+  width: 326px;
+	height: 165px;
+  border-radius: 8px;
+	background-color: #e1a42e;
+  min-height: 165px !important;
+}
+
+.ReconnectionOverlay .ReconnectionMask .ReconnectionText  {
+  font-family: Helvetica;
+  font-size: 17.4px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: normal;
+  letter-spacing: normal;
+  text-align: center;
+  color: #ffffff;
+  margin-top: 20px;
+}
+
+.ReconnectionOverlay .ReconnectionMask .ReconnectionIcon  {
+  margin-left: 48px;
+  margin-top: 30px;
+  background-image: url(images/reconnection-icon.png);
+  background-repeat: no-repeat;
+  width: 240px;
+  height: 61px;
+}

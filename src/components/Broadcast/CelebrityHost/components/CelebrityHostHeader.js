@@ -10,10 +10,11 @@ type Props = {
   status: EventStatus,
   togglePublishOnly: boolean => void,
   publishOnlyEnabled: boolean,
+  disconnected: boolean,
   inPrivateCall: PrivateCallState // eslint-disable-line react/no-unused-prop-types
 };
 const CelebrityHostHeader = (props: Props): ReactComponent => {
-  const { userType, name, status, togglePublishOnly, publishOnlyEnabled } = props;
+  const { userType, name, status, togglePublishOnly, publishOnlyEnabled, disconnected } = props;
   const btnClass = classNames('btn action', { red: !publishOnlyEnabled }, { green: publishOnlyEnabled });
   const inPrivateCall = R.equals(userType, R.prop('inPrivateCall', props));
   return (
@@ -33,6 +34,9 @@ const CelebrityHostHeader = (props: Props): ReactComponent => {
       </div>
       <div className={classNames('CelebrityHostHeader-private-call', { active: !!inPrivateCall })}>
         You are in a private call with the Producer
+      </div>
+      <div className={classNames('CelebrityHostHeader-private-call', { active: !!disconnected })}>
+        Unable to establish connection, please check your network connection and refresh.
       </div>
     </div>
   );

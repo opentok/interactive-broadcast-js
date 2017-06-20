@@ -10,6 +10,9 @@ import {
   setBroadcastState,
   startPrivateCall,
   endPrivateCall,
+  setReconnecting,
+  setReconnected,
+  setDisconnected,
 } from './broadcast';
 import { getEventWithCredentials } from '../services/api';
 import { setInfo, setBlockUserAlert } from './alert';
@@ -110,6 +113,10 @@ const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserDa
     R.forEach((event: StreamEventType): void => instance.on(event, handleStreamEvent), otStreamEvents);
     // Assign signal listener
     instance.on('signal', onSignal(dispatch, userType));
+    // Assign reconnection event listeners
+    instance.on('sessionReconnecting', (): void => dispatch(setReconnecting()));
+    instance.on('sessionReconnected', (): void => dispatch(setReconnected()));
+    instance.on('sessionDisconnected', (): void => dispatch(setDisconnected()));
   };
 
   // To be moved to opentok service or broadcast actions???

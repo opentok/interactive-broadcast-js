@@ -13,6 +13,9 @@ import {
   updateParticipants,
   updateStageCountdown,
   setBroadcastEvent,
+  setReconnecting,
+  setReconnected,
+  setDisconnected,
 } from './broadcast';
 
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
@@ -67,6 +70,11 @@ const opentokConfig = (dispatch: Dispatch, getState: GetState, userCredentials: 
 
     // Assign signal listener
     instance.on('signal', onSignal(dispatch));
+
+    // Assign reconnection event listeners
+    instance.on('sessionReconnecting', (): void => dispatch(setReconnecting()));
+    instance.on('sessionReconnected', (): void => dispatch(setReconnected()));
+    instance.on('sessionDisconnected', (): void => dispatch(setDisconnected()));
   };
 
   const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = true): CoreOptions => ({

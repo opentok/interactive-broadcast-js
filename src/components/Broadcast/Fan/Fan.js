@@ -10,6 +10,7 @@ import FanBody from './components/FanBody';
 import FanStatusBar from './components/FanStatusBar';
 import Loading from '../../../components/Common/Loading';
 import Chat from '../../../components/Common/Chat';
+import NetworkReconnect from '../../Common/NetworkReconnect';
 import { disconnect } from '../../../services/opentok';
 import './Fan.css';
 
@@ -27,7 +28,8 @@ type BaseProps = {
   participants: BroadcastParticipants,
   fanStatus: FanStatus,
   producerChat: ChatState,
-  ableToJoin: boolean
+  ableToJoin: boolean,
+  disconnected: boolean
 };
 type DispatchProps = {
   init: FanInitOptions => void,
@@ -71,6 +73,7 @@ class Fan extends Component {
       fanStatus,
       producerChat,
       ableToJoin,
+      disconnected,
     } = this.props;
     if (!event) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
@@ -79,6 +82,7 @@ class Fan extends Component {
     const isLive = R.equals(status, 'live');
     return (
       <div className="Fan">
+        <NetworkReconnect />
         <div className="Container">
           <FanHeader
             name={event.name}
@@ -88,6 +92,7 @@ class Fan extends Component {
             leaveLine={leaveLine}
             backstageConnected={backstageConnected}
             inPrivateCall={inPrivateCall}
+            disconnected={disconnected}
           />
           <FanStatusBar fanStatus={fanStatus} />
           <FanBody
@@ -125,6 +130,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     fanStatus: R.path(['fan', 'status'], state),
     backstageConnected: R.path(['broadcast', 'backstageConnected'], state),
     producerChat: R.path(['broadcast', 'chats', 'producer'], state),
+    disconnected: R.path(['broadcast', 'disconnected'], state),
   };
 };
 

@@ -3,6 +3,21 @@ import R from 'ramda';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 
+const setReconnecting: ActionCreator = (): BroadcastAction => ({
+  type: 'SET_RECONNECTING',
+  reconnecting: true,
+});
+
+const setReconnected: ActionCreator = (): BroadcastAction => ({
+  type: 'SET_RECONNECTING',
+  reconnecting: false,
+});
+
+const setDisconnected: ActionCreator = (): BroadcastAction => ({
+  type: 'SET_DISCONNECTED',
+  disconnected: true,
+});
+
 const updateStageCountdown: ActionCreator = (stageCountdown: number): BroadcastAction => ({
   type: 'UPDATE_STAGE_COUNTDOWN',
   stageCountdown,
@@ -36,7 +51,7 @@ const setBroadcastEvent: ActionCreator = (event: BroadcastEvent): BroadcastActio
 const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, connectToProducer?: boolean = false): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const instance = R.equals(participant, 'backstageFan') ? 'backstage' : 'stage';
-    opentok.unsubscribeAll('stage', true, connectToProducer);
+    opentok.unsubscribeAll('stage', true);
     if (connectToProducer) {
       const producerStream = opentok.getStreamByUserType(instance, 'producer');
       opentok.subscribeToAudio(instance, producerStream);
@@ -221,4 +236,7 @@ module.exports = {
   displayChat,
   updateStageCountdown,
   setBroadcastEvent,
+  setReconnecting,
+  setReconnected,
+  setDisconnected,
 };

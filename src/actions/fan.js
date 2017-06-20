@@ -12,6 +12,9 @@ import {
   setBackstageConnected,
   startPrivateCall,
   endPrivateCall,
+  setReconnecting,
+  setReconnected,
+  setDisconnected,
 } from './broadcast';
 import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
@@ -227,6 +230,11 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
 
     // Assign signal listener
     instance.on('signal', onSignal(dispatch, getState));
+
+    // Assign reconnection event listeners
+    instance.on('sessionReconnecting', (): void => dispatch(setReconnecting()));
+    instance.on('sessionReconnected', (): void => dispatch(setReconnected()));
+    instance.on('sessionDisconnected', (): void => dispatch(setDisconnected()));
   };
 
   const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = true): CoreOptions => ({

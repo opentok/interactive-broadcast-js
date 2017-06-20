@@ -55,6 +55,8 @@ const initialState = (): BroadcastState => ({
   viewers: 0,
   interactiveLimit: 0,
   archiving: false,
+  reconnecting: false,
+  disconnected: false,
 });
 
 const activeFansUpdate = (activeFans: ActiveFans, update: ActiveFanMap): ActiveFans => {
@@ -82,6 +84,10 @@ const updateFanOrder = (activeFans: ActiveFans, update: ActiveFanOrderUpdate): A
 
 const broadcast = (state: BroadcastState = initialState(), action: BroadcastAction): BroadcastState => {
   switch (action.type) {
+    case 'SET_RECONNECTING':
+      return R.assoc('reconnecting', action.reconnecting, state);
+    case 'SET_DISCONNECTED':
+      return R.assoc('disconnected', action.disconnected, state);
     case 'SET_PUBLISH_ONLY_ENABLED':
       return R.assoc('publishOnlyEnabled', action.publishOnlyEnabled, state);
     case 'BROADCAST_PARTICIPANT_JOINED':

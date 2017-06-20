@@ -24,7 +24,7 @@ class ProducerPrimary extends Component {
   }
 
   render(): ReactComponent {
-    const { inPrivateCall, viewers, interactiveLimit } = this.props.broadcast;
+    const { inPrivateCall, viewers, interactiveLimit, disconnected } = this.props.broadcast;
     return (
       <div className="ProducerPrimary admin-page-content">
         <div className="ProducerPrimary-info">
@@ -34,6 +34,9 @@ class ProducerPrimary extends Component {
           <div className="time"><Icon name="clock-o" /> Elapsed time --:--:--</div>
           <div className={classNames('private-call', { active: !!inPrivateCall })}>
             You are in a private call with { inPrivateCall ? `the ${properCase(R.defaultTo('')(inPrivateCall))}` : '...' }
+          </div>
+          <div className={classNames('private-call', { active: !!disconnected })}>
+            Unable to establish connection, please check your network connection and refresh.
           </div>
         </div>
         <div className="ProducerPrimary-participants">

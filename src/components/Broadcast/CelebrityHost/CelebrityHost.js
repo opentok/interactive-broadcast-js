@@ -13,6 +13,7 @@ import CelebrityHostHeader from './components/CelebrityHostHeader';
 import CelebrityHostBody from './components/CelebrityHostBody';
 import Loading from '../../../components/Common/Loading';
 import Chat from '../../../components/Common/Chat';
+import NetworkReconnect from '../../Common/NetworkReconnect';
 import { disconnect } from '../../../services/opentok';
 import './CelebrityHost.css';
 
@@ -23,7 +24,8 @@ type BaseProps = {
   adminId: string,
   userType: 'host' | 'celebrity',
   userUrl: string,
-  broadcast: BroadcastState
+  broadcast: BroadcastState,
+  disconnected: boolean
 };
 type DispatchProps = {
   init: CelebHostInitOptions => void,
@@ -57,13 +59,14 @@ class CelebrityHost extends Component {
   }
 
   render(): ReactComponent {
-    const { userType, togglePublishOnly, broadcast } = this.props;
+    const { userType, togglePublishOnly, broadcast, disconnected } = this.props;
     const { event, participants, publishOnlyEnabled, inPrivateCall, chats } = broadcast;
     const producerChat = R.prop('producer', chats);
     if (!event) return <Loading />;
     const availableParticipants = publishOnlyEnabled ? null : participants;
     return (
       <div className="CelebrityHost">
+        <NetworkReconnect />
         <div className="Container">
           <CelebrityHostHeader
             name={event.name}
@@ -72,6 +75,7 @@ class CelebrityHost extends Component {
             togglePublishOnly={togglePublishOnly}
             publishOnlyEnabled={publishOnlyEnabled}
             inPrivateCall={inPrivateCall}
+            disconnected={disconnected}
           />
           <CelebrityHostBody
             endImage={event.endImage}
@@ -95,6 +99,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     userType: R.path(['route', 'userType'], ownProps),
     userUrl: hostUrl || celebrityUrl,
     broadcast: R.prop('broadcast', state),
+    disconnected: R.path(['broadcast', 'disconnected'], state),
   };
 };
 

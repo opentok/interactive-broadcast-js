@@ -7,6 +7,7 @@ import classNames from 'classnames';
 import ProducerHeader from './components/ProducerHeader';
 import ProducerSidePanel from './components/ProducerSidePanel';
 import ProducerPrimary from './components/ProducerPrimary';
+import NetworkReconnect from '../../Common/NetworkReconnect';
 import ProducerChat from './components/ProducerChat';
 import { initializeBroadcast, resetBroadcastEvent } from '../../../actions/producer';
 import './Producer.css';
@@ -60,6 +61,7 @@ class Producer extends Component {
     const { broadcast } = this.props;
     return (
       <div className="Producer">
+        <NetworkReconnect />
         <div className={classNames('Producer-main', { full: !showingSidePanel })} >
           <ProducerHeader showingSidePanel={showingSidePanel} toggleSidePanel={toggleSidePanel} />
           <ProducerPrimary />
