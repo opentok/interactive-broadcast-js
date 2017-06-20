@@ -29,8 +29,6 @@ type DispatchProps = {
 type Props = BaseProps & DispatchProps;
 /* beautify preserve:end */
 
-const eventNameFromProps: (Props => string) = R.pathOr('', ['event', 'name']);
-
 type EventFormState = {
   fields: {
     name: string,
@@ -65,7 +63,7 @@ class EventForm extends Component {
     super(props);
     this.state = {
       fields: {
-        name: eventNameFromProps(this.props),
+        name: '',
         startImage: '',
         endImage: '',
         dateTimeStart: moment().startOf('hour').format('MM/DD/YYYY hh:mm:ss a'),
@@ -88,11 +86,18 @@ class EventForm extends Component {
 
   componentDidMount() {
     this.updateURLs();
+    if (!R.isNil(this.props.event)) {
+      this.setState({
+        fields: this.props.event
+      }, this.updateURLs);
+    }
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (R.isNil(this.props.event) && R.isEmpty(this.state.fields.name)) {
-      this.setState({ fields: R.assoc('name', eventNameFromProps(nextProps), this.state.fields) }, this.updateURLs);
+    if (!R.isNil(this.nextProps.event)) {
+      this.setState({
+        fields: nextProps.event
+      }, this.updateURLs);
     }
   }
 
