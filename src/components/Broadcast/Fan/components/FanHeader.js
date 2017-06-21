@@ -11,10 +11,11 @@ type Props = {
   getInLine: Unit,
   leaveLine: Unit,
   backstageConnected: boolean,
-  disconnected: boolean
+  disconnected: boolean,
+  postProduction: boolean
 };
 const FanHeader = (props: Props): ReactComponent => {
-  const { name, status, ableToJoin, getInLine, leaveLine, backstageConnected, inPrivateCall, disconnected } = props;
+  const { name, status, ableToJoin, getInLine, leaveLine, backstageConnected, inPrivateCall, disconnected, postProduction } = props;
   const getInLineButton = (): ReactComponent =>
     !backstageConnected ?
       <button className="btn green getInLine" onClick={getInLine}>Get In Line</button> :
@@ -26,7 +27,7 @@ const FanHeader = (props: Props): ReactComponent => {
         <h4>{name}<sup>{status === 'notStarted' ? 'NOT STARTED' : status}</sup></h4>
         { ableToJoin && status !== 'closed' &&
           <div>
-            { getInLineButton() }
+            { !postProduction && getInLineButton() }
           </div>
         }
       </div>

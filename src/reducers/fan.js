@@ -6,6 +6,7 @@ const initialState = (): FanState => ({
   fanName: '',
   status: 'disconnected',
   inPrivateCall: false,
+  postProduction: window.location.pathname.startsWith('/post-production/'),
 });
 
 const fan = (state: FanState = initialState(), action: FanAction): FanState => {

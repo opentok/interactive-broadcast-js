@@ -67,6 +67,11 @@ declare type Subscriber = {
   videoWidth: () => number
 };
 
+declare type SubscriberProperties = {
+  subscribeToAudio: boolean,
+  subscribeToVideo: boolean
+}
+
 declare type ConnectionId = string;
 declare type Connection = {
   connectionId: ConnectionId,

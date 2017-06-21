@@ -18,14 +18,15 @@ type Props = {
   backstageConnected: boolean,
   fanStatus: FanStatus,
   ableToJoin: boolean,
-  hlsUrl: string
+  hlsUrl: string,
+  postProduction: boolean
 };
 const FanBody = (props: Props): ReactComponent => {
-  const { isClosed, isLive, image, participants, hasStreams, backstageConnected, fanStatus, ableToJoin, hlsUrl } = props;
+  const { isClosed, isLive, image, participants, hasStreams, backstageConnected, fanStatus, ableToJoin, hlsUrl, postProduction } = props;
   const fanOnStage = R.equals('stage', fanStatus);
-  const showImage = (!isLive || (!hasStreams && ableToJoin)) && !fanOnStage;
+  const showImage = ((!isLive && !postProduction) || (!hasStreams && ableToJoin)) && !fanOnStage;
   const hidePublisher = !backstageConnected || fanOnStage;
-  const shouldSubscribe = isLive || fanOnStage;
+  const shouldSubscribe = isLive || fanOnStage || postProduction;
   const showHLSPlayer = isLive && !ableToJoin && hlsUrl;
   return (
     <div className="FanBody">

@@ -215,10 +215,12 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
       const isLive = R.equals('live', R.path(['broadcast', 'event', 'status'], state));
       const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
       const userHasJoined = R.equals(type, 'streamCreated');
-      // const isStage = R.equals('stage', session);
-      const subscribeStage = (isLive || fanOnStage) && userHasJoined && isStage;
+      const postProduction = R.path(['fan', 'postProduction'], state);
+      const subscribeToAudio = !postProduction || R.equals('fan', userType);
+      const options = { subscribeToAudio };
+      const subscribeStage = (isLive || fanOnStage || postProduction) && userHasJoined && isStage;
       const subscribeBackStage = R.equals('producer', userType) && !isStage;
-      subscribeStage && opentok.subscribe('stage', stream);
+      subscribeStage && opentok.subscribe('stage', stream, options);
       // Subscribe to producer audio for private call
       subscribeBackStage && opentok.subscribe('backstage', stream);
       if (isStage) {

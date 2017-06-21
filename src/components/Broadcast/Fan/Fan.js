@@ -29,7 +29,8 @@ type BaseProps = {
   fanStatus: FanStatus,
   producerChat: ChatState,
   ableToJoin: boolean,
-  disconnected: boolean
+  disconnected: boolean,
+  postProduction: boolean
 };
 type DispatchProps = {
   init: FanInitOptions => void,
@@ -74,6 +75,7 @@ class Fan extends Component {
       producerChat,
       ableToJoin,
       disconnected,
+      postProduction,
     } = this.props;
     if (!event) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
@@ -89,6 +91,7 @@ class Fan extends Component {
             status={status}
             ableToJoin={ableToJoin}
             getInLine={joinLine}
+            postProduction={postProduction}
             leaveLine={leaveLine}
             backstageConnected={backstageConnected}
             inPrivateCall={inPrivateCall}
@@ -105,6 +108,7 @@ class Fan extends Component {
             backstageConnected={backstageConnected}
             ableToJoin={ableToJoin}
             hlsUrl={event.hlsUrl}
+            postProduction={postProduction}
           />
           <div className="FanChat" >
             { producerChat && <Chat chat={producerChat} /> }
@@ -120,6 +124,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
   return {
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),
+    postProduction: R.path(['fan', 'postProduction'], state),
     userUrl: fanUrl,
     inPrivateCall: R.path(['fan', 'inPrivateCall'], state),
     event: R.path(['broadcast', 'event'], state),

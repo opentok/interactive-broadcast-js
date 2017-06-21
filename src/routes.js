@@ -18,6 +18,7 @@ const routes = (
       <IndexRedirect to="login" />
       <Route path="login" component={Login} />
       <Route path="/show/:adminId/:fanUrl" component={Fan} hideHeader userType={'fan'} />
+      <Route path="/post-production/:adminId/:fanUrl" component={Fan} hideHeader userType={'fan'} />
       <Route path="/show-host/:adminId/:hostUrl" component={CelebrityHost} hideHeader userType={'host'} />
       <Route path="/show-celebrity/:adminId/:celebrityUrl" component={CelebrityHost} hideHeader userType={'celebrity'} />
       <Route component={AuthRoutes}>
