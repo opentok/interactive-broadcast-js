@@ -11,8 +11,9 @@ const participantState = (stream?: Stream | null = null): ParticipantState => ({
 });
 
 const initialChatState = (fromType: ChatUser, fromId?: UserId, toType: ChatUser, to: UserWithConnection): ChatState => {
-  const session: SessionName = R.contains('activeFan', [fromType, toType]) ? 'backstage' : 'stage';
-  const chatId = R.equals(toType, 'activeFan') ? `activeFan${R.prop('id', to)}` : toType;
+  const chatIncludesFan = !!R.find(R.contains('fan'), R.map(R.toLower, [fromType, toType]));
+  const session: SessionName = chatIncludesFan ? 'backstage' : 'stage';
+  const chatId = R.contains('fan', R.toLower(toType)) ? `activeFan${R.prop('id', to)}` : toType;
   return {
     chatId,
     session,
@@ -111,11 +112,7 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
     case 'END_PRIVATE_PARTICIPANT_CALL':
       return R.assoc('inPrivateCall', null, state);
     case 'PRIVATE_ACTIVE_FAN_CALL':
-      {
-        const chatId = `activeFan${action.fanId}`;
-        const privateCallUpdate = R.assoc('inPrivateCall', action.inPrivateCall ? chatId : null, state);
-        return R.assocPath(['chats', chatId, 'inPrivateCall'], action.inPrivateCall, privateCallUpdate);
-      }
+      return R.assoc('inPrivateCall', action.inPrivateCall ? `activeFan${action.fanId}` : null, state);
     case 'RESET_BROADCAST_EVENT':
       return initialState();
     case 'UPDATE_ACTIVE_FANS':
@@ -130,9 +127,11 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assocPath(['activeFans', 'order'], updateFanOrder(state.activeFans, action.update), state);
     case 'START_NEW_FAN_CHAT':
       {
-        const minimizeActiveFanChat = (chat: ChatState): ChatState => R.propEq('toType', 'activeFan', chat) ? R.assoc('minimized', true, chat) : chat;
+        const activeOrBackstageFan = R.either(R.propEq('toType', 'activeFan'), R.propEq('toType', 'backstageFan'));
+        const minimizeActiveFanChat = (chat: ChatState): ChatState => activeOrBackstageFan(chat) ? R.assoc('minimized', true, chat) : chat;
         const minimizedChats = R.assoc('chats', R.map(minimizeActiveFanChat, state.chats), state);
-        return R.assocPath(['chats', `activeFan${action.fan.id}`], initialChatState('producer', undefined, 'activeFan', action.fan), minimizedChats);
+        const newChat = initialChatState('producer', undefined, action.toType, action.fan);
+        return R.assocPath(['chats', `activeFan${action.fan.id}`], newChat, minimizedChats);
       }
     case 'START_NEW_PARTICIPANT_CHAT':
       {
@@ -141,6 +140,8 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       }
     case 'START_NEW_PRODUCER_CHAT':
       return R.assocPath(['chats', 'producer'], initialChatState(action.fromType, action.fromId, 'producer', action.producer), state);
+    case 'UPDATE_CHAT_PROPERTY':
+      return R.assocPath(['chats', action.chatId, action.property], action.update, state);
     case 'DISPLAY_CHAT':
       return R.assocPath(['chats', action.chatId, 'displayed'], action.display, state);
     case 'REMOVE_CHAT':

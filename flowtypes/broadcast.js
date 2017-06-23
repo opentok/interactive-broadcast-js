@@ -75,7 +75,7 @@ declare type ActiveFans = {
   map: ActiveFanMap
 }
 
-declare type ChatId = ParticipantType | string;
+declare type ChatId = ParticipantType | UserId;
 declare type ProducerChats = {[chatId: ChatId]: ChatState };
 declare type PrivateCallState = null | ParticipantType | string; // String will be used for active fans (e.g. activeFan${activeFan.id})
 
@@ -109,7 +109,11 @@ declare type FanState = {
   ableToJoin: boolean,
   fanName: string,
   status: FanStatus,
-  inPrivateCall: boolean
+  inPrivateCall: boolean,
+  networkTest: {
+    interval: number | null,
+    timeout: number | null
+  }
 };
 
 declare type FanType = 'activeFan' | 'backstageFan' | 'fan';
@@ -171,9 +175,10 @@ declare type BroadcastAction =
   { type: 'END_PRIVATE_ACTIVE_FAN_CALL', fan: ActiveFan } |
   { type: 'UPDATE_ACTIVE_FANS', update: ActiveFanMap } |
   { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate } |
-  { type: 'START_NEW_FAN_CHAT', fan: ActiveFanWithConnection, privateCall?: boolean } |
+  { type: 'START_NEW_FAN_CHAT', fan: ActiveFanWithConnection, toType: FanType, privateCall?: boolean } |
   { type: 'START_NEW_PARTICIPANT_CHAT', participantType: ParticipantType, participant: ParticipantWithConnection } |
   { type: 'START_NEW_PRODUCER_CHAT', fromType: ChatUser, fromId?: UserId, producer: ProducerWithConnection } |
+  { type: 'UPDATE_CHAT_PROPERTY', chatId: ChatId, property: $Keys<ChatState>, update: * } |
   { type: 'REMOVE_CHAT', chatId: ChatId } |
   { type: 'DISPLAY_CHAT', chatId: ChatId, display: boolean } |
   { type: 'MINIMIZE_CHAT', chatId: ChatId, minimize: boolean } |
@@ -190,4 +195,6 @@ declare type FanAction =
   { type: 'SET_FAN_NAME', fanName: string } |
   { type: 'SET_FAN_STATUS', status: FanStatus } |
   { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean } |
-  { type: 'SET_FAN_PRIVATE_CALL', inPrivateCall: boolean };
+  { type: 'SET_FAN_PRIVATE_CALL', inPrivateCall: boolean } |
+  { type: 'SET_NETWORK_TEST_INTERVAL', interval: null | number } |
+  { type: 'SET_NETWORK_TEST_TIMEOUT', timeout: null | number };

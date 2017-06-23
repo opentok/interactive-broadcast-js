@@ -29,7 +29,8 @@ type DispatchProps = {
   toggleVolume: Unit,
   privateCall: Unit,
   chat: Unit,
-  kickFan: Unit
+  kickFan: Unit,
+  sendFanToStage: Unit
 };
 
 type Props = OwnProps & BaseProps & DispatchProps;
@@ -40,7 +41,10 @@ const Participant = (props: Props): ReactComponent => {
   const me = R.prop(type, broadcast.participants) || {};
   const stageCountdown = broadcast.stageCountdown;
   const inPrivateCall = R.equals(broadcast.inPrivateCall, type);
-
+  const availableForPrivateCall = (): boolean => {
+    const inPreshow = R.pathEq(['event', 'status'], 'preshow', broadcast);
+    return (me.connected && (inPreshow || isBackstageFan(type)));
+  };
   const statusIconClass = classNames('icon', { green: me.connected });
   const controlIconClass = classNames('icon', { active: me.connected });
   const status = me.connected ? 'Online' : 'Offline';
@@ -81,7 +85,7 @@ const Participant = (props: Props): ReactComponent => {
           <ControlIcon
             name={inPrivateCall ? 'phone-square' : 'phone'}
             className={controlIconClass}
-            disabled={!me.connected}
+            disabled={!availableForPrivateCall()}
             onClick={privateCall}
           />
           <ControlIcon

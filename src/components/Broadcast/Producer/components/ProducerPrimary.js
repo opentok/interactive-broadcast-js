@@ -9,6 +9,15 @@ import Particpant from './Participant';
 import { properCase } from '../../../../services/util';
 import './ProducerPrimary.css';
 
+const inPrivateCallWith = (inPrivateCall: string, activeFans: ActiveFans): string => {
+  const withActiveFan = R.contains('activeFan', inPrivateCall);
+  if (!withActiveFan) {
+    return `the ${properCase(R.defaultTo('')(inPrivateCall))}`;
+  }
+  const fanId = R.last(R.split('activeFan', inPrivateCall));
+  return R.path(['map', fanId, 'name'], activeFans);
+};
+
 /* beautify preserve:start */
 type Props = {
   broadcast: BroadcastState
@@ -24,7 +33,7 @@ class ProducerPrimary extends Component {
   }
 
   render(): ReactComponent {
-    const { inPrivateCall, viewers, interactiveLimit, disconnected } = this.props.broadcast;
+    const { inPrivateCall, viewers, interactiveLimit, activeFans, disconnected } = this.props.broadcast;
     return (
       <div className="ProducerPrimary admin-page-content">
         <div className="ProducerPrimary-info">
@@ -33,7 +42,7 @@ class ProducerPrimary extends Component {
           </div>
           <div className="time"><Icon name="clock-o" /> Elapsed time --:--:--</div>
           <div className={classNames('private-call', { active: !!inPrivateCall })}>
-            You are in a private call with { inPrivateCall ? `the ${properCase(R.defaultTo('')(inPrivateCall))}` : '...' }
+            You are in a private call with { inPrivateCall ? inPrivateCallWith(inPrivateCall, activeFans) : '...' }
           </div>
           <div className={classNames('private-call', { active: !!disconnected })}>
             Unable to establish connection, please check your network connection and refresh.

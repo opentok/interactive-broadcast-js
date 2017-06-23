@@ -68,8 +68,8 @@ declare type Subscriber = {
 };
 
 declare type SubscriberProperties = {
-  subscribeToAudio: boolean,
-  subscribeToVideo: boolean
+  subscribeToAudio?: boolean,
+  subscribeToVideo?: boolean
 }
 
 declare type ConnectionId = string;

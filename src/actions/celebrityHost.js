@@ -13,6 +13,7 @@ import {
   setReconnecting,
   setReconnected,
   setDisconnected,
+  onChatMessage,
 } from './broadcast';
 import { getEventWithCredentials } from '../services/api';
 import { setInfo, setBlockUserAlert } from './alert';
@@ -31,6 +32,7 @@ const receivedChatMessage: ThunkActionCreator = (connection: Connection, message
     const actions = [
       ({ type: 'START_NEW_PRODUCER_CHAT', fromType, producer: { connection } }),
       ({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', false, message) }),
+      onChatMessage('producer'),
     ];
     R.forEach(dispatch, existingChat ? R.tail(actions) : actions);
   };
@@ -102,10 +104,11 @@ const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserDa
     const otStreamEvents: StreamEventType[] = ['streamCreated', 'streamDestroyed'];
     const handleStreamEvent: StreamEventHandler = ({ type, stream }: OTStreamEvent) => {
       const user: UserRole = R.prop('userType', JSON.parse(stream.connection.data));
+      const streamCreated = R.equals(type, 'streamCreated');
       if (R.equals(user, 'producer')) {
-        opentok.createEmptySubscriber('stage', stream);
+        streamCreated ? opentok.createEmptySubscriber('stage', stream) : dispatch(endPrivateCall(userType, true));
       } else {
-        opentok.subscribe('stage', stream);
+        streamCreated && opentok.subscribe('stage', stream);
         dispatch(updateParticipants(user, type, stream));
       }
 

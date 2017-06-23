@@ -10,11 +10,10 @@ import {
   updateParticipants,
   setBroadcastEventStatus,
   setBackstageConnected,
-  startPrivateCall,
-  endPrivateCall,
   setReconnecting,
   setReconnected,
   setDisconnected,
+  onChatMessage,
 } from './broadcast';
 import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
@@ -24,21 +23,51 @@ import { getEventWithCredentials } from '../services/api';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
 
-const setFanStatus: ActionCreator = (status: FanStatus): FanAction => ({
-  type: 'SET_FAN_STATUS',
-  status,
-});
 
+// Get the fan type based on their status
+const fanTypeByStatus = (status: FanStatus): FanType => {
+  switch (status) {
+    case 'inLine':
+      return 'activeFan';
+    case 'backstage':
+      return 'backstageFan';
+    case 'stage':
+      return 'fan';
+    default:
+      return 'activeFan';
+  }
+};
+
+// Set the fan's name
 const setFanName: ActionCreator = (fanName: string): FanAction => ({
   type: 'SET_FAN_NAME',
   fanName,
 });
 
+// Is the fan able to join the interactive session
 const setAbleToJoin: ActionCreator = (ableToJoin: boolean): FanAction => ({
   type: 'SET_ABLE_TO_JOIN',
   ableToJoin,
 });
 
+/**
+ * Update the fan status and the producer chat (if extists)
+ */
+const setFanStatus: ThunkActionCreator = (status: FanStatus): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const state = getState();
+    const existingChat = R.path(['broadcast', 'chats', 'producer'], state);
+    if (existingChat) {
+      const update = fanTypeByStatus(status);
+      dispatch({ type: 'UPDATE_CHAT_PROPERTY', chatId: 'producer', property: 'fromType', update });
+    }
+    dispatch({ type: 'SET_FAN_STATUS', status });
+  };
+
+
+/**
+ * Create a snapshot for the producer
+ */
 const createSnapshot = async (publisher: Publisher): ImgData => {
   try {
     const fanSnapshot = await takeSnapshot(publisher.getImgData()); // $FlowFixMe @TODO: resolve flow error
@@ -49,33 +78,88 @@ const createSnapshot = async (publisher: Publisher): ImgData => {
   }
 };
 
+/**
+ * Start checking and reporting the network quality of the fan every 15 seconds
+ */
+const setupNetworkTest: ThunkActionCreator = (fanId: UserId, adminId: UserId, fanUrl: string): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    try {
+      // Get an existing host or celebrity subscriber object
+      const hostOrCelebSubscriber = (): TestSubscriber | void => {
+        const coreState = opentok.state('stage');
+        const isHostOrCeleb = ({ stream }: { stream: Stream }): boolean => {
+          const { userType } = JSON.parse(R.pathOr(null, ['connection', 'data'], stream));
+          return R.contains(userType, ['host', 'celebrity']);
+        };
+        return R.find(isHostOrCeleb, R.values(coreState.subscribers.camera));
+      };
+      // Use an available subscriber or create a new test subscriber
+      const getSubscriber = async (): Promise<TestSubscriber> => hostOrCelebSubscriber() || opentok.createTestSubscriber('backstage');
 
+      let subscriber: TestSubscriber = await getSubscriber();
+      const updateNetworkQuality = async (): AsyncVoid => {
+        const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
+        const networkQuality: QualityRating => NetworkQuality = R.cond([
+          [R.isNil, R.always(null)],
+          [R.equals(5), R.always('great')],
+          [R.lte(3), R.always('good')],
+          [R.gt(3), R.always('poor')],
+        ]);
+        try {
+          // If the subscriber is no longer available, get or create a new one
+          if (!subscriber.stream) {
+            subscriber = await getSubscriber();
+          }
+          const qualityRating: QualityRating = await networkTest({ subscriber });
+          ref.update({ networkQuality: networkQuality(qualityRating) });
+        } catch (error) {
+          console.log(error);
+          ref.update({ networkQuality: null });
+        }
+      };
+      updateNetworkQuality();
+      const interval = setInterval(updateNetworkQuality, 15 * 1000);
+      dispatch({ type: 'SET_NETWORK_TEST_INTERVAL', interval });
+    } catch (error) {
+      console.log('Failed to set up network test', error);
+      const timeout = setTimeout((): void => dispatch(setupNetworkTest(fanId, adminId, fanUrl)), 3000);
+      dispatch({ type: 'SET_NETWORK_TEST_TIMEOUT', timeout });
+    }
+  };
+
+/**
+ * Cancel network connection sampling when fan leaves the line or disconnects
+ */
+const cancelNetworkTest: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const { interval, timeout } = getState().fan.networkTest;
+    interval && clearInterval(interval);
+    timeout && clearTimeout(timeout);
+    dispatch({ type: 'SET_NETWORK_TEST_INTERVAL', interval: null });
+    dispatch({ type: 'SET_NETWORK_TEST_TIMEOUT', timeout: null });
+  };
+
+
+/**
+ * Handle a new chat message from the producer
+ */
 const receivedChatMessage: ThunkActionCreator = (connection: Connection, message: ChatMessage): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const chatId = 'producer';
     const state = getState();
     const existingChat = R.pathOr(null, ['broadcast', 'chats', chatId], state);
-    const fanType = (): ChatUser => {
-      const status: FanStatus = R.path(['fan', 'fanStatus'], state);
-      switch (status) {
-        case 'inLine':
-          return 'activeFan';
-        case 'backstage':
-          return 'backstageFan';
-        case 'stage':
-          return 'fan';
-        default:
-          return 'activeFan';
-      }
-    };
     const fromId = firebase.auth().currentUser.uid;
     const actions = [
-      ({ type: 'START_NEW_PRODUCER_CHAT', fromType: fanType(), fromId, producer: { connection } }),
+      ({ type: 'START_NEW_PRODUCER_CHAT', fromType: fanTypeByStatus(R.prop('status', state.fan)), fromId, producer: { connection } }),
       ({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', false, message) }),
+      onChatMessage(chatId),
     ];
     R.forEach(dispatch, existingChat ? R.tail(actions) : actions);
   };
 
+/**
+ * Remove the fan's record from firebase
+ */
 const removeActiveFanRecord: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   async (): AsyncVoid => {
     const fanId = firebase.auth().currentUser.uid;
@@ -91,6 +175,9 @@ const removeActiveFanRecord: ThunkActionCreator = (event: BroadcastEvent): Thunk
     }
   };
 
+/**
+ * Leave the line
+ */
 const leaveTheLine: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const state = getState();
@@ -99,10 +186,21 @@ const leaveTheLine: ThunkActionCreator = (): Thunk =>
     const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
     await opentok.disconnectFromInstance('backstage');
     if (fanOnStage) await isLive ? opentok.unpublish('stage') : opentok.endCall('stage');
+    dispatch(cancelNetworkTest());
     dispatch(setBackstageConnected(false));
     dispatch(removeActiveFanRecord(event));
     dispatch(setFanStatus('disconnected'));
+  };
 
+/**
+ * Start or end a private call with the producer
+ */
+const handlePrivateCall: ThunkActionCreator = (inPrivateCall: boolean): Thunk =>
+  (dispatch: Dispatch) => {
+    const producerStream = opentok.getStreamByUserType('backstage', 'producer');
+    const action = inPrivateCall ? 'subscribeToAudio' : 'unsubscribeFromAudio';
+    producerStream && opentok[action]('backstage', producerStream);
+    dispatch({ type: 'SET_FAN_PRIVATE_CALL', inPrivateCall });
   };
 
 const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
@@ -135,10 +233,10 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         dispatch(receivedChatMessage(from, signalData));
         break;
       case 'privateCall':
-        fromProducer && dispatch(startPrivateCall(signalData.callWith, R.equals(signalData.callWith, fanType)));
+        fromProducer && R.equals(signalData.callWith, fanType) && dispatch(handlePrivateCall(true));
         break;
       case 'endPrivateCall':
-        fromProducer && dispatch(endPrivateCall(fanType));
+        fromProducer && R.equals(signalData.callWith, fanType) && dispatch(handlePrivateCall(false));
         break;
       case 'openChat': // @TODO
       case 'finishEvent':
@@ -293,6 +391,33 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
 };
 
 /**
+ * Keep an eye on the producer. If producer refreshes or disconnects, we will end any active
+ * private calls.
+ */
+const monitorProducerPresence: ThunkActionCreator = (): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    const { broadcast } = getState();
+    const { adminId, fanUrl } = R.propOr({}, 'event', broadcast);
+    const producerRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/producerActive`);
+    try {
+      producerRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
+        const producerActive = snapshot.val();
+        if (!producerActive) {
+          try {
+            const fanId = firebase.auth().currentUser.uid;
+            const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
+            ref.update({ inPrivateCall: false });
+          } catch (error) {
+            console.log('Failed to update fan record');
+          }
+        }
+      });
+    } catch (error) {
+      console.log('Failed to set listener on proudcer presence', error);
+    }
+  };
+
+/**
  * Connect to OpenTok sessions
  */
 const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials): Thunk =>
@@ -301,54 +426,12 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
     opentok.init(instances);
     await opentok.connect(['stage']);
     dispatch(setBroadcastState(opentok.state('stage')));
+    dispatch(monitorProducerPresence());
   };
 
 /**
- * Start checking and reporting the network quality of the fan every 15 seconds
+ * Create an active fan record in firebase
  */
-const setupNetworkTest = async (fanId: UserId, adminId: UserId, fanUrl: string): AsyncVoid => {
-  try {
-    // Get an existing host or celebrity subscriber object
-    const hostOrCelebSubscriber = (): TestSubscriber | void => {
-      const coreState = opentok.state('stage');
-      const isHostOrCeleb = ({ stream }: { stream: Stream }): boolean => {
-        const { userType } = JSON.parse(R.pathOr(null, ['connection', 'data'], stream));
-        return R.contains(userType, ['host', 'celebrity']);
-      };
-      return R.find(isHostOrCeleb, R.values(coreState.subscribers.camera));
-    };
-    // Use an available subscriber or create a new test subscriber
-    const getSubscriber = async (): Promise<TestSubscriber> => hostOrCelebSubscriber() || opentok.createTestSubscriber('backstage');
-
-    let subscriber: TestSubscriber = await getSubscriber();
-    const updateNetworkQuality = async (): AsyncVoid => {
-      const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
-      const networkQuality: QualityRating => NetworkQuality = R.cond([
-        [R.isNil, R.always(null)],
-        [R.equals(5), R.always('great')],
-        [R.lte(3), R.always('good')],
-        [R.gt(3), R.always('poor')],
-      ]);
-      try {
-        // If the subscriber is no longer available, get or create a new one
-        if (!subscriber.stream) {
-          subscriber = await getSubscriber();
-        }
-        const qualityRating: QualityRating = await networkTest({ subscriber });
-        ref.update({ networkQuality: networkQuality(qualityRating) });
-      } catch (error) {
-        console.log(error);
-        ref.update({ networkQuality: null });
-      }
-    };
-    updateNetworkQuality();
-    setInterval(updateNetworkQuality, 15 * 1000);
-  } catch (error) {
-    console.log('Failed to set up network test', error);
-    setTimeout(setupNetworkTest, 3000);
-  }
-};
-
 const createActiveFanRecord: ThunkActionCreator = (uid: UserId, adminId: string, fanUrl: string): Thunk =>
   async (): AsyncVoid => {
     /* Create a record in firebase */
@@ -365,14 +448,9 @@ const createActiveFanRecord: ThunkActionCreator = (uid: UserId, adminId: string,
     }
   };
 
-const handlePrivateCall: ThunkActionCreator = (inPrivateCall: boolean): Thunk =>
-  (dispatch: Dispatch) => {
-    const producerStream = opentok.getStreamByUserType('backstage', 'producer');
-    const action = inPrivateCall ? 'subscribeToAudio' : 'unsubscribeFromAudio';
-    opentok[action]('backstage', producerStream);
-    dispatch({ type: 'SET_FAN_PRIVATE_CALL', inPrivateCall });
-  };
-
+/**
+ * Update the active fan record in firebase
+ */
 const updateActiveFanRecord: ThunkActionCreator = (name: string, event: BroadcastEvent): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const fanId = firebase.auth().currentUser.uid;
@@ -393,23 +471,12 @@ const updateActiveFanRecord: ThunkActionCreator = (name: string, event: Broadcas
     const fanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
     try {
       fanRef.update(record);
-      setupNetworkTest(fanId, adminId, fanUrl);
+      dispatch(setupNetworkTest(fanId, adminId, fanUrl));
       fanRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
         const { inPrivateCall, isBackstage } = snapshot.val();
         isBackstage && dispatch(setFanStatus('backstage'));
         dispatch(handlePrivateCall(inPrivateCall));
       });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-
-const joinActiveFans: ThunkActionCreator = (fanName: string): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const event = R.path(['broadcast', 'event'], getState());
-    try {
-      dispatch(updateActiveFanRecord(fanName, event));
     } catch (error) {
       console.log(error);
     }
@@ -489,7 +556,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
   };
 
 const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     /* Close the prompt */
     dispatch(resetAlert());
     /* Save the fan name in the storage */
@@ -501,7 +568,7 @@ const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
     /* Save the fan status  */
     dispatch(setFanStatus('inLine'));
     /* update the record in firebase adding the fan name + snapshot */
-    dispatch(joinActiveFans(fanName));
+    dispatch(updateActiveFanRecord(fanName, R.path(['broadcast', 'event'], getState())));
   };
 
 const getInLine: ThunkActionCreator = (): Thunk =>

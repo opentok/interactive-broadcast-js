@@ -203,7 +203,7 @@ const unsubscribeAll = (instance: SessionName, audioOnly?: boolean = false): Cor
 /**
  * subscribe to a stream
  */
-const subscribe = async (instance: SessionName, stream: Stream, subscriberProperties: SubscriberProperties): AsyncVoid => {
+const subscribe = async (instance: SessionName, stream: Stream, subscriberProperties?: SubscriberProperties): AsyncVoid => {
   try {
     const core = instances[instance];
     await core.subscribe(stream, subscriberProperties);

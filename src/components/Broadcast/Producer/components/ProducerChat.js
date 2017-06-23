@@ -39,13 +39,13 @@ class ActiveFanChats extends Component {
 
   render(): ReactComponent {
     const { toggleChat } = this;
-    const { chats, actions, activeFans } = this.props;
+    const { chats, activeFans } = this.props;
     const { showingList } = this.state;
     const { toggleShowingList } = this;
     const nonActive = R.either(R.propEq('minimized', true), R.propEq('displayed', false));
     const [nonActiveChats, activeChats] = R.partition(nonActive, chats);
     const nonActiveOpenChats = R.reject(R.propEq('displayed', false), nonActiveChats);
-    const { kickFan, sendFanToBackstage, sendFanToStage, startCall, endCall } = actions;
+    const { kickFan, sendFanToBackstage, sendFanToStage, startCall, endCall } = R.prop('actions', this.props);
     const nonActiveChatItem = (chat: ChatState): ReactComponent =>
       <li key={chat.chatId}>
         <button className="btn blue" onClick={R.partial(toggleChat, [chat.chatId])}>
@@ -57,7 +57,7 @@ class ActiveFanChats extends Component {
     const activeFanChatActions = (chat: ChatState): ReactComponent => {
       const fan: ActiveFan = R.prop(R.path(['to', 'id'], chat), activeFans);
 
-      const getStageAction = (): { stageAction: Unit, stageText: string } => {
+      const getStageAction = (): ({ stageAction: (?Fan) => void, stageText: string }) => {
         if (fan.isBackstage) {
           return { stageAction: sendFanToStage, stageText: 'Send To Stage' };
         } else if (fan.isOnStage) {
@@ -119,7 +119,9 @@ type DispatchProps = {
 };
 type Props = InitialProps & BaseProps & DispatchProps;
 const ProducerChat = ({ chats, activeFans, actions, toggleActiveChat }: Props): ReactComponent => {
-  const [activeFanChats, participantChats] = R.partition(R.propEq('toType', 'activeFan'), chats);
+  const activeOrBackstageFan = R.either(R.propEq('toType', 'activeFan'), R.propEq('toType', 'backstageFan'));
+  const [activeFanChats, participantChats] = R.partition(activeOrBackstageFan, chats);
+
   return (
     <div className="ProducerChat">
       { R.map(renderChat, R.values(participantChats))}

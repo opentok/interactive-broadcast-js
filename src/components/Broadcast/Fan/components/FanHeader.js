@@ -31,11 +31,11 @@ const FanHeader = (props: Props): ReactComponent => {
           </div>
         }
       </div>
-      <div className={classNames('Fan-private-call', { active: !!inPrivateCall })}>
-        You are in a private call with the Producer
-      </div>
-      <div className={classNames('Fan-private-call', { active: !!disconnected })}>
-        Unable to establish connection, please check your network connection and refresh.
+      <div className={classNames('Fan-notice', { active: !!inPrivateCall || !!disconnected })}>
+        { inPrivateCall ?
+            'You are in a private call with the Producer' :
+            'Unable to establish connection, please check your network connection and refresh.'
+        }
       </div>
     </div>
   );

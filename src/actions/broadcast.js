@@ -48,6 +48,12 @@ const setBroadcastEvent: ActionCreator = (event: BroadcastEvent): BroadcastActio
   event,
 });
 
+const onChatMessage: ThunkActionCreator = (chatId: ChatId): Thunk =>
+  (dispatch: Dispatch) => {
+    dispatch({ type: 'DISPLAY_CHAT', chatId, display: true });
+    dispatch({ type: 'MINIMIZE_CHAT', chatId, minimize: false });
+  };
+
 const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, connectToProducer?: boolean = false): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     const instance = R.equals(participant, 'backstageFan') ? 'backstage' : 'stage';
@@ -118,6 +124,7 @@ const kickFanFromFeed: ThunkActionCreator = (participantType: ParticipantType): 
     const type = isStage ? 'disconnect' : 'disconnectBackstage';
     await opentok.signal(instance, { type, to });
     await opentok.unsubscribe(instance, stream);
+    dispatch({ type: 'REMOVE_CHAT', chatId: participantType });
     dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
   };
 
@@ -196,6 +203,8 @@ const publishOnly: ThunkActionCreator = (): Thunk =>
 
 const sendChatMessage: ThunkActionCreator = (chatId: ChatId, message: ChatMessagePartial): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    console.log(chatId);
+    console.log(getState().broadcast.chats);
     const chat: ChatState = R.path(['broadcast', 'chats', chatId], getState());
     try {
       await opentok.signal(chat.session, { type: 'chatMessage', to: chat.to.connection, data: message });
@@ -234,6 +243,7 @@ module.exports = {
   kickFanFromFeed,
   minimizeChat,
   displayChat,
+  onChatMessage,
   updateStageCountdown,
   setBroadcastEvent,
   setReconnecting,

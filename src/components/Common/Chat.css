@@ -21,6 +21,8 @@
 .ChatHeader .icon {
     color: white;
     background-color: transparent;
+    text-align: left;
+    font-size: 13px;
 }
 
 .ChatHeader .btn.minimize:hover {

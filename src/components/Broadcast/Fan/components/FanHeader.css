@@ -78,7 +78,7 @@
   width: 110px;
 }
 
-.Fan-private-call {
+.Fan-notice {
   width: 100%;
   background: #EF4836;
   color: white;
@@ -86,6 +86,6 @@
   transition: opacity 1s ease-in-out;
 }
 
-.Fan-private-call.active {
+.Fan-notice.active {
   opacity: 1;
 }

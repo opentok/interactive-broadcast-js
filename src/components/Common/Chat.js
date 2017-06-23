@@ -81,12 +81,21 @@ class Chat extends Component {
 
   render(): ReactComponent {
     const { displayed, minimized, messages, toType, to } = this.props.chat;
+    const name = R.prop('name', to);
     const { minimize, hide } = this.props;
-    const ChatActions = R.propOr(null, 'actions', this.props);
     const { newMessageText } = this.state;
     const { handleSubmit, handleChange } = this;
+
+    const ChatActions = R.propOr(null, 'actions', this.props);
+
     const chattingWithActiveFan = R.equals(toType, 'activeFan');
-    const chattingWith = properCase(chattingWithActiveFan ? R.prop('name', to) : (toType));
+    const chattingWith = chattingWithActiveFan ?
+      properCase(name) :
+      R.cond([
+        [R.equals('backstageFan'), R.always(`Backstage Fan - ${name}`)],
+        [R.equals('fan'), R.always(`Fan - ${name}`)],
+        [R.T, R.always(properCase(toType))],
+      ])(toType);
     const inPrivateCall = R.and(chattingWithActiveFan, R.prop('inPrivateCall', this.props.chat));
     return (
       <div className={classNames('Chat', toType, { hidden: !displayed })}>
