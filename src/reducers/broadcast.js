@@ -58,6 +58,7 @@ const initialState = (): BroadcastState => ({
   archiving: false,
   reconnecting: false,
   disconnected: false,
+  elapsedTime: '--:--:--',
 });
 
 const activeFansUpdate = (activeFans: ActiveFans, update: ActiveFanMap): ActiveFans => {
@@ -103,6 +104,10 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('event', action.event, state);
     case 'SET_BROADCAST_EVENT_STATUS':
       return R.assoc('event', R.assoc('status', action.status, state.event), state);
+    case 'SET_BROADCAST_EVENT_SHOW_STARTED':
+      return R.assoc('event', R.assoc('showStartedAt', action.showStartedAt, state.event), state);
+    case 'SET_ELAPSED_TIME':
+      return R.assoc('elapsedTime', action.elapsedTime, state);
     case 'BROADCAST_CONNECTED':
       return R.assoc('connected', action.connected, state);
     case 'BACKSTAGE_CONNECTED':

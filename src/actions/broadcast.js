@@ -1,5 +1,6 @@
 // @flow
 import R from 'ramda';
+import moment from 'moment';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 
@@ -215,6 +216,33 @@ const sendChatMessage: ThunkActionCreator = (chatId: ChatId, message: ChatMessag
     dispatch({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', true, message) });
   };
 
+let timer;
+const startElapsedTimeInterval: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const showStartedAt = R.path(['broadcast', 'event', 'showStartedAt'], getState());
+    /* Convert the timeStamp to YYYY-MM-DD HH:mm:ss format */
+    const to = moment(moment.utc(showStartedAt).toDate()).format('YYYY-MM-DD HH:mm:ss');
+    /* Get the current datetime */
+    const now = moment().format('YYYY-MM-DD HH:mm:ss');
+    /* Get the difference between both dates and update the store */
+    const elapsedTime = moment.utc(moment(now).diff(to)).format('HH:mm:ss');
+    dispatch({ type: 'SET_ELAPSED_TIME', elapsedTime });
+  };
+
+const startElapsedTime: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch) => {
+    timer = setInterval((): void => dispatch(startElapsedTimeInterval()), 1000);
+  };
+
+const stopElapsedTime: ThunkActionCreator = (): Thunk => (): void => clearInterval(timer);
+
+const setBroadcastEventShowStarted: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch) => {
+    const showStartedAt = moment.utc().format();
+    dispatch({ type: 'SET_BROADCAST_EVENT_SHOW_STARTED', showStartedAt });
+    dispatch(startElapsedTime());
+  };
+
 const minimizeChat: ActionCreator = (chatId: ChatId, minimize?: boolean = true): BroadcastAction => ({
   type: 'MINIMIZE_CHAT',
   chatId,
@@ -249,4 +277,7 @@ module.exports = {
   setReconnecting,
   setReconnected,
   setDisconnected,
+  setBroadcastEventShowStarted,
+  stopElapsedTime,
+  startElapsedTime,
 };

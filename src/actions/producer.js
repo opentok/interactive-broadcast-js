@@ -8,6 +8,9 @@ import firebase from '../services/firebase';
 import opentok from '../services/opentok';
 import {
   setBroadcastEventStatus,
+  setBroadcastEventShowStarted,
+  startElapsedTime,
+  stopElapsedTime,
   kickFanFromFeed,
   setBroadcastState,
   updateParticipants,
@@ -22,6 +25,7 @@ import {
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
 
 const notStarted = R.propEq('status', 'notStarted');
+const isLive = R.propEq('status', 'live');
 const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' ? 'preshow' : s };
 const signalStage = R.partial(signal, ['stage']);
 // const signalBackstage = R.curry(signal)('backstage');
@@ -390,6 +394,7 @@ const initializeBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
         setBroadcastEvent(R.evolve(setStatus, event)),
       ];
       R.forEach(dispatch, notStarted(event) ? actions : R.tail(actions));
+      isLive(event) && dispatch(startElapsedTime());
     } catch (error) {
       browserHistory.replace('/admin');
       dispatch(setInfo({ title: 'Event Not Found', text: `Could not find event with the ID ${eventId}` }));
@@ -525,12 +530,17 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
       const type = goLive ? 'goLive' : 'finishEvent';
       /* If the event goes live, the producer should stop publishing to stage session */
       goLive && await opentok.unpublish('stage');
+      /* If the event goes live, start the elapsed time counter */
+      goLive && dispatch(setBroadcastEventShowStarted());
+      /* If the event is finishing, let's stop the elapsed time counter */
+      !goLive && dispatch(stopElapsedTime());
       /* Update the new status in firebase and update the state */
       const actions = [
         updateStatus(eventId, newStatus),
         setBroadcastEventStatus(newStatus),
       ];
       R.forEach(dispatch, actions);
+
       /* Send a signal to everyone connected to stage with the new status */
       opentok.signal('stage', { type });
     } catch (error) {

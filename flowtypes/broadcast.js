@@ -100,7 +100,8 @@ declare type BroadcastState = {
   interactiveLimit: number,
   archiving: boolean,
   reconnecting: boolean,
-  disconnected: boolean
+  disconnected: boolean,
+  elapsedTime: string
 };
 
 declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
@@ -168,6 +169,8 @@ declare type BroadcastAction =
   { type: 'BROADCAST_PARTICIPANT_LEFT', participantType: ParticipantType } |
   { type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType: ParticipantType, update: ParticipantAVPropertyUpdate } |
   { type: 'SET_BROADCAST_EVENT_STATUS', status: EventStatus } |
+  { type: 'SET_BROADCAST_EVENT_SHOW_STARTED', showStartedAt: string } |
+  { type: 'SET_ELAPSED_TIME', elapsedTime: string } |
   { type: 'SET_BROADCAST_STATE', state: CoreState } |
   { type: 'START_PRIVATE_PARTICIPANT_CALL', participant: ParticipantType } |
   { type: 'END_PRIVATE_PARTICIPANT_CALL' } |

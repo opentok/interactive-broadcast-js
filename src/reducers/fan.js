@@ -9,7 +9,7 @@ const initialState = (): FanState => ({
   postProduction: window.location.pathname.startsWith('/post-production/'),
   networkTest: {
     interval: null,
-    timout: null,
+    timeout: null,
   },
 });
 
@@ -26,7 +26,7 @@ const fan = (state: FanState = initialState(), action: FanAction): FanState => {
     case 'SET_NETWORK_TEST_INTERVAL':
       return R.assocPath(['networkTest', 'interval'], action.interval, state);
     case 'SET_NETWORK_TEST_TIMEOUT':
-      return R.assocPath(['networkTest', 'interval'], action.interval, state);
+      return R.assocPath(['networkTest', 'timeout'], action.timeout, state);
     default:
       return state;
   }
