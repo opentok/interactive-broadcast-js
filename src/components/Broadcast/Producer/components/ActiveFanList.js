@@ -55,7 +55,7 @@ const Fan = SortableElement(({ fan, sortable, actions, backstageFan }: FanProps)
         <div className="actions">
           {!isOnBackstage && !isOnStage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
           {isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToStage, [fan])}>Send to stage</button>}
-          {!isOnStage && <button className="btn white" onClick={R.partial(privateCall, [fan])}>Call</button>}
+          {!isOnStage && !isOnBackstage && <button className="btn white" onClick={R.partial(privateCall, [fan])}>Call</button>}
           <button className="btn white" onClick={R.partial(chat, [fan])}>Chat</button>
           <button className="btn white" onClick={R.partial(kickFan, [isOnBackstage ? 'backstageFan' : 'fan'])}>Kick</button>
         </div>

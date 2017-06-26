@@ -404,9 +404,11 @@ const monitorProducerPresence: ThunkActionCreator = (): Thunk =>
         const producerActive = snapshot.val();
         if (!producerActive) {
           try {
+            const { fan } = getState();
             const fanId = firebase.auth().currentUser.uid;
             const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
-            ref.update({ inPrivateCall: false });
+            ref.update({ inPrivateCall: false, isBackstage: false });
+            if (fan.status === 'backstage') dispatch(setFanStatus('inLine'));
           } catch (error) {
             console.log('Failed to update fan record');
           }

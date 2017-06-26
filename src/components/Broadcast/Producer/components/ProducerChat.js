@@ -79,7 +79,7 @@ class ActiveFanChats extends Component {
       return (
         <div className="ChatActions">
           <button className="btn white" onClick={stageAction}>{stageText}</button>
-          <button className="btn white" onClick={callAction}>{callText}</button>
+          { !fan.isBackstage && !fan.isOnStage && <button className="btn white" onClick={callAction}>{callText}</button> }
         </div>);
     };
 
