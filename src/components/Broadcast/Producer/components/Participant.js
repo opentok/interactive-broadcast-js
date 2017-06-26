@@ -47,6 +47,7 @@ const Participant = (props: Props): ReactComponent => {
   };
   const statusIconClass = classNames('icon', { green: me.connected });
   const controlIconClass = classNames('icon', { active: me.connected });
+  const privateCallIconClass = classNames('icon', { active: me.connected && availableForPrivateCall() });
   const status = me.connected ? 'Online' : 'Offline';
   return (
     <div className="Participant">
@@ -84,7 +85,7 @@ const Participant = (props: Props): ReactComponent => {
           />
           <ControlIcon
             name={inPrivateCall ? 'phone-square' : 'phone'}
-            className={controlIconClass}
+            className={privateCallIconClass}
             disabled={!availableForPrivateCall()}
             onClick={privateCall}
           />
