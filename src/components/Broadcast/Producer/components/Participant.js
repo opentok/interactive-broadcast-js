@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import Icon from 'react-fontawesome';
 import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
+import { isFan } from '../../../../services/util';
 import ControlIcon from './ControlIcon';
 import { toggleParticipantProperty, kickFanFromFeed } from '../../../../actions/broadcast';
 import { connectPrivateCall, chatWithParticipant, sendToStage } from '../../../../actions/producer';
@@ -20,7 +21,8 @@ type OwnProps = {
 };
 
 type BaseProps = {
-  broadcast: BroadcastState
+  broadcast: BroadcastState,
+  fanRecord: ActiveFan | null
 };
 
 type DispatchProps = {
@@ -36,11 +38,12 @@ type DispatchProps = {
 type Props = OwnProps & BaseProps & DispatchProps;
 
 const Participant = (props: Props): ReactComponent => {
-  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat, kickFan, broadcast, sendFanToStage } = props;
+  const { type, toggleAudio, toggleVideo, toggleVolume, privateCall, chat, kickFan, broadcast, sendFanToStage, fanRecord } = props;
+  const fanId = R.prop('id', fanRecord || {});
   const url = R.prop(`${type}Url`, createUrls(broadcast.event || {}));
   const me = R.prop(type, broadcast.participants) || {};
   const stageCountdown = broadcast.stageCountdown;
-  const inPrivateCall = R.equals(broadcast.inPrivateCall, type);
+  const inPrivateCall = R.pathEq(['privateCall', 'isWith'], type, broadcast);
   const availableForPrivateCall = (): boolean => {
     const inPreshow = R.pathEq(['event', 'status'], 'preshow', broadcast);
     return (me.connected && (inPreshow || isBackstageFan(type)));
@@ -87,7 +90,7 @@ const Participant = (props: Props): ReactComponent => {
             name={inPrivateCall ? 'phone-square' : 'phone'}
             className={privateCallIconClass}
             disabled={!availableForPrivateCall()}
-            onClick={privateCall}
+            onClick={R.partial(privateCall, [fanId])}
           />
           <ControlIcon
             name={me.audio ? 'microphone' : 'microphone-slash'}
@@ -111,13 +114,16 @@ const Participant = (props: Props): ReactComponent => {
   );
 };
 
-const mapStateToProps = (state: State): BaseProps => R.pick(['broadcast', state]);
+const mapStateToProps = (state: State, ownProps: OwnProps): BaseProps => ({
+  broadcast: R.prop('broadcast', state),
+  fanRecord: isFan(ownProps.type) ? R.path(['broadcast', 'participants', ownProps.type, 'record'], state) : null,
+});
 
 const mapDispatchToProps: MapDispatchWithOwn<DispatchProps, OwnProps> = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
   toggleAudio: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'audio')),
   toggleVideo: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'video')),
   toggleVolume: (): void => dispatch(toggleParticipantProperty(ownProps.type, 'volume')),
-  privateCall: (): void => dispatch(connectPrivateCall(ownProps.type)),
+  privateCall: (fanId?: UserId): void => dispatch(connectPrivateCall(ownProps.type, fanId)),
   kickFan: (): void => dispatch(kickFanFromFeed(ownProps.type)),
   chat: (): void => dispatch(chatWithParticipant(ownProps.type)),
   sendFanToStage: (): void => dispatch(sendToStage()),

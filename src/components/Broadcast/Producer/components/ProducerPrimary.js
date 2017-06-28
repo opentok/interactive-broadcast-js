@@ -9,13 +9,18 @@ import Particpant from './Participant';
 import { properCase } from '../../../../services/util';
 import './ProducerPrimary.css';
 
-const inPrivateCallWith = (inPrivateCall: string, activeFans: ActiveFans): string => {
-  const withActiveFan = R.contains('activeFan', inPrivateCall);
-  if (!withActiveFan) {
-    return `the ${properCase(R.defaultTo('')(inPrivateCall))}`;
+const inPrivateCallWith = (privateCall: PrivateCallState, activeFans: ActiveFans): string => {
+  const isWith = R.prop('isWith', privateCall);
+  const fanId = R.prop('fanId', privateCall);
+  const name = R.path(['map', fanId, 'name'], activeFans);
+  if (R.equals('activeFan', isWith)) {
+    return properCase(name);
+  } else if (R.equals('fan', isWith)) {
+    return `the Fan - ${name}`;
+  } else if (R.equals('backstageFan', isWith)) {
+    return `the Backstage Fan - ${name}`;
   }
-  const fanId = R.last(R.split('activeFan', inPrivateCall));
-  return R.path(['map', fanId, 'name'], activeFans);
+  return `the ${properCase(isWith)}`;
 };
 
 /* beautify preserve:start */
@@ -25,7 +30,7 @@ type Props = {
 /* beautify preserve:end */
 
 const ProducerPrimary = (props: Props): ReactComponent => {
-  const { inPrivateCall, viewers, interactiveLimit, activeFans, disconnected, elapsedTime } = props.broadcast;
+  const { privateCall, viewers, interactiveLimit, activeFans, disconnected, elapsedTime } = props.broadcast;
   return (
     <div className="ProducerPrimary admin-page-content">
       <div className="ProducerPrimary-info">
@@ -33,8 +38,8 @@ const ProducerPrimary = (props: Props): ReactComponent => {
           <Icon name="user" /> {interactiveLimit ? `Viewers ${viewers} / ${interactiveLimit}` : 'Retrieving viewers . . .'}
         </div>
         <div className="time"><Icon name="clock-o" /> Elapsed time {elapsedTime}</div>
-        <div className={classNames('private-call', { active: !!inPrivateCall })}>
-          You are in a private call with { inPrivateCall ? inPrivateCallWith(inPrivateCall, activeFans) : '...' }
+        <div className={classNames('private-call', { active: !!privateCall })}>
+          You are in a private call with { privateCall ? inPrivateCallWith(privateCall, activeFans) : '...' }
         </div>
         <div className={classNames('private-call', { active: !!disconnected })}>
           Unable to establish connection, please check your network connection and refresh.

@@ -8,14 +8,16 @@ import {
   setBroadcastEventStatus,
   updateParticipants,
   setBroadcastState,
-  startPrivateCall,
   endPrivateCall,
   setReconnecting,
   setReconnected,
   setDisconnected,
+  setPrivateCall,
   onChatMessage,
+  monitorProducerPresence,
 } from './broadcast';
 import { getEventWithCredentials } from '../services/api';
+import { isUserOnStage } from '../services/util';
 import { setInfo, setBlockUserAlert } from './alert';
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
@@ -61,12 +63,6 @@ const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener =>
         break;
       case 'chatMessage':
         dispatch(receivedChatMessage(from, signalData, userType));
-        break;
-      case 'privateCall':
-        fromProducer && dispatch(startPrivateCall(signalData.callWith, R.equals(userType, signalData.callWith)));
-        break;
-      case 'endPrivateCall':
-        fromProducer && dispatch(endPrivateCall(userType));
         break;
       case 'openChat': // @TODO
       case 'newBackstageFan':
@@ -157,6 +153,57 @@ const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserDa
   return [stage()];
 };
 
+const monitorPrivateCall: ThunkActionCreator = (userType: HostCeleb): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+
+    const event = R.prop('event', getState().broadcast);
+    const { adminId, fanUrl } = event;
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/privateCall`);
+    ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
+      const { broadcast } = getState();
+      const update: PrivateCallState = snapshot.val();
+      const currentState: PrivateCallState = broadcast.privateCall;
+      // No change
+      if (R.equals(currentState, update)) {
+        return;
+      }
+
+      // We don't need to worry about fans in line or backstage fans
+      if (R.contains(R.prop('isWith', update || {}), ['activeFan', 'backstageFan'])) {
+        return;
+      }
+
+      // A new call
+      if (R.isNil(currentState) && !!update) {
+        if (R.equals(userType, update.isWith)) {
+          // If the call is with us, we need to subcribe only to producer audio
+          opentok.unsubscribeAll('stage', true);
+          const producerStream = opentok.getStreamByUserType('stage', 'producer');
+          opentok.subscribeToAudio('stage', producerStream);
+        } else if (isUserOnStage(update.isWith)) {
+          // Need to unsubscribe from the audio of this person
+          // $FlowFixMe - We're checking for activeFan above
+          opentok.unsubscribeFromAudio('stage', opentok.getStreamByUserType('stage', update.isWith));
+        }
+      }
+
+      // Call ended
+      if (!!currentState && R.isNil(update)) {
+        if (R.propEq('isWith', userType, currentState)) {
+          // Stop subscribing to producer audio, start subscribing to everyone else
+          opentok.subscribeAll('stage', true);
+          const producerStream = opentok.getStreamByUserType('stage', 'producer');
+          opentok.unsubscribeFromAudio('stage', producerStream);
+        } else if (isUserOnStage(currentState.isWith)) { // $FlowFixMe - We're checking for activeFan above
+          const stream = opentok.getStreamByUserType('stage', currentState.isWith);
+          opentok.subscribeToAudio('stage', stream);
+        }
+      }
+      dispatch(setPrivateCall(update));
+    });
+  };
+
+
 /**
  * Connect to OpenTok sessions
  */
@@ -167,6 +214,7 @@ const connectToInteractive: ThunkActionCreator =
     const instances: CoreInstanceOptions[] = opentokConfig(dispatch, { userCredentials, userType });
     opentok.init(instances);
     await opentok.connect(['stage']);
+    dispatch(monitorPrivateCall(userType));
     dispatch(setBroadcastState(opentok.state('stage')));
   };
 
@@ -229,6 +277,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
             const { apiKey, stageToken, stageSessionId, status } = eventData;
             const credentials = { apiKey, stageSessionId, stageToken };
             status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
+            dispatch(monitorProducerPresence());
           } else {
             /* Let the user know that he/she is already connected in another tab */
             const options = (): AlertPartialOptions => ({

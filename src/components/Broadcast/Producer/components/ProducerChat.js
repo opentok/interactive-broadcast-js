@@ -5,7 +5,8 @@ import { connect } from 'react-redux';
 import Icon from 'react-fontawesome';
 import Chat from '../../../Common/Chat';
 import { minimizeChat, displayChat, kickFanFromFeed } from '../../../../actions/broadcast';
-import { sendToBackstage, sendToStage, startActiveFanCall, endActiveFanCall } from '../../../../actions/producer';
+import { sendToBackstage, sendToStage, connectPrivateCall } from '../../../../actions/producer';
+import { fanTypeForActiveFan } from '../../../../services/util';
 import './ProducerChat.css';
 
 const renderChat = (chat: ChatState): ReactComponent => <Chat key={chat.chatId} chat={chat} />;
@@ -45,7 +46,7 @@ class ActiveFanChats extends Component {
     const nonActive = R.either(R.propEq('minimized', true), R.propEq('displayed', false));
     const [nonActiveChats, activeChats] = R.partition(nonActive, chats);
     const nonActiveOpenChats = R.reject(R.propEq('displayed', false), nonActiveChats);
-    const { kickFan, sendFanToBackstage, sendFanToStage, startCall, endCall } = R.prop('actions', this.props);
+    const { kickFan, sendFanToBackstage, sendFanToStage, connectCall } = R.prop('actions', this.props);
     const nonActiveChatItem = (chat: ChatState): ReactComponent =>
       <li key={chat.chatId}>
         <button className="btn blue" onClick={R.partial(toggleChat, [chat.chatId])}>
@@ -69,7 +70,8 @@ class ActiveFanChats extends Component {
       const getPrivateCallAction = (): { callAction: Unit, callText: string } => {
         const { inPrivateCall } = fan;
         const callText = inPrivateCall ? 'Hang Up' : 'Call';
-        const callAction = R.partial(inPrivateCall ? endCall : startCall, [chat.to]);
+        // const callAction = R.partial(inPrivateCall ? endCall : startCall, [chat.to]);
+        const callAction = R.partial(connectCall, [fanTypeForActiveFan(fan), fan.id]);
         return { callAction, callText };
       };
 
@@ -109,7 +111,8 @@ type ActiveFanActions = {
   kickFan: ParticipantType => void,
   sendFanToStage: ActiveFan => void,
   startCall: ActiveFanWithConnection => void,
-  endCall: ActiveFanWithConnection => void
+  endCall: ActiveFanWithConnection => void,
+  connectCall: (FanType, UserId) => void
 };
 type InitialProps = { chats: ProducerChats };
 type BaseProps = { activeFans: ActiveFanMap };
@@ -140,8 +143,9 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
     sendFanToBackstage: (fan: ActiveFan): void => dispatch(sendToBackstage(fan)),
     sendFanToStage: (): void => dispatch(sendToStage()),
     kickFan: (participantType: ParticipantType): void => dispatch(kickFanFromFeed(participantType)),
-    startCall: (fan: ActiveFanWithConnection): void => dispatch(startActiveFanCall(fan)),
-    endCall: (fan: ActiveFanWithConnection): void => dispatch(endActiveFanCall(fan)),
+    connectCall: (fanType: FanType, fanId: UserId): void => dispatch(connectPrivateCall(fanType, fanId)),
+    startCall: (fan: ActiveFanWithConnection): void => dispatch(connectPrivateCall(fan)),
+    endCall: (fan: ActiveFanWithConnection): void => dispatch(connectPrivateCall(fan)),
   },
 });
 

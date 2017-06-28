@@ -60,7 +60,7 @@ class CelebrityHost extends Component {
 
   render(): ReactComponent {
     const { userType, togglePublishOnly, broadcast, disconnected } = this.props;
-    const { event, participants, publishOnlyEnabled, inPrivateCall, chats } = broadcast;
+    const { event, participants, publishOnlyEnabled, privateCall, chats } = broadcast;
     const producerChat = R.prop('producer', chats);
     if (!event) return <Loading />;
     const availableParticipants = publishOnlyEnabled ? null : participants;
@@ -74,7 +74,7 @@ class CelebrityHost extends Component {
             userType={userType}
             togglePublishOnly={togglePublishOnly}
             publishOnlyEnabled={publishOnlyEnabled}
-            inPrivateCall={inPrivateCall}
+            privateCall={privateCall}
             disconnected={disconnected}
           />
           <CelebrityHostBody

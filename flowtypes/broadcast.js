@@ -30,15 +30,16 @@ declare type ParticipantState = {
   volume: number
 }
 
+declare type FanParticipantState = ParticipantState & { record?: ActiveFan };
 declare type ParticipantWithConnection = ParticipantState & { connection: Connection };
 declare type ProducerWithConnection = { connection: Connection }
 declare type UserWithConnection = ParticipantWithConnection | ActiveFanWithConnection | ProducerWithConnection;
 
 declare type BroadcastParticipants = {
-  fan: ParticipantState,
+  fan: FanParticipantState,
   celebrity: ParticipantState,
   host: ParticipantState,
-  backstageFan: ParticipantState
+  backstageFan: FanParticipantState
 };
 
 declare type InteractiveFan = { uid: UserId };
@@ -77,14 +78,15 @@ declare type ActiveFans = {
 
 declare type ChatId = ParticipantType | UserId;
 declare type ProducerChats = {[chatId: ChatId]: ChatState };
-declare type PrivateCallState = null | ParticipantType | string; // String will be used for active fans (e.g. activeFan${activeFan.id})
+declare type PrivateCallParticipant = ParticipantType | 'activeFan';
+declare type PrivateCallState = null | { isWith: HostCeleb } | { isWith: FanType, fanId: UserId };
 
 
 declare type BroadcastState = {
   event: null | BroadcastEvent,
   connected: boolean,
   publishOnlyEnabled: boolean,
-  inPrivateCall: PrivateCallState,
+  privateCall: PrivateCallState,
   publishers: {
     camera: null | { [publisherId: string]: Publisher}
   },
@@ -172,11 +174,13 @@ declare type BroadcastAction =
   { type: 'SET_BROADCAST_EVENT_SHOW_STARTED', showStartedAt: string } |
   { type: 'SET_ELAPSED_TIME', elapsedTime: string } |
   { type: 'SET_BROADCAST_STATE', state: CoreState } |
+  { type: 'SET_PRIVATE_CALL_STATE', privateCall: PrivateCallState } |
   { type: 'START_PRIVATE_PARTICIPANT_CALL', participant: ParticipantType } |
   { type: 'END_PRIVATE_PARTICIPANT_CALL' } |
   { type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: UserId, inPrivateCall: boolean } |
   { type: 'END_PRIVATE_ACTIVE_FAN_CALL', fan: ActiveFan } |
   { type: 'UPDATE_ACTIVE_FANS', update: ActiveFanMap } |
+  { type: 'UPDATE_FAN_RECORD', fanType: 'backstageFan' | 'fan', record: ActiveFan } |
   { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate } |
   { type: 'START_NEW_FAN_CHAT', fan: ActiveFanWithConnection, toType: FanType, privateCall?: boolean } |
   { type: 'START_NEW_PARTICIPANT_CHAT', participantType: ParticipantType, participant: ParticipantWithConnection } |

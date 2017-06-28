@@ -155,9 +155,24 @@ const signal = async (instance: SessionName, { type, data, to }: SignalParams): 
   }
 };
 
-const getConnection = (instance: SessionName, streamId: string): Connection => {
+/**
+ * Get a connection object using a stream id or user type
+ */
+const getConnection = (instance: SessionName, streamId: string, userType?: UserRole): Connection => {
   const core = instances[instance];
-  return core.state().streams[streamId].connection;
+  let connection = R.path(['streams', streamId, 'connection'], core.state());
+  // Has the stream been destroyed? If so, try to get the connection from the session object
+  if (!connection) {
+    const session = core.getSession();
+    connection = session.connections.find((c: Connection): boolean => {
+      try {
+        return JSON.parse(c.data).userType === userType;
+      } catch (error) {
+        return false;
+      }
+    });
+  }
+  return connection;
 };
 
 /**
@@ -230,7 +245,8 @@ const unsubscribe = (instance: SessionName, stream: Stream) => {
 
 const unsubscribeFromAudio: ((SessionName, Stream) => void) = R.partialRight(toggleSubscribeAudio, [false]);
 
-const startCall = async (instance: SessionName): AsyncVoid => instances[instance].startCall({ publishVideo: true, publishAudio: true });
+const startCall = async (instance: SessionName): Promise<CoreStateWithPublisher> =>
+  instances[instance].startCall({ publishVideo: true, publishAudio: true });
 
 const endCall = async (instance: SessionName): AsyncVoid => instances[instance].endCall();
 

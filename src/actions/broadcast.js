@@ -3,6 +3,7 @@ import R from 'ramda';
 import moment from 'moment';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
+import firebase from '../services/firebase';
 
 const setReconnecting: ActionCreator = (): BroadcastAction => ({
   type: 'SET_RECONNECTING',
@@ -48,6 +49,41 @@ const setBroadcastEvent: ActionCreator = (event: BroadcastEvent): BroadcastActio
   type: 'SET_BROADCAST_EVENT',
   event,
 });
+
+const setPrivateCall: ActionCreator = (privateCall: PrivateCallState): BroadcastAction => ({
+  type: 'SET_PRIVATE_CALL_STATE',
+  privateCall,
+});
+
+/**
+ * Keep an eye on the producer. If producer refreshes or disconnects, we will end any active
+ * private calls.
+ */
+const monitorProducerPresence: ThunkActionCreator = (): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    const { broadcast } = getState();
+    const { adminId, fanUrl } = R.propOr({}, 'event', broadcast);
+    const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
+    const producerRef = firebase.database().ref(`${baseRef}/producerActive`);
+    const privateCallRef = firebase.database().ref(`${baseRef}/privateCall`);
+    try {
+      producerRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
+        const producerActive = snapshot.val();
+        if (!producerActive) {
+          try {
+            privateCallRef.update(null);
+            const fanId = firebase.auth().currentUser.uid;
+            const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
+            ref.update({ inPrivateCall: false });
+          } catch (error) {
+            console.log('Failed to update fan record');
+          }
+        }
+      });
+    } catch (error) {
+      console.log('Failed to set listener on proudcer presence', error);
+    }
+  };
 
 const onChatMessage: ThunkActionCreator = (chatId: ChatId): Thunk =>
   (dispatch: Dispatch) => {
@@ -204,8 +240,6 @@ const publishOnly: ThunkActionCreator = (): Thunk =>
 
 const sendChatMessage: ThunkActionCreator = (chatId: ChatId, message: ChatMessagePartial): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    console.log(chatId);
-    console.log(getState().broadcast.chats);
     const chat: ChatState = R.path(['broadcast', 'chats', chatId], getState());
     try {
       await opentok.signal(chat.session, { type: 'chatMessage', to: chat.to.connection, data: message });
@@ -257,6 +291,12 @@ const displayChat: ActionCreator = (chatId: ChatId, display?: boolean = true): B
 
 module.exports = {
   setBroadcastState,
+  setBroadcastEvent,
+  setReconnecting,
+  setReconnected,
+  setDisconnected,
+  setPrivateCall,
+  monitorProducerPresence,
   setPublishOnly,
   resetBroadcastEvent,
   startCountdown,

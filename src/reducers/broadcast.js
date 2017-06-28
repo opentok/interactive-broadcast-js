@@ -1,5 +1,6 @@
 // @flow
 import R from 'ramda';
+import { isFan } from '../services/util';
 
 const participantState = (stream?: Stream | null = null): ParticipantState => ({
   connected: !!stream,
@@ -11,9 +12,9 @@ const participantState = (stream?: Stream | null = null): ParticipantState => ({
 });
 
 const initialChatState = (fromType: ChatUser, fromId?: UserId, toType: ChatUser, to: UserWithConnection): ChatState => {
-  const chatIncludesFan = !!R.find(R.contains('fan'), R.map(R.toLower, [fromType, toType]));
+  const chatIncludesFan = !!R.find(isFan, [fromType, toType]);
   const session: SessionName = chatIncludesFan ? 'backstage' : 'stage';
-  const chatId = R.contains('fan', R.toLower(toType)) ? `activeFan${R.prop('id', to)}` : toType;
+  const chatId = isFan(toType) ? R.prop('id', to) : toType;
   return {
     chatId,
     session,
@@ -24,7 +25,7 @@ const initialChatState = (fromType: ChatUser, fromId?: UserId, toType: ChatUser,
     displayed: true,
     minimized: false,
     messages: [],
-    inPrivateCall: false,
+    inPrivateCall: R.defaultTo(false)(R.prop('inPrivateCall', to)),
   };
 };
 
@@ -33,7 +34,7 @@ const initialState = (): BroadcastState => ({
   connected: false,
   backstageConnected: false,
   publishOnlyEnabled: false,
-  inPrivateCall: null,
+  privateCall: null,
   publishers: {
     camera: null,
   },
@@ -112,16 +113,14 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('connected', action.connected, state);
     case 'BACKSTAGE_CONNECTED':
       return R.assoc('backstageConnected', action.connected, state);
-    case 'START_PRIVATE_PARTICIPANT_CALL':
-      return R.assoc('inPrivateCall', action.participant, state);
-    case 'END_PRIVATE_PARTICIPANT_CALL':
-      return R.assoc('inPrivateCall', null, state);
-    case 'PRIVATE_ACTIVE_FAN_CALL':
-      return R.assoc('inPrivateCall', action.inPrivateCall ? `activeFan${action.fanId}` : null, state);
+    case 'SET_PRIVATE_CALL_STATE':
+      return R.assoc('privateCall', action.privateCall, state);
     case 'RESET_BROADCAST_EVENT':
       return initialState();
     case 'UPDATE_ACTIVE_FANS':
       return R.assoc('activeFans', activeFansUpdate(state.activeFans, action.update), state);
+    case 'UPDATE_FAN_RECORD':
+      return R.assocPath(['participants', action.fanType, 'record'], action.record, state);
     case 'UPDATE_VIEWERS':
       return R.assoc('viewers', action.viewers, state);
     case 'SET_ARCHIVING':
@@ -136,7 +135,7 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
         const minimizeActiveFanChat = (chat: ChatState): ChatState => activeOrBackstageFan(chat) ? R.assoc('minimized', true, chat) : chat;
         const minimizedChats = R.assoc('chats', R.map(minimizeActiveFanChat, state.chats), state);
         const newChat = initialChatState('producer', undefined, action.toType, action.fan);
-        return R.assocPath(['chats', `activeFan${action.fan.id}`], newChat, minimizedChats);
+        return R.assocPath(['chats', action.fan.id], newChat, minimizedChats);
       }
     case 'START_NEW_PARTICIPANT_CHAT':
       {

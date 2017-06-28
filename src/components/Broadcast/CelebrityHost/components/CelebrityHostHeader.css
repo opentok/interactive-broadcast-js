@@ -45,7 +45,7 @@
   color: #00A2E3;
 }
 
-.CelebrityHostHeader-private-call {
+.CelebrityHostHeader-notice {
   width: 100%;
   background: #EF4836;
   color: white;
@@ -53,6 +53,6 @@
   transition: opacity 1s ease-in-out;
 }
 
-.CelebrityHostHeader-private-call.active {
+.CelebrityHostHeader-notice.active {
   opacity: 1;
 }

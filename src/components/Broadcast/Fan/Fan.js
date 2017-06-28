@@ -22,6 +22,7 @@ type BaseProps = {
   userUrl: string,
   event: null | BroadcastEvent,
   inPrivateCall: boolean,
+  privateCall: PrivateCallState,
   status: EventStatus,
   broadcast: BroadcastState,
   backstageConnected: boolean,
@@ -68,6 +69,7 @@ class Fan extends Component {
       status,
       participants,
       inPrivateCall,
+      broadcast,
       joinLine,
       leaveLine,
       backstageConnected,
@@ -93,8 +95,10 @@ class Fan extends Component {
             getInLine={joinLine}
             postProduction={postProduction}
             leaveLine={leaveLine}
+            fanStatus={fanStatus}
             backstageConnected={backstageConnected}
             inPrivateCall={inPrivateCall}
+            privateCall={broadcast.privateCall}
             disconnected={disconnected}
           />
           <FanStatusBar fanStatus={fanStatus} />

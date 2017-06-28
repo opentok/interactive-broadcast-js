@@ -172,7 +172,7 @@ declare type CoreState = {
   }
 }
 
-declare type CoreStateWithPublisher = CoreState & { publisher?: Publisher };
+declare type CoreStateWithPublisher = CoreState & { publisher: Publisher };
 
 declare type SubscriberEventData = { subscriber: Subscriber } & CoreState;
 
@@ -214,7 +214,7 @@ declare class Core {
   off: (string, (event: OTEvent) => void) => void,
   on: (string, OTListener) => void,
   signal: (type: string, data?: any, to?: Object) => Promise<void>, // eslint-disable-line flowtype/no-weak-types
-  startCall: () => Promise<CoreState>,
+  startCall: () => Promise<CoreStateWithPublisher>,
   state: () => CoreState,
   subscribe: (Stream) => Promise<Subscriber>, // eslint-disable-line flowtype/no-weak-types
   toggleLocalAudio: (boolean) => void,

@@ -2,6 +2,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import R from 'ramda';
+import { isUserOnStage, properCase } from '../../../../services/util';
 import './CelebrityHostHeader.css';
 
 type Props = {
@@ -11,12 +12,14 @@ type Props = {
   togglePublishOnly: boolean => void,
   publishOnlyEnabled: boolean,
   disconnected: boolean,
-  inPrivateCall: PrivateCallState // eslint-disable-line react/no-unused-prop-types
+  privateCall: PrivateCallState // eslint-disable-line react/no-unused-prop-types
 };
 const CelebrityHostHeader = (props: Props): ReactComponent => {
   const { userType, name, status, togglePublishOnly, publishOnlyEnabled, disconnected } = props;
   const btnClass = classNames('btn action', { red: !publishOnlyEnabled }, { green: publishOnlyEnabled });
-  const inPrivateCall = R.equals(userType, R.prop('inPrivateCall', props));
+  const privateCallWith = R.path(['privateCall', 'isWith'], props);
+  const inPrivateCall = R.equals(userType, privateCallWith);
+  const otherInPrivateCall = !inPrivateCall && isUserOnStage(privateCallWith);
   return (
     <div className="CelebrityHostHeader">
       <div className="CelebrityHostHeader-main">
@@ -32,11 +35,10 @@ const CelebrityHostHeader = (props: Props): ReactComponent => {
           {userType}
         </div>
       </div>
-      <div className={classNames('CelebrityHostHeader-private-call', { active: !!inPrivateCall })}>
-        You are in a private call with the Producer
-      </div>
-      <div className={classNames('CelebrityHostHeader-private-call', { active: !!disconnected })}>
-        Unable to establish connection, please check your network connection and refresh.
+      <div className={classNames('CelebrityHostHeader-notice', { active: (inPrivateCall || otherInPrivateCall || disconnected) })}>
+        { inPrivateCall && 'You are in a private call with the Producer' }
+        { otherInPrivateCall && `The ${privateCallWith} is in a private call with the producer and cannot currently hear you.` }
+        { disconnected && 'Unable to establish connection, please check your network connection and refresh.' }
       </div>
     </div>
   );
