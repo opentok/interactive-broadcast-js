@@ -22,7 +22,6 @@ type BaseProps = {
   userUrl: string,
   event: null | BroadcastEvent,
   inPrivateCall: boolean,
-  privateCall: PrivateCallState,
   status: EventStatus,
   broadcast: BroadcastState,
   backstageConnected: boolean,

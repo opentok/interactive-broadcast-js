@@ -47,6 +47,21 @@ type EventFormState = {
   }
 };
 
+const eventFields = [
+  'name',
+  'startImage',
+  'endImage',
+  'fanUrl',
+  'fanAudioUrl',
+  'hostUrl',
+  'celebrityUrl',
+  'archiveEvent',
+  'redirectUrl',
+  'rtmpUrl',
+  'dateTimeStart',
+  'uncomposed',
+];
+
 class EventForm extends Component {
 
   props: Props;
@@ -84,20 +99,16 @@ class EventForm extends Component {
     this.updateURLs = this.updateURLs.bind(this);
   }
 
-  componentDidMount() {
+  componentWillMount() {
     this.updateURLs();
     if (!R.isNil(this.props.event)) {
-      this.setState({
-        fields: this.props.event
-      }, this.updateURLs);
+      this.setState({ fields: R.pick(eventFields, this.props.event) }, this.updateURLs);
     }
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (!R.isNil(this.nextProps.event)) {
-      this.setState({
-        fields: nextProps.event
-      }, this.updateURLs);
+    if (!R.isNil(nextProps.event)) {
+      this.setState({ fields: R.pick(eventFields, this.props.event) }, this.updateURLs);
     }
   }
 

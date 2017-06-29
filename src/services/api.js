@@ -30,13 +30,14 @@ const parseErrorResponse = (response: Response): Promise<Error> => response.json
 
 /** Check for API-level errors */
 const checkStatus = (response: Response): Promise<*> =>
-  new Promise((resolve: Promise.resolve<Response>, reject: Promise.reject<Error>): void => {
-    if (response.status >= 200 && response.status < 300) {
-      return resolve(response);
+  new Promise((resolve: Promise.resolve<Response>, reject: Promise.reject<Error>) => {
+    if (response.status >= 200 && response.status < 300) { // $FlowFixMe
+      resolve(response);
+    } else {
+      parseErrorResponse(response) // $FlowFixMe
+        .then(({ message }: { message: string }): void => reject(new Error(message))) // $FlowFixMe
+        .catch(reject);
     }
-    parseErrorResponse(response)
-      .then(({ message }: { message: string }): void => reject(new Error(message)))
-      .catch(reject);
   });
 
 /** Create a new Request object */

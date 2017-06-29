@@ -2,7 +2,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import R from 'ramda';
-import { isUserOnStage, properCase } from '../../../../services/util';
+import { isUserOnStage } from '../../../../services/util';
 import './CelebrityHostHeader.css';
 
 type Props = {

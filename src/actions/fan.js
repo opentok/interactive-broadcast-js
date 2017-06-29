@@ -215,7 +215,6 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
     const fromData = JSON.parse(from.data);
     const fromProducer = fromData.userType === 'producer';
     const isStage = R.equals(R.prop('status', fan), 'stage');
-    const fanType = isStage ? 'fan' : 'backstageFan';
     const instance = isStage ? 'stage' : 'backstage';
     /* If the sender of this signal is not the Producer, we should do nothing */
     if (!fromProducer) return;

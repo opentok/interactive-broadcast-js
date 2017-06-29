@@ -119,7 +119,7 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return initialState();
     case 'UPDATE_ACTIVE_FANS':
       return R.assoc('activeFans', activeFansUpdate(state.activeFans, action.update), state);
-    case 'UPDATE_FAN_RECORD':
+    case 'UPDATE_ACTIVE_FAN_RECORD':
       return R.assocPath(['participants', action.fanType, 'record'], action.record, state);
     case 'UPDATE_VIEWERS':
       return R.assoc('viewers', action.viewers, state);
@@ -165,7 +165,6 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
         return R.assocPath(['chats', action.chatId, 'minimized'], action.minimize, modifiedState);
 
       }
-
     case 'UPDATE_STAGE_COUNTDOWN':
       return R.assoc('stageCountdown', action.stageCountdown, state);
     default:

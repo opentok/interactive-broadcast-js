@@ -36,12 +36,12 @@ const FanBody = (props: Props): ReactComponent => {
         </div>
       }
       { !isClosed &&
-        userTypes.map((type: ParticipantType): ReactComponent =>
-          <VideoHolder
-            key={`videoStream${type}`}
-            connected={(participants[type] && participants[type].connected && shouldSubscribe) || (fanOnStage && type === 'fan')}
-            userType={type}
-          />)
+      userTypes.map((type: ParticipantType): ReactComponent =>
+        <VideoHolder
+          key={`videoStream${type}`}
+          connected={(!!participants[type] && participants[type].connected && shouldSubscribe) || (fanOnStage && type === 'fan')}
+          userType={type}
+        />)
       }
       { showHLSPlayer && <FanHLSPlayer isLive={isLive} hlsUrl={hlsUrl} /> }
       <div className={classNames('VideoWrap', 'smallVideo', { hide: hidePublisher })} id="videobackstageFan" />

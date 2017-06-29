@@ -164,6 +164,10 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
     }
   };
 
+
+/**
+ * Start (or resume) a chat session with an on-stage participant
+ */
 const chatWithParticipant: ThunkActionCreator = (participantType: ParticipantType): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const chatId = participantType;
@@ -179,6 +183,9 @@ const chatWithParticipant: ThunkActionCreator = (participantType: ParticipantTyp
   };
 
 
+/**
+ * Start (or resume) a chat session with a fan
+ */
 const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const chatId = fan.id;
@@ -196,59 +203,9 @@ const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     }
   };
 
-const startActiveFanCall: ThunkActionCreator = (fan: ActiveFan): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const chatId = fan.id;
-    const { broadcast } = getState();
-    const { event } = broadcast;
-    const existingChat: ChatState = R.path(['chats', chatId], broadcast);
-    const isBackstage = R.prop('isBackstage', fan);
-    const isOnStage = R.prop('isOnStage', fan);
-    if (existingChat || isBackstage || isOnStage) {
-      try {
-        dispatch({ type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: fan.id, inPrivateCall: true });
-        if (existingChat) {
-          dispatch({ type: 'UPDATE_CHAT_PROPERTY', chatId, property: 'inPrivateCall', update: true });
-        }
-        const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
-        await ref.update({ inPrivateCall: true });
-        opentok.unsubscribeAll('stage', true);
-        opentok.publishAudio('backstage', true);
-        opentok.subscribe('backstage', opentok.getStreamById('backstage', fan.streamId));
-      } catch (error) {
-        // @TODO Error handling
-        console.log('Failed to start private call with active fan', error);
-      }
-    } else {
-      // Open a chat session, then start the call
-      R.forEach(dispatch, [chatWithActiveFan(fan), startActiveFanCall(fan)]);
-    }
-  };
-
-const endActiveFanCall: ThunkActionCreator = (fan: ActiveFan): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const { broadcast } = getState();
-    const { event } = broadcast;
-    const fanStream = opentok.getStreamById('backstage', fan.streamId);
-    opentok.publishAudio('backstage', false);
-    fan.isBackstage ? opentok.unsubscribeFromAudio('backstage', fanStream) : opentok.unsubscribe('backstage', fanStream);
-    opentok.subscribeAll('stage', true);
-    dispatch({ type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: fan.id, inPrivateCall: false });
-    if (!fan.isOnStage && !fan.isBackstage) {
-      dispatch({ type: 'UPDATE_CHAT_PROPERTY', chatId: fan.id, property: 'inPrivateCall', update: false });
-    }
-    try {
-      const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
-      const activeFanRecord = await ref.once('value');
-      if (activeFanRecord.val()) {
-        ref.update({ inPrivateCall: false });
-      }
-    } catch (error) {
-      // @TODO Error handling
-      console.log(error);
-    }
-  };
-
+/**
+ * End the active private call and update firebase, redux stores
+ */
 const endPrivateCall: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const { broadcast } = getState();
@@ -256,48 +213,65 @@ const endPrivateCall: ThunkActionCreator = (): Thunk =>
     const { adminId, fanUrl } = R.prop('event', broadcast);
     const fanId = R.propOr(null, 'fanId', privateCall);
     const isWithFan = !!fanId;
-    try {
-      const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
+    const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
 
+    // Update fan record in firebase
+    try {
       // Update fan record
       if (isWithFan) {
         const fanRef = firebase.database().ref(`${baseRef}/activeFans/${fanId}`);
         await fanRef.update({ inPrivateCall: false });
       }
+    } catch (error) {
+      // Nothing to do here. If the fan is no longer active and there is no record, that's fine
+    }
 
-      // Update broadcast record
+    // Update broadcast record in firebase
+    try {
       const broadcastRef = firebase.database().ref(baseRef);
       await broadcastRef.update({ privateCall: null });
+    } catch (error) {
+      console.log('Failed to update active broadcast record in firebase', error);
+    }
 
-      // Stop publishing audio to backstage and start subscribing again to stage
+    // Update audio/video subscriptions
+    try {
       const { isWith } = privateCall;
+      // Stop publishing audio to backstage and start subscribing again to stage
       const fanStream = (): Stream => opentok.getStreamById('backstage', R.path(['map', fanId, 'streamId'], broadcast.activeFans));
 
-      const chatId = isWithFan ? fanId : privateCall.isWith;
+      const chatId = isWithFan ? fanId : isWith;
       if (R.path(['chats', chatId], broadcast)) {
         dispatch({ type: 'UPDATE_CHAT_PROPERTY', chatId, property: 'inPrivateCall', update: false });
       }
 
       // Unsubscribe from backstage stream, if needed
       const backstageAction = () => {
-        if (R.equals(isWith, 'activeFan')) {
+        if (R.propEq('isWith', 'activeFan', privateCall)) {
           // Stop subscribing to active fan
           opentok.unsubscribe('backstage', fanStream());
-        } else if (R.equals(isWith, 'backstageFan')) {
+        } else if (R.propEq('isWith', 'backstageFan', privateCall)) {
           // Stop subscribing to backstage fan audio
           opentok.unsubscribeFromAudio('backstage', fanStream());
         }
       };
-      const instance = R.contains(isWith, ['fan', 'host', 'celebrity']) ? 'stage' : 'backstage';
       backstageAction();
-      await Promise.all([opentok.publishAudio(instance, false), opentok.subscribeAll('stage', true)]);
-      dispatch(setPrivateCall(null));
     } catch (error) {
-      console.log(error);
+      // Nothing to do here if there is no stream
     }
+
+    const instance = isUserOnStage(R.prop('isWith', privateCall)) ? 'stage' : 'backstage';
+    try {
+      await Promise.all([opentok.publishAudio(instance, false), opentok.subscribeAll('stage', true)]);
+    } catch (error) {
+      console.log(`Failed to publish audio to ${instance} or subscribe to stage`, error);
+    }
+
+    // Update store
+    dispatch(setPrivateCall(null));
   };
 
-const startPrivateCall: ThunkActionCreator = (isWith: PrivateCallParticipant, fanId ? : UserId): Thunk =>
+const startPrivateCall: ThunkActionCreator = (isWith: PrivateCallParticipant, fanId?: UserId): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const { broadcast } = getState();
     const isWithFan = !!fanId;
@@ -356,7 +330,7 @@ const startPrivateCall: ThunkActionCreator = (isWith: PrivateCallParticipant, fa
 /**
  * Start or end private calls
  */
-const connectPrivateCall: ThunkActionCreator = (isWith: PrivateCallParticipant, fanId ? : UserId): Thunk =>
+const connectPrivateCall: ThunkActionCreator = (isWith: PrivateCallParticipant, fanId?: UserId): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const broadcast = getState().broadcast;
     const currentState = broadcast.privateCall;
@@ -378,7 +352,7 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const adminId = firebase.auth().currentUser.uid;
     const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.fanUrl}`);
-    ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
+    ref.on('value', async (snapshot: firebase.database.DataSnapshot): AsyncVoid => {
       const { broadcast } = getState();
       const isInLine = (record: ActiveFan): boolean => R.has('name', record);
       const activeBroadcast = snapshot.val() || {};
@@ -387,27 +361,28 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
       const archiving = R.prop('archiving', activeBroadcast);
       const fansInLine = R.filter(isInLine, viewers);
       const currentFans = R.path(['activeFans', 'map'], broadcast);
-      const fansNoLongerActive: ChatId[] = R.difference(R.keys(currentFans), R.keys(fansInLine));
-
-      // If a fan in a private call left the line or disconnected, update state
-      const { privateCall } = broadcast;
-      if (privateCall) {
-        const fanId = R.find((id: UserId): boolean => R.propEq('fanId', id, privateCall), fansNoLongerActive);
-        fanId && dispatch(connectPrivateCall(fanTypeForActiveFan(fanId), fanId));
-      }
+      const fansNoLongerActive: UserId[] = R.difference(R.keys(currentFans), R.keys(fansInLine));
 
       // Update backstage and on-stage fan records
       const backstageFanRecord = R.find(R.whereEq({ isBackstage: true }), R.values(viewers));
       const onStageFanRecord = R.find(R.whereEq({ isOnStage: true }), R.values(viewers));
-      backstageFanRecord && dispatch({ type: 'UPDATE_FAN_RECORD', fanType: 'backstageFan', record: backstageFanRecord });
-      onStageFanRecord && dispatch({ type: 'UPDATE_FAN_RECORD', fanType: 'fan', record: onStageFanRecord });
+      backstageFanRecord && dispatch({ type: 'UPDATE_ACTIVE_FAN_RECORD', fanType: 'backstageFan', record: backstageFanRecord });
+      onStageFanRecord && dispatch({ type: 'UPDATE_ACTIVE_FAN_RECORD', fanType: 'fan', record: onStageFanRecord });
 
       R.forEach((fanId: ChatId): void => dispatch({ type: 'REMOVE_CHAT', chatId: fanId }), fansNoLongerActive);
+
+      // Handle the case where a fan in a private call disconnects
+      const fanInPrivateCall = R.path(['privateCall', 'fanId'], broadcast);
+      const privateCallDisconnected = fanInPrivateCall && R.find(R.equals(fanInPrivateCall), fansNoLongerActive);
+      if (privateCallDisconnected) {
+        await dispatch(endPrivateCall());
+      }
 
       dispatch({ type: 'UPDATE_ACTIVE_FANS', update: fansInLine });
       dispatch({ type: 'UPDATE_VIEWERS', viewers: R.length(R.keys(viewers)) });
       dispatch({ type: 'SET_INTERACTIVE_LIMIT', interactiveLimit });
       dispatch({ type: 'SET_ARCHIVING', archiving });
+
     });
   };
 
@@ -528,7 +503,7 @@ const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
 
     /* End the private call */
     if (fan.inPrivateCall) {
-      dispatch(endActiveFanCall(fan));
+      dispatch(connectPrivateCall(fanTypeForActiveFan(fan), fan.id));
     }
 
     /* Update the chat state to reflect the change in fan status */
@@ -574,6 +549,11 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
       /* Remove the current user in stage */
       const currentFanOnStage = R.path(['participants', 'fan'], broadcast);
       currentFanOnStage.stream && signal('stage', { type: 'disconnect', to: currentFanOnStage.stream.connection });
+
+      /* If fan is in private call, end the call before sending to stage. */
+      if (fan.inPrivateCall) {
+        dispatch(connectPrivateCall(fanTypeForActiveFan(fan), fan.id));
+      }
 
       /* Update chat if exists */
       if (R.path(['chats', fan.id], broadcast)) {
@@ -649,8 +629,6 @@ module.exports = {
   reorderActiveFans,
   sendToBackstage,
   chatWithActiveFan,
-  startActiveFanCall,
-  endActiveFanCall,
   chatWithParticipant,
   sendToStage,
   changeStatus,

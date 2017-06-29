@@ -30,6 +30,7 @@ declare type ParticipantState = {
   volume: number
 }
 
+// $FlowFixMe - Creating this type without using an intersection does not throw an error (?)
 declare type FanParticipantState = ParticipantState & { record?: ActiveFan };
 declare type ParticipantWithConnection = ParticipantState & { connection: Connection };
 declare type ProducerWithConnection = { connection: Connection }
@@ -119,8 +120,9 @@ declare type FanState = {
   }
 };
 
-declare type FanType = 'activeFan' | 'backstageFan' | 'fan';
-declare type ParticipantType = 'backstageFan' | 'fan' | 'host' | 'celebrity';
+declare type FanParticipantType = 'backstageFan' | 'fan';
+declare type FanType = 'activeFan' | FanParticipantType;
+declare type ParticipantType = FanParticipantType | 'host' | 'celebrity';
 
 declare type FanInitOptions = { adminId: UserId, userUrl: string };
 declare type CelebHostInitOptions = FanInitOptions & { userType: 'celebrity' | 'host' };
@@ -145,17 +147,17 @@ declare type ChatMessagePartial = {
   fromId?: UserId
 };
 declare type ChatState = {
-    chatId: ParticipantType | UserId,
-    session: SessionName,
-    toType: ChatUser,
-    fromType: ChatUser,
-    fromId?: UserId, // This will be used to indentify active fans only
-    to: UserWithConnection,
-    displayed: boolean,
-    minimized: boolean,
-    messages: ChatMessage[],
-    inPrivateCall?: boolean
-  };
+  chatId: ParticipantType | UserId,
+  session: SessionName,
+  toType: ChatUser,
+  fromType: ChatUser,
+  fromId?: UserId, // This will be used to indentify active fans only
+  to: UserWithConnection,
+  displayed: boolean,
+  minimized: boolean,
+  messages: ChatMessage[],
+  inPrivateCall?: boolean
+};
 
 /**
  * Actions
@@ -175,12 +177,10 @@ declare type BroadcastAction =
   { type: 'SET_ELAPSED_TIME', elapsedTime: string } |
   { type: 'SET_BROADCAST_STATE', state: CoreState } |
   { type: 'SET_PRIVATE_CALL_STATE', privateCall: PrivateCallState } |
-  { type: 'START_PRIVATE_PARTICIPANT_CALL', participant: ParticipantType } |
-  { type: 'END_PRIVATE_PARTICIPANT_CALL' } |
   { type: 'PRIVATE_ACTIVE_FAN_CALL', fanId: UserId, inPrivateCall: boolean } |
   { type: 'END_PRIVATE_ACTIVE_FAN_CALL', fan: ActiveFan } |
   { type: 'UPDATE_ACTIVE_FANS', update: ActiveFanMap } |
-  { type: 'UPDATE_FAN_RECORD', fanType: 'backstageFan' | 'fan', record: ActiveFan } |
+  { type: 'UPDATE_ACTIVE_FAN_RECORD', fanType: 'backstageFan' | 'fan', record: ActiveFan } |
   { type: 'REORDER_BROADCAST_ACTIVE_FANS', update: ActiveFanOrderUpdate } |
   { type: 'START_NEW_FAN_CHAT', fan: ActiveFanWithConnection, toType: FanType, privateCall?: boolean } |
   { type: 'START_NEW_PARTICIPANT_CHAT', participantType: ParticipantType, participant: ParticipantWithConnection } |

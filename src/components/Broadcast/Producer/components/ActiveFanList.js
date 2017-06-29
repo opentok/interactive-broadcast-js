@@ -8,8 +8,6 @@ import { SortableContainer, SortableElement } from 'react-sortable-hoc';
 import {
   reorderActiveFans,
   chatWithActiveFan,
-  startActiveFanCall,
-  endActiveFanCall,
   connectPrivateCall,
   sendToBackstage,
   sendToStage,
@@ -34,11 +32,9 @@ const networkQuality = (quality: null | NetworkQuality): ReactComponent => {
 
 type ActiveFanActions = {
   chat: ActiveFan => void,
-  startPrivateCall: ActiveFan => void,
-  endPrivateCall: ActiveFan => void,
   connectCall: (FanType, UserId) => void,
   sendFanToBackstage: ActiveFan => void,
-  kickFan: ParticipantType => void,
+  kickFan: FanParticipantType => void,
   sendFanToStage: ActiveFan => void
 };
 
@@ -74,8 +70,8 @@ const Fan = SortableElement(({ fan, sortable, actions, backstageFan }: FanProps)
   );
 });
 
-type SortableContainerProps = { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: ParticipantState };
-const SortableFanList: { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: ParticipantState } => ReactComponent =
+type SortableContainerProps = { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: FanParticipantState };
+const SortableFanList: { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: FanParticipantState } => ReactComponent =
   SortableContainer(({ fans, actions, backstageFan }: SortableContainerProps): ReactComponent => {
     const sortable = fans.length > 1;
     return (
@@ -87,7 +83,7 @@ const SortableFanList: { fans: ActiveFan[], actions: ActiveFanActions, backstage
     );
   });
 
-type BaseProps = { activeFans: ActiveFans, backstageFan: ParticipantState };
+type BaseProps = { activeFans: ActiveFans, backstageFan: FanParticipantState };
 type DispatchProps = {
   reorderFans: ActiveFanOrderUpdate => void,
   actions: ActiveFanActions
@@ -132,12 +128,10 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   reorderFans: (update: ActiveFanOrderUpdate): void => dispatch(reorderActiveFans(update)),
   actions: {
     chat: (fan: ActiveFan): void => dispatch(chatWithActiveFan(fan)),
-    startPrivateCall: (fan: ActiveFan): void => dispatch(startActiveFanCall(fan)),
-    endPrivateCall: (fan: ActiveFan): void => dispatch(endActiveFanCall(fan)),
     connectCall: (fanType: FanType, fanId: UserId): void => dispatch(connectPrivateCall(fanType, fanId)),
     sendFanToBackstage: (fan: ActiveFan): void => dispatch(sendToBackstage(fan)),
     sendFanToStage: (fan: ActiveFan): void => dispatch(sendToStage(fan)),
-    kickFan: (participantType: ParticipantType): void => dispatch(kickFanFromFeed(participantType)),
+    kickFan: (participantType: FanParticipantType): void => dispatch(kickFanFromFeed(participantType)),
   },
 });
 

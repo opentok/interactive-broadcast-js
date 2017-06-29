@@ -91,27 +91,16 @@ const onChatMessage: ThunkActionCreator = (chatId: ChatId): Thunk =>
     dispatch({ type: 'MINIMIZE_CHAT', chatId, minimize: false });
   };
 
-const startPrivateCall: ThunkActionCreator = (participant: ParticipantType, connectToProducer?: boolean = false): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
-    const instance = R.equals(participant, 'backstageFan') ? 'backstage' : 'stage';
-    opentok.unsubscribeAll('stage', true);
-    if (connectToProducer) {
-      const producerStream = opentok.getStreamByUserType(instance, 'producer');
-      opentok.subscribeToAudio(instance, producerStream);
-    }
-    dispatch({ type: 'START_PRIVATE_PARTICIPANT_CALL', participant });
-  };
-
 const endPrivateCall: ThunkActionCreator = (participant: ParticipantType, userInCallDisconnected?: boolean = false): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     // See TODO above. We have no way of knowing who the current user is unless we pass the value around
     const instance = R.equals(participant, 'backstageFan') ? 'backstage' : 'stage';
-    const currentUserInCall = R.equals(participant, R.path(['broadcast', 'inPrivateCall'], getState()));
+    const currentUserInCall = R.equals(participant, R.path(['broadcast', 'privateCall', 'isWith'], getState()));
     if (R.and(currentUserInCall, !userInCallDisconnected)) {
       opentok.subscribeAll('stage', true);
       opentok.unsubscribeFromAudio(instance, opentok.getStreamByUserType(instance, 'producer'));
     }
-    dispatch({ type: 'END_PRIVATE_PARTICIPANT_CALL' });
+    dispatch({ type: 'SET_PRIVATE_CALL_STATE', privateCall: null });
   };
 
 /**
@@ -151,7 +140,7 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
   };
 
 
-const kickFanFromFeed: ThunkActionCreator = (participantType: ParticipantType): Thunk =>
+const kickFanFromFeed: ThunkActionCreator = (participantType: FanParticipantType): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const participant = R.path(['broadcast', 'participants', participantType], getState());
     const to = R.path(['stream', 'connection'], participant);
@@ -183,8 +172,9 @@ const updateParticipants: ThunkActionCreator = (participantType: ParticipantType
         break;
       case 'streamDestroyed':
         {
-          const inPrivateCall = R.equals(participantType, R.path(['broadcast', 'inPrivateCall'], getState()));
+          const inPrivateCall = R.equals(participantType, R.path(['broadcast', 'privateCall', 'isWith'], getState()));
           inPrivateCall && dispatch(endPrivateCall(participantType, true));
+          dispatch({ type: 'REMOVE_CHAT', chatId: participantType });
           dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
           break;
         }
@@ -300,7 +290,6 @@ module.exports = {
   setPublishOnly,
   resetBroadcastEvent,
   startCountdown,
-  startPrivateCall,
   endPrivateCall,
   publishOnly,
   toggleParticipantProperty,
@@ -313,10 +302,6 @@ module.exports = {
   displayChat,
   onChatMessage,
   updateStageCountdown,
-  setBroadcastEvent,
-  setReconnecting,
-  setReconnected,
-  setDisconnected,
   setBroadcastEventShowStarted,
   stopElapsedTime,
   startElapsedTime,
