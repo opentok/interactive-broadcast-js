@@ -43,7 +43,7 @@ type ActiveFanActions = {
 };
 
 const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
-type FanProps = { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, backstageFan: ParticipantState };
+type FanProps = { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, backstageFan: FanParticipantState };
 const Fan = SortableElement(({ fan, sortable, actions, backstageFan }: FanProps): ReactComponent => {
   const { chat, sendFanToBackstage, sendFanToStage, kickFan, connectCall } = actions;
   const { inPrivateCall, isOnStage } = fan;

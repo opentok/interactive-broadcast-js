@@ -36,7 +36,7 @@ const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent
     </Link>;
 
   const end = (): ReactComponent =>
-    <button className={style('grey')} key={`action-end-${id}`} onClick={(): void => console.log('ending', id)} >
+    <button className={style('grey')} key={`action-end-${id}`} onClick={R.partial(closeEvent, [id])} >
       <Icon name="times" /> End Event
     </button>;
 
@@ -67,7 +67,7 @@ const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent
       case 'live':
         return [view('live'), end()];
       case 'closed':
-        return R.isNil(archiveUrl) ? [] : uncomposed ? [download()] : [viewArchive()];
+        return R.isNil(archiveUrl) ? [] : [uncomposed ? download() : viewArchive()];
       default:
         return [];
     }
