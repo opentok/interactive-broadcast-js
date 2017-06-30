@@ -151,6 +151,7 @@ class EventForm extends Component {
     const errorMessage = R.propOr('', 'message', errors);
     const errorFields = R.propOr({}, 'fields', errors);
     const { fields } = this.state;
+    const { startImage, endImage } = fields;
 
     return (
       <form className="EventForm" onSubmit={handleSubmit}>
@@ -178,12 +179,13 @@ class EventForm extends Component {
           <Icon className="icon" name="image" style={{ color: 'darkgrey' }} />
           <input type="file" name="startImage" onChange={uploadFile} />
         </div>
+        { startImage && <div className="event-image-preview"><img src={startImage} alt="start event" /></div> }
         <div className="input-container">
           <div className="label">End Event Image (optional)</div>
           <Icon className="icon" name="image" style={{ color: 'darkgrey' }} />
           <input type="file" name="endImage" onChange={uploadFile} />
         </div>
-
+        { endImage && <div className="event-image-preview"><img src={endImage} alt="end event" /></div> }
         <div className="error-message-container">
           { errorMessage }
         </div>

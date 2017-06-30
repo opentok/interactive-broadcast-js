@@ -158,54 +158,17 @@
     margin-left: 5px;
 }
 
-/*
-.EventForm .form-group{
+.EventForm .event-image-preview {
+    height: 200px;
     display: flex;
-    flex-direction: row;
-    background-color: white;
-    width: 90%;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    height:50px;
-}
-.EventForm .form-group .label{
-    width: 200px;
-    margin-right: 20px;
-    text-align: right;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    left: 30%;
+    padding: 10px;
 }
 
-.EventForm .input-container {
-    width: 65%;
-    margin: 10px 0;
-    display: flex;
-    align-items: flex-start;
+.EventForm .event-image-preview img {
+    height: 100%;
+    width: auto;
 }
-.EventForm .input-container.button-container {
-    align-items: flex-end;
-}
-.EventForm .input-container.button-container .btn{
-    width: 100px;
-    height: 40px;
-    margin: 5px;
-}
-.EventForm span.separation{
-    padding: 5px;
-}
-.EventForm .form-group input ,
-.EventForm .input-container input {
-    height: 35px;
-    font-size: 14px;
-    padding: 6px 12px;
-    font-weight: 400;
-    line-height: 1;
-    color: #555;
-    background-color: white;
-    border: 1px solid #ccc;
-}
-
-input.img-uploader {
-    height: 40px !important;
-    display: flex;
-    align-items: baseline;
-}
-*/
