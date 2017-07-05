@@ -12,7 +12,7 @@ import {
   sendToBackstage,
   sendToStage,
 } from '../../../../actions/producer';
-import { kickFanFromFeed } from '../../../../actions/broadcast';
+import { kickFanFromFeed, forceFanToDisconnect } from '../../../../actions/broadcast';
 import { properCase, fanTypeForActiveFan } from '../../../../services/util';
 import './ActiveFanList.css';
 
@@ -35,18 +35,19 @@ type ActiveFanActions = {
   connectCall: (FanType, UserId) => void,
   sendFanToBackstage: ActiveFan => void,
   kickFan: FanParticipantType => void,
+  forceDisconnect: ActiveFan => void,
   sendFanToStage: ActiveFan => void
 };
 
 const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
 type FanProps = { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, backstageFan: FanParticipantState };
-const Fan = SortableElement(({ fan, sortable, actions, backstageFan }: FanProps): ReactComponent => {
-  const { chat, sendFanToBackstage, sendFanToStage, kickFan, connectCall } = actions;
-  const { inPrivateCall, isOnStage } = fan;
+const Fan = SortableElement(({ fan, sortable, actions }: FanProps): ReactComponent => {
+  const { chat, sendFanToBackstage, sendFanToStage, kickFan, connectCall, forceDisconnect } = actions;
+  const { inPrivateCall, isOnStage, isBackstage } = fan;
   const privateCall = R.partial(connectCall, [fanTypeForActiveFan(fan), fan.id]);
-  const isOnBackstage = backstageFan.stream && fan.streamId && R.equals(backstageFan.stream.streamId, fan.streamId);
+  const removeFan = (): void => isBackstage || isOnStage ? kickFan(isBackstage ? 'backstageFan' : 'fan') : forceDisconnect(fan);
   return (
-    <li className={classNames('ActiveFan', { sortable, backstage: isOnBackstage, stage: isOnStage })}>
+    <li className={classNames('ActiveFan', { sortable, backstage: isBackstage, stage: isOnStage })}>
       <div className="ActiveFanImage">
         <img src={fan.snapshot || snapshot} alt="fan-snapshot" />
       </div>
@@ -59,11 +60,11 @@ const Fan = SortableElement(({ fan, sortable, actions, backstageFan }: FanProps)
           { networkQuality(fan.networkQuality)}
         </div>
         <div className="actions">
-          {!isOnBackstage && !isOnStage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
-          {isOnBackstage && <button className="btn white" onClick={R.partial(sendFanToStage, [fan])}>Send to stage</button>}
+          {!isBackstage && !isOnStage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
+          {isBackstage && <button className="btn white" onClick={R.partial(sendFanToStage, [fan])}>Send to stage</button>}
           {!isOnStage && <button className="btn white" onClick={R.partial(privateCall, [fan])}>{ inPrivateCall ? 'Hang Up' : 'Call'}</button>}
           <button className="btn white" onClick={R.partial(chat, [fan])}>Chat</button>
-          <button className="btn white" onClick={R.partial(kickFan, [isOnBackstage ? 'backstageFan' : 'fan'])}>Kick</button>
+          <button className="btn white" onClick={removeFan}>Kick</button>
         </div>
       </div>
     </li>
@@ -132,6 +133,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
     sendFanToBackstage: (fan: ActiveFan): void => dispatch(sendToBackstage(fan)),
     sendFanToStage: (fan: ActiveFan): void => dispatch(sendToStage(fan)),
     kickFan: (participantType: FanParticipantType): void => dispatch(kickFanFromFeed(participantType)),
+    forceDisconnect: (fan: ActiveFan): void => dispatch(forceFanToDisconnect(fan)),
   },
 });
 

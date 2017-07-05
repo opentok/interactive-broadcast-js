@@ -38,8 +38,8 @@ const FanHeader = (props: Props): ReactComponent => {
 
   const getInLineButton = (): ReactComponent =>
     !backstageConnected ?
-      <button className="btn green getInLine" onClick={getInLine}>Get In Line</button> :
-      <button className="btn red getInLine" onClick={leaveLine}>Leave Line</button>;
+      <button className="btn green getInLine" onClick={getInLine}>GET IN LINE</button> :
+      <button className="btn red getInLine" onClick={leaveLine}>LEAVE LINE</button>;
 
   return (
     <div className="FanHeader">

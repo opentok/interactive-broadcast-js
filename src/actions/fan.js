@@ -45,7 +45,7 @@ const setAbleToJoin: ActionCreator = (ableToJoin: boolean): FanAction => ({
 });
 
 /**
- * Update the fan status and the producer chat (if extists)
+ * Update the fan status and the producer chat (if exists)
  */
 const setFanStatus: ThunkActionCreator = (status: FanStatus): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
@@ -340,7 +340,13 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
     // Assign reconnection event listeners
     instance.on('sessionReconnecting', (): void => dispatch(setReconnecting()));
     instance.on('sessionReconnected', (): void => dispatch(setReconnected()));
-    instance.on('sessionDisconnected', (): void => dispatch(setDisconnected()));
+    instance.on('sessionDisconnected', (event: OTEvent) => {
+      if (event.reason === 'forceDisconnected') {
+        dispatch(leaveTheLine());
+      } else {
+        dispatch(setDisconnected());
+      }
+    });
   };
 
   const coreOptions = (name: string, credentials: SessionCredentials, publisherRole: UserRole, autoSubscribe: boolean = true): CoreOptions => ({

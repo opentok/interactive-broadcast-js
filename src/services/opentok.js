@@ -306,6 +306,14 @@ const createTestSubscriber = async (instance: SessionName): Promise<TestSubscrib
   }
 };
 
+/**
+ * Force disconnect a participant
+ */
+const forceDisconnect = (instance: SessionName, connection: Connection): void => { // eslint-disable-line
+  const core = instances[instance];
+  return core.forceDisconnect(connection);
+};
+
 
 module.exports = {
   init,
@@ -334,4 +342,5 @@ module.exports = {
   startCall,
   endCall,
   unpublish,
+  forceDisconnect,
 };
