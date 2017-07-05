@@ -11,6 +11,7 @@ const initialState = (): FanState => ({
     interval: null,
     timeout: null,
   },
+  publisherMinimized: false,
 });
 
 const fan = (state: FanState = initialState(), action: FanAction): FanState => {
@@ -27,6 +28,8 @@ const fan = (state: FanState = initialState(), action: FanAction): FanState => {
       return R.assocPath(['networkTest', 'interval'], action.interval, state);
     case 'SET_NETWORK_TEST_TIMEOUT':
       return R.assocPath(['networkTest', 'timeout'], action.timeout, state);
+    case 'SET_PUBLISHER_MINIMIZED':
+      return R.assoc('publisherMinimized', action.minimized, state);
     default:
       return state;
   }

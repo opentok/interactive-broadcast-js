@@ -19,10 +19,28 @@ type Props = {
   fanStatus: FanStatus,
   ableToJoin: boolean,
   hlsUrl: string,
-  postProduction: boolean
+  postProduction: boolean,
+  publisherMinimized: boolean,
+  restorePublisher: Unit,
+  minimizePublisher: Unit
 };
+
 const FanBody = (props: Props): ReactComponent => {
-  const { isClosed, isLive, image, participants, hasStreams, backstageConnected, fanStatus, ableToJoin, hlsUrl, postProduction } = props;
+  const {
+    isClosed,
+    isLive,
+    image,
+    participants,
+    hasStreams,
+    backstageConnected,
+    fanStatus,
+    ableToJoin,
+    hlsUrl,
+    postProduction,
+    publisherMinimized,
+    minimizePublisher,
+    restorePublisher,
+  } = props;
   const fanOnStage = R.equals('stage', fanStatus);
   const showImage = ((!isLive && !postProduction) || (!hasStreams && ableToJoin)) && !fanOnStage;
   const hidePublisher = !backstageConnected || fanOnStage;
@@ -46,7 +64,13 @@ const FanBody = (props: Props): ReactComponent => {
         />)
       }
       { showHLSPlayer && <FanHLSPlayer isLive={isLive} hlsUrl={hlsUrl} /> }
-      <div className={classNames('VideoWrap', 'smallVideo', { hide: hidePublisher })} id="videobackstageFan" />
+      <div className={classNames('publisherWrapper', { hide: hidePublisher, minimized: publisherMinimized })}>
+        <div className="publisherActions">
+          { !publisherMinimized && <button onClick={minimizePublisher}><i className="fa fa-minus minimize" /></button> }
+          { publisherMinimized && <button onClick={restorePublisher}><i className="fa fa-video-camera restore" /></button> }
+        </div>
+        <div className={classNames('VideoWrap', 'smallVideo', { hide: hidePublisher || publisherMinimized })} id="videobackstageFan" />
+      </div>
       <div id="videoproducer" className="producerContainer" />
     </div>
   );

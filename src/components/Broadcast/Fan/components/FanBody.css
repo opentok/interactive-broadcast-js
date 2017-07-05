@@ -14,6 +14,59 @@
   border: 1px solid #000000;
 }
 
+.FanBody .hide {
+  display:none;
+}
+
+.FanBody .publisherWrapper {
+  position: absolute;
+  left: 1px;
+  bottom: 0px;
+}
+
+.FanBody .publisherWrapper .publisherActions {
+  position: absolute;
+  bottom: 160px;
+  left: 0;
+  width: 200px;
+  height: 20px;
+  background-color: #fff;
+}
+
+.FanBody .publisherWrapper .publisherActions button {
+  display: inline-block;
+  float: right;
+  padding: 4px;
+  color: #00a3e3;
+  background: white;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.FanBody .publisherWrapper .publisherActions button:hover {
+  color: #23527c;
+}
+
+.FanBody .publisherWrapper .publisherActions button:focus {
+  outline: 0;
+}
+
+.FanBody .publisherWrapper.minimized .publisherActions {
+  position: absolute;
+  bottom: 10px;
+  left: 9px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+}
+
+.FanBody .publisherWrapper.minimized .publisherActions .restore {
+  display: inline-block;
+  float: right;
+  padding: 4px;
+}
+
 .FanBody .VideoWrap.smallVideo {
   position: absolute;
   bottom: 0;
@@ -22,10 +75,6 @@
   height: 160px;
   background: #444;
   z-index: 999;
-}
-
-.FanBody .VideoWrap.hide {
-  display:none;
 }
 
 .FanBody .imageHolder {

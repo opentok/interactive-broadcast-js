@@ -26,6 +26,12 @@ import { fanTypeByStatus, isUserOnStage } from '../services/util';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
 
+// Set the fan's publisher minimized
+const setPublisherMinimized: ActionCreator = (minimized: boolean): FanAction => ({
+  type: 'SET_PUBLISHER_MINIMIZED',
+  minimized,
+});
+
 // Set the fan's name
 const setFanName: ActionCreator = (fanName: string): FanAction => ({
   type: 'SET_FAN_NAME',
@@ -598,7 +604,9 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
 const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     /* Close the prompt */
-    dispatch(resetAlert());
+    dispatch(resetAlert())
+    /* Ensure the publisher is not minimzed */;
+    dispatch(setPublisherMinimized(false));
     /* Save the fan name in the storage */
     dispatch(setFanName(fanName));
     /* Connect to backstage session */
@@ -632,4 +640,5 @@ module.exports = {
   initializeBroadcast,
   getInLine,
   leaveTheLine,
+  setPublisherMinimized,
 };

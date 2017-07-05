@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import classNames from 'classnames';
 import { setBroadcastEventStatus } from '../../../actions/broadcast';
-import { initializeBroadcast, getInLine, leaveTheLine } from '../../../actions/fan';
+import { initializeBroadcast, getInLine, leaveTheLine, setPublisherMinimized } from '../../../actions/fan';
 import FanHeader from './components/FanHeader';
 import FanBody from './components/FanBody';
 import FanStatusBar from './components/FanStatusBar';
@@ -34,13 +34,16 @@ type BaseProps = {
   disconnected: boolean,
   postProduction: boolean,
   authError: Error,
-  isEmbed: boolean
+  isEmbed: boolean,
+  publisherMinimized: boolean
 };
 type DispatchProps = {
   init: FanInitOptions => void,
   changeEventStatus: EventStatus => void,
   joinLine: Unit,
-  leaveLine: Unit
+  leaveLine: Unit,
+  minimizePublisher: Unit,
+  restorePublisher: Unit
 };
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
@@ -83,6 +86,9 @@ class Fan extends Component {
       postProduction,
       authError,
       isEmbed,
+      publisherMinimized,
+      minimizePublisher,
+      restorePublisher,
     } = this.props;
     if (authError) return <NoEvents />;
     if (!event) return <Loading />;
@@ -110,6 +116,9 @@ class Fan extends Component {
           />
           <FanStatusBar fanStatus={fanStatus} />
           <FanBody
+            publisherMinimized={publisherMinimized}
+            restorePublisher={restorePublisher}
+            minimizePublisher={minimizePublisher}
             hasStreams={hasStreams}
             image={isClosed ? event.endImage : event.startImage}
             participants={participants}
@@ -149,6 +158,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     producerChat: R.path(['broadcast', 'chats', 'producer'], state),
     disconnected: R.path(['broadcast', 'disconnected'], state),
     authError: R.path(['auth', 'error'], state),
+    publisherMinimized: R.path(['fan', 'publisherMinimized'], state),
   };
 };
 
@@ -158,6 +168,8 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   changeEventStatus: (status: EventStatus): void => dispatch(setBroadcastEventStatus(status)),
   joinLine: (): void => dispatch(getInLine()),
   leaveLine: (): void => dispatch(leaveTheLine()),
+  minimizePublisher: (): void => dispatch(setPublisherMinimized(true)),
+  restorePublisher: (): void => dispatch(setPublisherMinimized(false)),
 });
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Fan));

@@ -204,4 +204,5 @@ declare type FanAction =
   { type: 'SET_ABLE_TO_JOIN', ableToJoin: boolean } |
   { type: 'SET_FAN_PRIVATE_CALL', inPrivateCall: boolean } |
   { type: 'SET_NETWORK_TEST_INTERVAL', interval: null | number } |
-  { type: 'SET_NETWORK_TEST_TIMEOUT', timeout: null | number };
+  { type: 'SET_NETWORK_TEST_TIMEOUT', timeout: null | number } |
+  { type: 'SET_PUBLISHER_MINIMIZED', minimized: boolean };
