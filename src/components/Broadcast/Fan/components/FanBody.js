@@ -28,8 +28,10 @@ const FanBody = (props: Props): ReactComponent => {
   const hidePublisher = !backstageConnected || fanOnStage;
   const shouldSubscribe = isLive || fanOnStage || postProduction;
   const showHLSPlayer = isLive && !ableToJoin && hlsUrl;
+  const isInLine = fanStatus !== 'disconnected' && fanStatus !== 'connected';
+  const mainClassNames = classNames('FanBody', { inLine: isInLine });
   return (
-    <div className="FanBody">
+    <div className={mainClassNames}>
       { showImage &&
         <div className="imageHolder">
           <img src={image || defaultImg} alt="event" />

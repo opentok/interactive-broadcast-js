@@ -32,3 +32,58 @@ body {
   bottom: 0;
   right: 15px;
 }
+
+/* Embed styles */
+.CelebrityHostEmbed {
+  background: #262626;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 0px;
+}
+
+.CelebrityHostEmbed .Container {
+  padding: 0;
+}
+
+.CelebrityHostEmbed .CelebrityHostBody {
+  height: 76vh;
+}
+
+.CelebrityHostEmbed .CelebrityHostBody .imageHolder {
+  border: none;
+  background: #262626;
+}
+
+.CelebrityHostEmbed .CelebrityHostHeader {
+  border: 1px solid #262626;
+}
+
+.CelebrityHostEmbed .CelebrityHostHeader-main h4 {
+  color: #FFFFFF;
+}
+
+.CelebrityHostEmbed .CelebrityHostHeader-main {
+  background: #262626;
+  padding: 12px 12px;
+  min-height: 63px;
+}
+
+@media (min-width: 768px) {
+  .CelebrityHostEmbed .Container {
+    width: 100%;
+  }
+}
+@media (min-width: 992px) {
+  .CelebrityHostEmbed .Container {
+    width: 100%;
+  }
+}
+@media (min-width: 1200px) {
+  .CelebrityHostEmbed .Container {
+    width: 100%;
+  }
+}
+
+.CelebrityHostEmbed .btn.action {
+  margin: 0;
+}

@@ -5,6 +5,7 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
+import classNames from 'classnames';
 import { validateUser } from '../../../actions/auth';
 import { initializeBroadcast, startCountdown } from '../../../actions/celebrityHost';
 import { setBroadcastState, publishOnly, setBroadcastEventStatus } from '../../../actions/broadcast';
@@ -12,6 +13,7 @@ import { setInfo, resetAlert } from '../../../actions/alert';
 import CelebrityHostHeader from './components/CelebrityHostHeader';
 import CelebrityHostBody from './components/CelebrityHostBody';
 import Loading from '../../../components/Common/Loading';
+import NoEvents from '../../../components/Common/NoEvents';
 import Chat from '../../../components/Common/Chat';
 import NetworkReconnect from '../../Common/NetworkReconnect';
 import { disconnect } from '../../../services/opentok';
@@ -25,7 +27,9 @@ type BaseProps = {
   userType: 'host' | 'celebrity',
   userUrl: string,
   broadcast: BroadcastState,
-  disconnected: boolean
+  disconnected: boolean,
+  authError: Error,
+  isEmbed: boolean
 };
 type DispatchProps = {
   init: CelebHostInitOptions => void,
@@ -59,13 +63,15 @@ class CelebrityHost extends Component {
   }
 
   render(): ReactComponent {
-    const { userType, togglePublishOnly, broadcast, disconnected } = this.props;
+    const { userType, togglePublishOnly, broadcast, disconnected, authError, isEmbed } = this.props;
     const { event, participants, publishOnlyEnabled, privateCall, chats } = broadcast;
     const producerChat = R.prop('producer', chats);
+    if (authError) return <NoEvents />;
     if (!event) return <Loading />;
     const availableParticipants = publishOnlyEnabled ? null : participants;
+    const mainClassNames = classNames('CelebrityHost', { CelebrityHostEmbed: isEmbed });
     return (
-      <div className="CelebrityHost">
+      <div className={mainClassNames}>
         <NetworkReconnect />
         <div className="Container">
           <CelebrityHostHeader
@@ -97,9 +103,11 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
   return {
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),
+    isEmbed: R.path(['route', 'embed'], ownProps),
     userUrl: hostUrl || celebrityUrl,
     broadcast: R.prop('broadcast', state),
     disconnected: R.path(['broadcast', 'disconnected'], state),
+    authError: R.path(['auth', 'error'], state),
   };
 };
 

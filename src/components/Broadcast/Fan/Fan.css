@@ -46,3 +46,60 @@ body {
     width: 1170px;
   }
 }
+
+/* Embed styles */
+.FanEmbed.Fan {
+  background: #262626;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 0px;
+}
+.FanEmbed .FanBody {
+  height: 84vh;
+}
+
+.FanEmbed .FanBody.inLine {
+  height: 76vh;
+}
+
+.FanEmbed .FanBody .imageHolder {
+  border: none;
+  background: #262626;
+}
+
+.FanEmbed .FanHeader {
+  border: 1px solid #262626;
+}
+
+.FanEmbed .btn.green.getInLine,
+.FanEmbed .btn.red.getInLine {
+  margin-top: 0;
+  padding: 8px 12px;
+  border-color: #262626;
+}
+
+.FanEmbed .FanHeader-main h4 {
+  color: #FFFFFF;
+}
+
+.FanEmbed .FanHeader-main {
+  background: #262626;
+  padding: 12px 12px;
+  min-height: 63px;
+}
+
+@media (min-width: 768px) {
+  .FanEmbed .Container {
+    width: 100%;
+  }
+}
+@media (min-width: 992px) {
+  .FanEmbed .Container {
+    width: 100%;
+  }
+}
+@media (min-width: 1200px) {
+  .FanEmbed .Container {
+    width: 100%;
+  }
+}

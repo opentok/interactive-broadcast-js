@@ -21,6 +21,9 @@ const routes = (
       <Route path="/post-production/:adminId/:fanUrl" component={Fan} hideHeader userType={'fan'} />
       <Route path="/show-host/:adminId/:hostUrl" component={CelebrityHost} hideHeader userType={'host'} />
       <Route path="/show-celebrity/:adminId/:celebrityUrl" component={CelebrityHost} hideHeader userType={'celebrity'} />
+      <Route path="/show/:adminId" component={Fan} hideHeader embed userType={'fan'} />
+      <Route path="/show-host/:adminId" component={CelebrityHost} hideHeader embed userType={'host'} />
+      <Route path="/show-celebrity/:adminId" component={CelebrityHost} hideHeader embed userType={'celebrity'} />
       <Route component={AuthRoutes}>
         <Route path="admin" component={Dashboard} />
         <Route path="users" component={Users} />

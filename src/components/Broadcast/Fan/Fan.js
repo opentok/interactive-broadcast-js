@@ -3,11 +3,13 @@ import React, { Component } from 'react';
 import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router';
+import classNames from 'classnames';
 import { setBroadcastEventStatus } from '../../../actions/broadcast';
 import { initializeBroadcast, getInLine, leaveTheLine } from '../../../actions/fan';
 import FanHeader from './components/FanHeader';
 import FanBody from './components/FanBody';
 import FanStatusBar from './components/FanStatusBar';
+import NoEvents from '../../Common/NoEvents';
 import Loading from '../../../components/Common/Loading';
 import Chat from '../../../components/Common/Chat';
 import NetworkReconnect from '../../Common/NetworkReconnect';
@@ -30,7 +32,9 @@ type BaseProps = {
   producerChat: ChatState,
   ableToJoin: boolean,
   disconnected: boolean,
-  postProduction: boolean
+  postProduction: boolean,
+  authError: Error,
+  isEmbed: boolean
 };
 type DispatchProps = {
   init: FanInitOptions => void,
@@ -77,14 +81,18 @@ class Fan extends Component {
       ableToJoin,
       disconnected,
       postProduction,
+      authError,
+      isEmbed,
     } = this.props;
+    if (authError) return <NoEvents />;
     if (!event) return <Loading />;
     const participantIsConnected = (type: ParticipantType): boolean => R.path([type, 'connected'], participants || {});
     const hasStreams = R.any(participantIsConnected)(['host', 'celebrity', 'fan']);
     const isClosed = R.equals(status, 'closed');
     const isLive = R.equals(status, 'live');
+    const mainClassNames = classNames('Fan', { FanEmbed: isEmbed });
     return (
-      <div className="Fan">
+      <div className={mainClassNames}>
         <NetworkReconnect />
         <div className="Container">
           <FanHeader
@@ -127,6 +135,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
   return {
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),
+    isEmbed: R.path(['route', 'embed'], ownProps),
     postProduction: R.path(['fan', 'postProduction'], state),
     userUrl: fanUrl,
     inPrivateCall: R.path(['fan', 'inPrivateCall'], state),
@@ -139,6 +148,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     backstageConnected: R.path(['broadcast', 'backstageConnected'], state),
     producerChat: R.path(['broadcast', 'chats', 'producer'], state),
     disconnected: R.path(['broadcast', 'disconnected'], state),
+    authError: R.path(['auth', 'error'], state),
   };
 };
 

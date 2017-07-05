@@ -21,7 +21,7 @@ import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
 import takeSnapshot from '../services/snapshot';
 import networkTest from '../services/networkQuality';
-import { getEventWithCredentials } from '../services/api';
+import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { fanTypeByStatus, isUserOnStage } from '../services/util';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
@@ -527,10 +527,8 @@ const connectToPresence: ThunkActionCreator = (uid: UserId, adminId: UserId, fan
     if (ableToJoin) {
       /* Create new record to update the presence */
       dispatch(createActiveFanRecord(uid, adminId, fanUrl));
-      /* Get the event data */
-      const data = { adminId, fanUrl, userType: 'fan' };
-      const eventData: BroadcastEvent = await getEventWithCredentials(data, R.prop('authToken', getState().auth));
-      dispatch(setBroadcastEvent(eventData));
+      const eventData = getState().broadcast.event;
+
       /* Connect to interactive */
       const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
       const credentials = R.pick(credentialProps, eventData);
@@ -562,20 +560,30 @@ const connectToPresence: ThunkActionCreator = (uid: UserId, adminId: UserId, fan
   };
 
 const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOptions): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
       // Get an Auth Token
       await dispatch(validateUser(adminId, 'fan', userUrl));
 
+      // If the user receives an auth error here means there's no event.
+      if (R.prop('error', getState().auth)) return;
+
+      /* Get the event data */
+      const data = { adminId, fanUrl: userUrl, userType: 'fan' };
+      const eventData: BroadcastEvent = userUrl ?
+        await getEventWithCredentials(data, R.prop('authToken', getState().auth)) :
+        await getEmbedEventWithCredentials(data, R.prop('authToken', getState().auth));
+      dispatch(setBroadcastEvent(eventData));
+
       // Connect to firebase and check the number of viewers
       firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
         if (user) {
-          const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${userUrl}/activeFans/${user.uid}`).once('value');
+          const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/activeFans/${user.uid}`).once('value');
           const fanConnected = query.val();
           if (fanConnected) {
             dispatch(setBlockUserAlert());
           } else {
-            dispatch(connectToPresence(user.uid, adminId, userUrl));
+            dispatch(connectToPresence(user.uid, adminId, eventData.fanUrl));
           }
         } else {
           await firebase.auth().signInAnonymously();

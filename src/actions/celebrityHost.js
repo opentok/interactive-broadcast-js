@@ -16,7 +16,7 @@ import {
   onChatMessage,
   monitorProducerPresence,
 } from './broadcast';
-import { getEventWithCredentials } from '../services/api';
+import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { isUserOnStage } from '../services/util';
 import { setInfo, setBlockUserAlert } from './alert';
 import firebase from '../services/firebase';
@@ -222,7 +222,9 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
       const data = R.assoc(`${userType}Url`, slug, { adminId, userType });
-      const eventData: HostCelebEventData = await getEventWithCredentials(data, R.prop('authToken', getState().auth));
+      const eventData: HostCelebEventData = slug ?
+        await getEventWithCredentials(data, R.prop('authToken', getState().auth)) :
+        await getEmbedEventWithCredentials(data, R.prop('authToken', getState().auth));
       dispatch(setBroadcastEvent(eventData));
     } catch (error) {
       // @TODO Error handling

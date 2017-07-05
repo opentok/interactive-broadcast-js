@@ -96,6 +96,8 @@ const getMostRecentEvent = (id: string): Promise<BroadcastEvent> => get(`event/g
 const getAdminCredentials = (eventId: EventId): Promise<UserCredentials> => post(`event/create-token-producer/${eventId}`);
 const getEventWithCredentials = (data: { adminId: UserId, userType: UserRole }, authToken: AuthToken): Promise<HostCelebEventData> =>
   post(`event/create-token-${data.userType}`, data, true, authToken);
+const getEmbedEventWithCredentials = (data: { adminId: UserId, userType: UserRole }, authToken: AuthToken): Promise<HostCelebEventData> =>
+  post(`event/create-token/${data.adminId}/${data.userType}`, data, true, authToken);
 /** Exports */
 
 module.exports = {
@@ -116,4 +118,5 @@ module.exports = {
   deleteUserRecord,
   url,
   getEventWithCredentials,
+  getEmbedEventWithCredentials,
 };

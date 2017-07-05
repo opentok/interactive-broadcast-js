@@ -397,7 +397,6 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
 
       const query = await firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage`).once('value');
       const stageState = query.val();
-
       /* Let's check if the user has another tab opened */
       if (stageState && stageState[uid] && stageState[uid].userType === 'producer') {
         /* Let the user know that he/she is already connected in another tab */
