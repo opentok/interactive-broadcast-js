@@ -132,6 +132,7 @@ const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserDa
       },
     },
     controlsContainer: null,
+    largeScale: true,
   });
 
   const stage = (): CoreInstanceOptions => {
