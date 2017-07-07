@@ -518,9 +518,12 @@ const updateActiveFanRecord: ThunkActionCreator = (name: string, event: Broadcas
       fanRef.update(record);
       dispatch(setupNetworkTest(fanId, adminId, fanUrl));
       fanRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
-        const { inPrivateCall, isBackstage } = snapshot.val();
-        isBackstage && dispatch(setFanStatus('backstage'));
-        dispatch(handlePrivateCall(inPrivateCall));
+        const update = snapshot.val();
+        if (update) {
+          const { inPrivateCall, isBackstage } = update;
+          isBackstage && dispatch(setFanStatus('backstage'));
+          dispatch(handlePrivateCall(inPrivateCall));
+        }
       });
     } catch (error) {
       console.log(error);

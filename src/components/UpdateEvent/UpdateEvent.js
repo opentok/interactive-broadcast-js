@@ -74,9 +74,13 @@ class UpdateEvent extends Component {
     // Empty fields should not be included
     const datesSet = this.state.dateTimeSet;
     const omitIfEmpty = (acc: string[], field: string): string[] => R.isEmpty(data[field]) ? R.append(field, acc) : acc;
-    // If the admin has not set the dates/times, omit them
+    // Omit start and end images if they are null
+    const omitIfNull = (acc: string[], image: string): string[] => R.isNil(data[image]) ? R.append(image, acc) : acc;
+    const emptyImageFields = R.reduce(omitIfNull, [], ['startImage', 'endImage']);
+        // If the admin has not set the dates/times, omit them
     const initialFields = datesSet ? [] : ['dateTimeStart', 'dateTimeEnd'];
-    const fieldsToOmit = R.reduce(omitIfEmpty, initialFields, R.keys(data));
+    const fieldsToOmit = R.concat(R.reduce(omitIfEmpty, initialFields, R.keys(data)), emptyImageFields);
+
 
     // Standard moment formatting for timestamps. Slugs only for urls.
 
