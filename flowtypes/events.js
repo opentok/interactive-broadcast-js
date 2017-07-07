@@ -1,6 +1,12 @@
 // @flow
 /* eslint no-undef: "off" */
 /* beautify preserve:start */
+
+declare type EventImage = {
+  url: string,
+  id: string
+}
+
 declare type BroadcastEvent = {
   id: string,
   name: string,
@@ -10,8 +16,8 @@ declare type BroadcastEvent = {
   hostUrl: string,
   showEnded: string,
   showStarted: string,
-  startImage?: string,
-  endImage?: string,
+  startImage?: EventImage,
+  endImage?: EventImage,
   fanUrl: string,
   celebrityUrl: string,
   hostUrl: string,
@@ -35,8 +41,8 @@ declare type ActiveBroadcast = {
   hlsUrl?: string,
   name?: string,
   status: EventStatus,
-  startImage?: string,
-  endImage?: string,
+  startImage?: EventImage,
+  endImage?: EventImage,
   archiveUrl?: string
 }
 
@@ -69,8 +75,8 @@ declare type EventsAction =
 declare type BroadcastEventFormData = {
     name: string,
     adminId?: string,
-    startImage?: string,
-    endImage?: string,
+    startImage?: EventImage,
+    endImage?: EventImage,
     dateTimeStart?: string,
     dateTimeEnd?: string,
     archiveEvent: boolean,

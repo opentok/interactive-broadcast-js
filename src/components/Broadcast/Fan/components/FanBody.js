@@ -12,7 +12,7 @@ const userTypes: ParticipantType[] = ['host', 'celebrity', 'fan'];
 type Props = {
   isClosed: boolean,
   isLive: boolean,
-  image?: string,
+  image?: EventImage,
   participants: BroadcastParticipants,
   hasStreams: boolean,
   backstageConnected: boolean,
@@ -52,7 +52,7 @@ const FanBody = (props: Props): ReactComponent => {
     <div className={mainClassNames}>
       { showImage &&
         <div className="imageHolder">
-          <img src={image || defaultImg} alt="event" />
+          <img src={image ? image.url : defaultImg} alt="event" />
         </div>
       }
       { !isClosed &&

@@ -32,8 +32,8 @@ type Props = BaseProps & DispatchProps;
 type EventFormState = {
   fields: {
     name: string,
-    startImage: string,
-    endImage: string,
+    startImage: null | EventImage,
+    endImage: null | EventImage,
     fanUrl: string,
     fanAudioUrl: string,
     hostUrl: string,
@@ -79,8 +79,8 @@ class EventForm extends Component {
     this.state = {
       fields: {
         name: '',
-        startImage: '',
-        endImage: '',
+        startImage: null,
+        endImage: null,
         dateTimeStart: moment().startOf('hour').format('MM/DD/YYYY hh:mm:ss a'),
         dateTimeEnd: moment().startOf('hour').add(1, 'h').format('MM/DD/YYYY hh:mm:ss a'),
         archiveEvent: true,
@@ -123,10 +123,11 @@ class EventForm extends Component {
     this.props.uploadImage();
     const field = e.target.name;
     const file = R.head(e.target.files);
-    const ref = firebase.storage().ref().child(`eventImages/${shortid.generate()}`);
+    const imageId = shortid.generate();
+    const ref = firebase.storage().ref().child(`eventImages/${imageId}`);
     ref.put(file).then((snapshot: *) => {
-      const imageURL = snapshot.downloadURL;
-      this.setState({ fields: R.assoc(field, imageURL, this.state.fields) });
+      const imageData = { id: imageId, url: snapshot.downloadURL };
+      this.setState({ fields: R.assoc(field, imageData, this.state.fields) });
       this.props.uploadImageSuccess();
     });
   }
@@ -179,13 +180,13 @@ class EventForm extends Component {
           <Icon className="icon" name="image" style={{ color: 'darkgrey' }} />
           <input type="file" name="startImage" onChange={uploadFile} />
         </div>
-        { startImage && <div className="event-image-preview"><img src={startImage} alt="start event" /></div> }
+        { startImage && <div className="event-image-preview"><img src={startImage.url} alt="start event" /></div> }
         <div className="input-container">
           <div className="label">End Event Image (optional)</div>
           <Icon className="icon" name="image" style={{ color: 'darkgrey' }} />
           <input type="file" name="endImage" onChange={uploadFile} />
         </div>
-        { endImage && <div className="event-image-preview"><img src={endImage} alt="end event" /></div> }
+        { endImage && <div className="event-image-preview"><img src={endImage.url} alt="end event" /></div> }
         <div className="error-message-container">
           { errorMessage }
         </div>
