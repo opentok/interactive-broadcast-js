@@ -59,6 +59,7 @@ const eventFields = [
   'redirectUrl',
   'rtmpUrl',
   'dateTimeStart',
+  'dateTimeEnd',
   'uncomposed',
 ];
 
