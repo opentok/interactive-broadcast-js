@@ -208,7 +208,7 @@ class EventForm extends Component {
           </CopyToClipboard>
         </div>
         <div className="input-container disabled">
-          <div className="label">Fan Audio Only URL</div>
+          <div className="label">Fan Audio-Only URL</div>
           <Icon className="icon" name="link" style={{ color: 'darkgrey' }} />
           <input type="url" name="fanAudioUrl" value={fields.fanAudioUrl} onChange={handleChange} disabled />
           <CopyToClipboard text={fields.fanAudioUrl} onCopyText="Fan Audio URL" >

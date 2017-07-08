@@ -8,7 +8,7 @@ type Props = {
   routes: Route[]
 };
 
-const DefaultLogo = (): ReactComponent => <div className="Header-logo">Interactive Broadcasting Syndrome</div>;
+const DefaultLogo = (): ReactComponent => <div className="Header-logo">Interactive Broadcasting Solution</div>;
 
 const Header = ({ routes }: Props): ReactComponent => {
   const currentRoute = routes[routes.length - 1];
