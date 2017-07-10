@@ -18,7 +18,7 @@ import {
 } from './broadcast';
 import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { isUserOnStage } from '../services/util';
-import { setInfo, setBlockUserAlert } from './alert';
+import { setInfo } from './alert';
 import firebase from '../services/firebase';
 import opentok from '../services/opentok';
 
