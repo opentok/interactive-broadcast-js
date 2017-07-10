@@ -395,24 +395,20 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     // Register the producer in firebase
     firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
       const uid = user.uid;
+      const base = `activeBroadcasts/${uid}/${event.fanUrl}`;
+      const query = await firebase.database().ref(`${base}/producerActive`).once('value');
+      const producerActive = query.val();
 
-      const query = await firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage`).once('value');
-      const stageState = query.val();
-      /* Let's check if the user has another tab opened */
-      if (stageState && stageState[uid] && stageState[uid].userType === 'producer') {
+      /* Let's check if the producer is already connected */
+      if (producerActive) {
         /* Let the user know that he/she is already connected in another tab */
         dispatch(setBlockUserAlert());
         return;
       }
 
-      const base = `activeBroadcasts/${uid}/${event.fanUrl}`;
-      const ref = firebase.database().ref(`${base}/stage/${uid}`);
       const presenceRef = firebase.database().ref(`${base}/producerActive`);
       const privateCallRef = firebase.database().ref(`${base}/privateCall`);
       try {
-        // dispatch(endPrivateCall()); // Why was this here???
-        ref.onDisconnect().remove((error: Error): void => error && console.log(error));
-        ref.set({ userType: 'producer' });
         presenceRef.onDisconnect().remove((error: Error): void => error && console.log(error));
         presenceRef.set(true);
         privateCallRef.set(null);
@@ -435,15 +431,7 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
-  (dispatch: Dispatch, getState: GetState) => {
-    const event = R.path(['broadcast', 'event'], getState());
-    const uid = firebase.auth().currentUser.uid;
-    const ref = firebase.database().ref(`activeBroadcasts/${uid}/${event.fanUrl}/stage/${uid}`);
-    try {
-      ref.remove((error: Error): void => error && console.log(error));
-    } catch (error) {
-      console.log('Failed to remove the record: ', error);
-    }
+  (dispatch: Dispatch) => {
     disconnect();
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };

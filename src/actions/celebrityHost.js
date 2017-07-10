@@ -249,30 +249,16 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
       // Register the celebrity/host in firebase
       firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
         if (user) {
-          let userIsPresent = false;
-          const { uid } = user;
-          const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/stage`).once('value');
-          const stageState = query.val();
-          const participantsKeys = R.keys(stageState);
-          const checkUserPresence = (key: string) => {
-            if (stageState[key].userType === userType) userIsPresent = true;
-          };
-          R.forEach(checkUserPresence, participantsKeys);
+          const base = `activeBroadcasts/${adminId}/${eventData.fanUrl}`;
+          const query = await firebase.database().ref(`${base}/${userType}Active`).once('value');
+          const userActive = query.val();
 
-          /* First let's check if the user has another tab opened */
-          if (stageState && stageState[uid]) {
-            /* Let the user know that he/she is already connected in another tab */
-            dispatch(setBlockUserAlert());
-            return;
-          }
-
-          if (!userIsPresent) { // Prevent duplicated celeb/host
-            const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/stage/${uid}`);
-            const record = { userType };
+          if (!userActive) { // Prevent duplicated celeb/host
+            const ref = firebase.database().ref(`${base}/${userType}Active`);
             try {
               // eslint-disable-next-line no-console
+              ref.set(true);
               ref.onDisconnect().remove((error: Error): void => error && console.log(error));
-              ref.set(record);
             } catch (error) {
               console.log('Failed to create the record: ', error); // eslint-disable-line no-console
             }
