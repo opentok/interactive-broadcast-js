@@ -59,7 +59,7 @@ const setPrivateCall: ActionCreator = (privateCall: PrivateCallState): Broadcast
  * Keep an eye on the producer. If producer refreshes or disconnects, we will end any active
  * private calls.
  */
-const monitorProducerPresence: ThunkActionCreator = (): Thunk =>
+const monitorProducerPresence: ThunkActionCreator = (fanId: string = ''): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const { broadcast } = getState();
     const { adminId, fanUrl } = R.propOr({}, 'event', broadcast);
@@ -71,24 +71,19 @@ const monitorProducerPresence: ThunkActionCreator = (): Thunk =>
         const producerActive = snapshot.val();
         if (!producerActive) {
           try {
-            privateCallRef.update(null);
-            const fanId = firebase.auth().currentUser.uid;
-            const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
-            ref.update({ inPrivateCall: false });
+            privateCallRef.update(false);
+            if (fanId) {
+              const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
+              ref.update({ inPrivateCall: false });
+            }
           } catch (error) {
-            console.log('Failed to update fan record');
+            console.log('Failed to update fan record', error);
           }
         }
       });
     } catch (error) {
       console.log('Failed to set listener on proudcer presence', error);
     }
-  };
-
-const onChatMessage: ThunkActionCreator = (chatId: ChatId): Thunk =>
-  (dispatch: Dispatch) => {
-    dispatch({ type: 'DISPLAY_CHAT', chatId, display: true });
-    dispatch({ type: 'MINIMIZE_CHAT', chatId, minimize: false });
   };
 
 const endPrivateCall: ThunkActionCreator = (participant: ParticipantType, userInCallDisconnected?: boolean = false): Thunk =>
@@ -300,6 +295,11 @@ const displayChat: ActionCreator = (chatId: ChatId, display?: boolean = true): B
   chatId,
   display,
 });
+
+const onChatMessage: ThunkActionCreator = (chatId: ChatId): Thunk =>
+  (dispatch: Dispatch) => {
+    R.forEach(dispatch, [minimizeChat(chatId, false), displayChat(chatId, true)]);
+  };
 
 module.exports = {
   setBroadcastState,

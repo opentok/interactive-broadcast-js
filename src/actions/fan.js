@@ -472,10 +472,11 @@ const monitorPrivateCall: ThunkActionCreator = (): Thunk =>
 const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentials): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const instances: CoreInstanceOptions[] = opentokConfig(userCredentials, dispatch, getState);
+    const fanId = fanUid();
     opentok.init(instances);
     await opentok.connect(['stage']);
     dispatch(setBroadcastState(opentok.state('stage')));
-    dispatch(monitorProducerPresence());
+    dispatch(monitorProducerPresence(fanId));
     dispatch(monitorPrivateCall());
   };
 

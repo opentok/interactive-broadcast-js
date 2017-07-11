@@ -10,7 +10,7 @@ const getStreamByUserType = (instance: SessionName, userType: UserRole): Stream 
   const core = instances[instance];
   const streamByUserType = (stream: Stream): boolean => {
     const connectionData = JSON.parse(R.pathOr(null, ['connection', 'data'], stream)) || {};
-    return R.equals(connectionData.userType === userType);
+    return connectionData.userType === userType;
   };
   return R.find(streamByUserType, R.values(core.state().streams));
 };

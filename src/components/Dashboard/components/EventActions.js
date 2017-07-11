@@ -63,9 +63,9 @@ const EventActions = ({ event, deleteEvent, closeEvent }: Props): ReactComponent
       case 'notStarted':
         return [start(), edit(), del()];
       case 'preshow':
-        return [view('preshow'), close()];
+        return [view(), close()];
       case 'live':
-        return [view('live'), end()];
+        return [view(), end()];
       case 'closed':
         return R.isNil(archiveUrl) ? [] : [uncomposed ? download() : viewArchive()];
       default:
