@@ -4,6 +4,7 @@ import moment from 'moment';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 import firebase from '../services/firebase';
+import { isFan } from '../services/util';
 
 const setReconnecting: ActionCreator = (): BroadcastAction => ({
   type: 'SET_RECONNECTING',
@@ -59,7 +60,7 @@ const setPrivateCall: ActionCreator = (privateCall: PrivateCallState): Broadcast
  * Keep an eye on the producer. If producer refreshes or disconnects, we will end any active
  * private calls.
  */
-const monitorProducerPresence: ThunkActionCreator = (fanId: string = ''): Thunk =>
+const monitorProducerPresence: ThunkActionCreator = (userType: HostCeleb | 'fan', fanId?: UserId): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const { broadcast } = getState();
     const { adminId, fanUrl } = R.propOr({}, 'event', broadcast);
@@ -69,12 +70,18 @@ const monitorProducerPresence: ThunkActionCreator = (fanId: string = ''): Thunk 
     try {
       producerRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
         const producerActive = snapshot.val();
-        if (!producerActive) {
+        const { privateCall } = broadcast;
+        if (!producerActive && privateCall) {
           try {
-            privateCallRef.update(false);
-            if (fanId) {
+            // If in a call with the fan
+            if (isFan(privateCall.isWith) && fanId && R.propEq('fanId', fanId, privateCall)) {
               const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
               ref.update({ inPrivateCall: false });
+              privateCallRef.update(false);
+            }
+            // If in a call with the host or celeb
+            if (R.propEq('isWith', userType, privateCall)) {
+              privateCallRef.update(false);
             }
           } catch (error) {
             console.log('Failed to update fan record', error);

@@ -266,7 +266,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
             const { apiKey, stageToken, stageSessionId, status } = eventData;
             const credentials = { apiKey, stageSessionId, stageToken };
             status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
-            dispatch(monitorProducerPresence());
+            dispatch(monitorProducerPresence(userType));
           } else {
             /* Let the user know that he/she is already connected in another tab */
             const options = (): AlertPartialOptions => ({

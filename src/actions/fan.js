@@ -476,7 +476,7 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
     opentok.init(instances);
     await opentok.connect(['stage']);
     dispatch(setBroadcastState(opentok.state('stage')));
-    dispatch(monitorProducerPresence(fanId));
+    dispatch(monitorProducerPresence('fan', fanId));
     dispatch(monitorPrivateCall());
   };
 
