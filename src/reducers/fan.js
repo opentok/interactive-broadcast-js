@@ -1,12 +1,13 @@
 // @flow
 import R from 'ramda';
+import startswith from 'lodash.startswith';
 
 const initialState = (): FanState => ({
   ableToJoin: false,
   fanName: '',
   status: 'disconnected',
   inPrivateCall: false,
-  postProduction: window.location.pathname.startsWith('/post-production/'),
+  postProduction: startswith(window.location.pathname, '/post-production/'),
   networkTest: {
     interval: null,
     timeout: null,

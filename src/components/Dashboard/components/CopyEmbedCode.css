@@ -25,6 +25,6 @@
 }
 
 .CopyEmbedCode-button-container.expanded {
-  visibility: initial;
+  visibility: visible;
 }
 

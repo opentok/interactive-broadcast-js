@@ -6,7 +6,11 @@ import { loadAuthToken as jwt } from './localStorage';
 const origin = window.location.origin;
 const url = R.contains('localhost', origin) ? 'http://localhost:3001' : 'https://ibs-dev-server.herokuapp.com';
 const apiUrl = `${url}/api`;
-const defaultHeaders = { 'Content-Type': 'application/json' };
+const defaultHeaders = {
+  'Content-Type': 'application/json',
+  'cache-control': 'no-cache',
+  pragma: 'no-cache',
+};
 /** ********* */
 
 /** Generator headers for a request */

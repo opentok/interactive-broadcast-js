@@ -4,7 +4,6 @@ import moment from 'moment';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 import firebase from '../services/firebase';
-import { isFan } from '../services/util';
 
 const setReconnecting: ActionCreator = (): BroadcastAction => ({
   type: 'SET_RECONNECTING',

@@ -29,7 +29,6 @@ const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
 const fanRadomKey = uuidv4();
 const fanUid = (): UserId => `${firebase.auth().currentUser.uid}-${fanRadomKey}`;
 
-
 // Set the fan's publisher minimized
 const setPublisherMinimized: ActionCreator = (minimized: boolean): FanAction => ({
   type: 'SET_PUBLISHER_MINIMIZED',
@@ -105,11 +104,13 @@ const setupNetworkTest: ThunkActionCreator = (fanId: UserId, adminId: UserId, fa
         ]);
         try {
           // If the subscriber is no longer available, get or create a new one
-          if (!subscriber.stream) {
+          if (subscriber && !subscriber.stream) {
             subscriber = await getSubscriber();
+            const qualityRating: QualityRating = await networkTest({ subscriber });
+            ref.update({ networkQuality: networkQuality(qualityRating) });
+          } else {
+            ref.update({ networkQuality: null });
           }
-          const qualityRating: QualityRating = await networkTest({ subscriber });
-          ref.update({ networkQuality: networkQuality(qualityRating) });
         } catch (error) {
           console.log(error);
           ref.update({ networkQuality: null });

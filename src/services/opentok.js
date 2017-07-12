@@ -1,6 +1,7 @@
 // @flow
 import Core from 'opentok-accelerator-core';
 import R from 'ramda';
+import platform from 'platform';
 
 const instances: {[name: string]: Core} = {};
 const listeners: {[name: string]: Core => void} = {};
@@ -262,6 +263,7 @@ const unpublish = async (instance: SessionName): AsyncVoid => {
 
 const createTestSubscriber = async (instance: SessionName): Promise<TestSubscriber> => {
   const core = instances[instance];
+  const isIE = platform.name === 'IE';
   const session = core.getSession();
 
   const createContainerElements = (): { publisherContainer: string, subscriberContainer: string } => {
@@ -296,10 +298,12 @@ const createTestSubscriber = async (instance: SessionName): Promise<TestSubscrib
   // For other resoultions you may need to adjust the bandwidth conditions in
   // testStreamingCapability().
   try {
-    const { publisherContainer, subscriberContainer } = createContainerElements();
-    const testStream = await createPublisherStream(publisherContainer);
-    const subscriber = await createSubscriber(testStream, subscriberContainer);
-    return subscriber;
+    if (!isIE) {
+      const { publisherContainer, subscriberContainer } = createContainerElements();
+      const testStream = await createPublisherStream(publisherContainer);
+      const subscriber = await createSubscriber(testStream, subscriberContainer);
+      return subscriber;
+    }
   } catch (error) {
     console.log(error);
     return Promise.reject(new Error('Failed to create test subscriber'));

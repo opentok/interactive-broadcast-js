@@ -3,6 +3,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { render } from 'react-dom';
 import ReduxToastr from 'react-redux-toastr';
+import 'babel-polyfill';
 import routes from './routes';
 import configureStore from './configureStore';
 import './index.css';

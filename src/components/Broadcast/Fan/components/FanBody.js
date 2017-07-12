@@ -64,12 +64,12 @@ const FanBody = (props: Props): ReactComponent => {
         />)
       }
       { showHLSPlayer && <FanHLSPlayer isLive={isLive} hlsUrl={hlsUrl} /> }
-      <div className={classNames('publisherWrapper', { hide: hidePublisher, minimized: publisherMinimized })}>
+      <div className={classNames('publisherWrapper', { hidePublisher, minimized: publisherMinimized })}>
         <div className="publisherActions">
           { !publisherMinimized && <button onClick={minimizePublisher}><i className="fa fa-minus minimize" /></button> }
           { publisherMinimized && <button onClick={restorePublisher}><i className="fa fa-video-camera restore" /></button> }
         </div>
-        <div className={classNames('VideoWrap', 'smallVideo', { hide: hidePublisher || publisherMinimized })} id="videobackstageFan" />
+        <div className={classNames('VideoWrap', 'smallVideo', { hidePublisher: hidePublisher || publisherMinimized })} id="videobackstageFan" />
       </div>
       <div id="videoproducer" className="producerContainer" />
     </div>

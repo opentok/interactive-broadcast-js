@@ -1,5 +1,6 @@
 .AddUser {
     position: relative;
+    justify-content: flex-start !important;
 }
 
 .AddUser .header-container {
