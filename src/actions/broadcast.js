@@ -56,43 +56,6 @@ const setPrivateCall: ActionCreator = (privateCall: PrivateCallState): Broadcast
   privateCall,
 });
 
-/**
- * Keep an eye on the producer. If producer refreshes or disconnects, we will end any active
- * private calls.
- */
-const monitorProducerPresence: ThunkActionCreator = (userType: HostCeleb | 'fan', fanId?: UserId): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const { broadcast } = getState();
-    const { adminId, fanUrl } = R.propOr({}, 'event', broadcast);
-    const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
-    const producerRef = firebase.database().ref(`${baseRef}/producerActive`);
-    const privateCallRef = firebase.database().ref(`${baseRef}/privateCall`);
-    try {
-      producerRef.on('value', (snapshot: firebase.database.DataSnapshot) => {
-        const producerActive = snapshot.val();
-        const { privateCall } = broadcast;
-        if (!producerActive && privateCall) {
-          try {
-            // If in a call with the fan
-            if (isFan(privateCall.isWith) && fanId && R.propEq('fanId', fanId, privateCall)) {
-              const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
-              ref.update({ inPrivateCall: false });
-              privateCallRef.update(false);
-            }
-            // If in a call with the host or celeb
-            if (R.propEq('isWith', userType, privateCall)) {
-              privateCallRef.update(false);
-            }
-          } catch (error) {
-            console.log('Failed to update fan record', error);
-          }
-        }
-      });
-    } catch (error) {
-      console.log('Failed to set listener on proudcer presence', error);
-    }
-  };
-
 const endPrivateCall: ThunkActionCreator = (participant: ParticipantType, userInCallDisconnected?: boolean = false): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     // See TODO above. We have no way of knowing who the current user is unless we pass the value around
@@ -315,7 +278,6 @@ module.exports = {
   setReconnected,
   setDisconnected,
   setPrivateCall,
-  monitorProducerPresence,
   setPublishOnly,
   resetBroadcastEvent,
   startCountdown,

@@ -221,7 +221,10 @@ const endPrivateCall: ThunkActionCreator = (): Thunk =>
       // Update fan record
       if (isWithFan) {
         const fanRef = firebase.database().ref(`${baseRef}/activeFans/${fanId}`);
-        await fanRef.update({ inPrivateCall: false });
+        const fanRecord = await fanRef.once('value');
+        if (fanRecord.val()) {
+          await fanRef.update({ inPrivateCall: false });
+        }
       }
     } catch (error) {
       // Nothing to do here. If the fan is no longer active and there is no record, that's fine
@@ -431,8 +434,14 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
-  (dispatch: Dispatch) => {
+  (dispatch: Dispatch, getState: GetState) => {
+    const { adminId, fanUrl } = R.defaultTo({})(getState().broadcast.event);
     disconnect();
+    if (adminId && fanUrl) {
+      const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
+      firebase.database().ref(`${baseRef}/producerActive`).set(false);
+      firebase.database().ref(`${baseRef}/privateCall`).set(null);
+    }
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };
 

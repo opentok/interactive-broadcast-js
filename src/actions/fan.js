@@ -16,7 +16,6 @@ import {
   setDisconnected,
   setPrivateCall,
   onChatMessage,
-  monitorProducerPresence,
 } from './broadcast';
 import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
@@ -328,7 +327,7 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
       const subscribeToAudio = !postProduction || R.equals('fan', userType);
       const options = { subscribeToAudio };
       const subscribeStage = (isLive || fanOnStage || postProduction) && userHasJoined && isStage;
-      const subscribeBackStage = R.equals('producer', userType) && !isStage;
+      const subscribeBackStage = userHasJoined && R.equals('producer', userType) && !isStage;
       subscribeStage && opentok.subscribe('stage', stream, options);
       // Subscribe to producer audio for private call
       subscribeBackStage && opentok.subscribe('backstage', stream);
@@ -408,16 +407,17 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
 
 };
 
-const monitorPrivateCall: ThunkActionCreator = (): Thunk =>
+const monitorPrivateCall: ThunkActionCreator = (fanId: UserId): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
-    const { broadcast, fan } = getState();
-    const fanType = fanTypeByStatus(fan.status);
-    const onStage = isUserOnStage(fanType);
-    const event = R.prop('event', broadcast);
+    const event = R.prop('event', getState().broadcast);
     const { adminId, fanUrl } = event;
     const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/privateCall`);
     ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
       const update: PrivateCallState = snapshot.val();
+      const fan = getState().fan;
+      const fanType = fanTypeByStatus(fan.status);
+      const onStage = isUserOnStage(fanType);
+      const broadcast = getState().broadcast;
       const currentState: PrivateCallState = broadcast.privateCall;
       // No change
       if (R.equals(currentState, update)) {
@@ -448,13 +448,16 @@ const monitorPrivateCall: ThunkActionCreator = (): Thunk =>
 
       // Call ended
       if (!!currentState && R.isNil(update)) {
-        if (R.propEq('isWith', fanType, currentState)) {
+        if (R.propEq('isWith', fanType, currentState) && R.propEq('fanId', fanId, currentState)) {
           // Stop subscribing to producer audio, start subscribing to everyone else
           opentok.subscribeAll('stage', true);
           // const instance = onStage ? 'stage' : 'backstage';
           const instance = 'backstage';
           const producerStream = opentok.getStreamByUserType(instance, 'producer');
-          opentok.unsubscribeFromAudio(instance, producerStream);
+          producerStream && opentok.unsubscribeFromAudio(instance, producerStream);
+          // Update our record in firebase
+          const activeFanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanId}`);
+          activeFanRef.update({ inPrivateCall: false });
         } else if (isUserOnStage(currentState.isWith) && onStage) {
           // $FlowFixMe - The user is on stage and cannot be a fan in line (activeFan)
           const stream = opentok.getStreamByUserType('stage', currentState.isWith);
@@ -476,8 +479,7 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
     opentok.init(instances);
     await opentok.connect(['stage']);
     dispatch(setBroadcastState(opentok.state('stage')));
-    dispatch(monitorProducerPresence('fan', fanId));
-    dispatch(monitorPrivateCall());
+    dispatch(monitorPrivateCall(fanId));
   };
 
 /**
