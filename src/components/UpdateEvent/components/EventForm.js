@@ -142,8 +142,7 @@ class EventForm extends Component {
   handleChange(e: SyntheticInputEvent) {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     const field = e.target.name;
-    const update = R.equals(field, 'name') ? R.replace(/[^a-zA-Z0-9 ]/g, '', value) : value;
-    this.setState({ fields: R.assoc(field, update, this.state.fields) }, this.updateURLs);
+    this.setState({ fields: R.assoc(field, value, this.state.fields) }, this.updateURLs);
     this.props.onUpdate(field);
   }
 

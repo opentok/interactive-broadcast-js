@@ -3,6 +3,7 @@ import React from 'react';
 import R from 'ramda';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
+import truncate from 'lodash.truncate';
 import Icon from 'react-fontawesome';
 import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
@@ -39,7 +40,7 @@ const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentU
         <h3>{ event.name }</h3>
         <div className="post-production-url">
           <span className="label">POST-PRODUCTION URL:</span>
-          <Link to={fanAudioUrl}>{fanAudioUrl}</Link>
+          <Link to={fanAudioUrl}>{truncate(fanAudioUrl, { length: 85 })}</Link>
           <CopyToClipboard text={fanAudioUrl} onCopyText="Post-Production URL" >
             <button className="btn white">COPY</button>
           </CopyToClipboard>

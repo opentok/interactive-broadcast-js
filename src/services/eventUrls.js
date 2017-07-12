@@ -3,7 +3,7 @@ import { remove as removeDiacritics } from 'diacritics';
 import Hashids from 'hashids';
 
 // eslint-disable-next-line no-regex-spaces
-const convertName = R.compose(R.replace(/ /g, '-'), R.toLower, R.replace(/  +/g, ' '), removeDiacritics, R.trim);
+const convertName = R.compose(R.replace(/ /g, '-'), R.toLower, R.replace(/  +/g, ' '), removeDiacritics, R.replace(/[^a-zA-Z0-9 ]/g, ''), R.trim);
 const origin = (): string => window.location.origin;
 const hashEventName = (name: string): string => R.isEmpty(name) ? '' : new Hashids(name).encode(1, 2, 3);
 
