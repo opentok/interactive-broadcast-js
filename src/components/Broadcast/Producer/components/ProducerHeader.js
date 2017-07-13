@@ -34,7 +34,7 @@ const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentU
   const { fanAudioUrl } = createUrls(event);
 
   return (
-    <div className="ProducerHeader admin-page-header">
+    <div className="ProducerHeader">
       <div className="ProducerHeader-info">
         <Link to="/admin">Back to Events</Link>
         <h3>{ event.name }</h3>
@@ -65,7 +65,7 @@ const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentU
           </button>
         }
         <CopyToClipboard text={currentUser.id} onCopyText="Admin ID" >
-          <button className="btn white">COPY ADMIN ID</button>
+          <button className="btn white copy-admin-id">COPY ADMIN ID</button>
         </CopyToClipboard>
         <button className="btn white" onClick={toggleSidePanel}>
           <Icon name={showingSidePanel ? 'caret-square-o-right' : 'caret-square-o-left'} />

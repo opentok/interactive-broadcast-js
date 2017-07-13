@@ -105,6 +105,10 @@
 .ChatForm input {
     padding: 2px;
     width: 85%;
+    border: 1px darkgrey;
+}
+.ChatForm input:focus {
+    outline:0;
 }
 
 .ChatForm .btn {

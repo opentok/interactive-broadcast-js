@@ -114,7 +114,7 @@ class Fan extends Component {
             privateCall={broadcast.privateCall}
             disconnected={disconnected}
           />
-          <FanStatusBar fanStatus={fanStatus} />
+          { !isClosed && <FanStatusBar fanStatus={fanStatus} /> }
           <FanBody
             publisherMinimized={publisherMinimized}
             restorePublisher={restorePublisher}

@@ -251,6 +251,7 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         break;
       case 'finishEvent':
         dispatch(setBroadcastEventStatus('closed'));
+        dispatch(cancelNetworkTest());
         break;
       case 'joinBackstage':
         dispatch(setFanStatus('backstage'));
@@ -514,7 +515,7 @@ const updateActiveFanRecord: ThunkActionCreator = (name: string, event: Broadcas
     const record = {
       name,
       id: fanId,
-      browser: platform.name,
+      browser: platform.name === 'IE' ? 'internet-explorer' : platform.name,
       os: platform.os.family,
       mobile: platform.manufacturer !== null,
       snapshot: await createSnapshot(publisher),

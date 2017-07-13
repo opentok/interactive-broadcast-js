@@ -43,7 +43,7 @@ const FanBody = (props: Props): ReactComponent => {
   } = props;
   const fanOnStage = R.equals('stage', fanStatus);
   const showImage = ((!isLive && !postProduction) || (!hasStreams && ableToJoin)) && !fanOnStage;
-  const hidePublisher = !backstageConnected || fanOnStage;
+  const hidePublisher = isClosed || !backstageConnected || fanOnStage;
   const shouldSubscribe = isLive || fanOnStage || postProduction;
   const showHLSPlayer = isLive && !ableToJoin && hlsUrl;
   const isInLine = fanStatus !== 'disconnected' && fanStatus !== 'connected';

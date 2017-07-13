@@ -16,6 +16,7 @@
   flex: 1;
   align-items: center;
   border: 1px solid #000000;
+  min-height: 50vh;
 }
 
 .CelebrityHostBody .VideoWrap.hide {

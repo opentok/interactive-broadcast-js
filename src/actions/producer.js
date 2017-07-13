@@ -354,8 +354,8 @@ const connectPrivateCall: ThunkActionCreator = (isWith: PrivateCallParticipant, 
 
 const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
-    const adminId = firebase.auth().currentUser.uid;
-    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${event.fanUrl}`);
+    const { adminId, fanUrl } = event;
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`);
     ref.on('value', async (snapshot: firebase.database.DataSnapshot): AsyncVoid => {
       const { broadcast } = getState();
       const isInLine = (record: ActiveFan): boolean => R.has('name', record);
@@ -405,9 +405,8 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     const credentials = R.pick(credentialProps, await getAdminCredentials(event.id));
 
     // Register the producer in firebase
-    firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
-      const uid = user.uid;
-      const base = `activeBroadcasts/${uid}/${event.fanUrl}`;
+    firebase.auth().onAuthStateChanged(async (): AsyncVoid => {
+      const base = `activeBroadcasts/${event.adminId}/${event.fanUrl}`;
       const query = await firebase.database().ref(`${base}/producerActive`).once('value');
       const producerActive = query.val();
 

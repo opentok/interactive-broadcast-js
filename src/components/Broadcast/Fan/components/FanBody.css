@@ -12,9 +12,8 @@
   flex: 1;
   align-items: center;
   border: 1px solid #000000;
+  min-height: 50vh;
 }
-
-
 
 .FanBody .hide {
   display:none;
@@ -81,6 +80,7 @@
   height: 160px;
   background: #444;
   z-index: 999;
+  min-height: 0;
 }
 
 .FanBody .VideoWrap.smallVideo.hidePublisher {
