@@ -210,7 +210,7 @@ const chatWithActiveFan: ThunkActionCreator = (fan: ActiveFan): Thunk =>
 const endPrivateCall: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const { broadcast } = getState();
-    const privateCall = R.prop('privateCall', broadcast);
+    const privateCall = R.prop('privateCall', broadcast) || {};
     const { adminId, fanUrl } = R.prop('event', broadcast);
     const fanId = R.propOr(null, 'fanId', privateCall);
     const isWithFan = !!fanId;
@@ -375,10 +375,19 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
 
       R.forEach((fanId: ChatId): void => dispatch({ type: 'REMOVE_CHAT', chatId: fanId }), fansNoLongerActive);
 
+
+      const privateCall = R.defaultTo({})(broadcast.privateCall);
       // Handle the case where a fan in a private call disconnects
-      const fanInPrivateCall = R.path(['privateCall', 'fanId'], broadcast);
+      const fanInPrivateCall = R.prop('fanId', privateCall);
       const privateCallDisconnected = fanInPrivateCall && R.find(R.equals(fanInPrivateCall), fansNoLongerActive);
       if (privateCallDisconnected) {
+        await dispatch(endPrivateCall());
+      }
+
+      // Handle the case where a host or celeb in a private call disconnects
+      const { isWith } = R.defaultTo({})(activeBroadcast.privateCall);
+      const { hostActive, celebrityActive } = activeBroadcast;
+      if ((R.equals('host', isWith) && !hostActive) || (R.equals('celebrity', isWith) && !celebrityActive)) {
         await dispatch(endPrivateCall());
       }
 

@@ -8,8 +8,6 @@ import AddUser from './AddUser';
 import { deleteUser } from '../../../actions/users';
 import './UserList.css';
 
-
-
 type ListItemProps = { user: User };
 class UserListItem extends Component {
   props: ListItemProps;

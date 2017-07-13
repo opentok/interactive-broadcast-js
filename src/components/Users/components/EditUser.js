@@ -8,10 +8,27 @@ import uuid from 'uuid';
 import './EditUser.css';
 import { createNewUser, updateUserRecord } from '../../../actions/users';
 
-const formFields = ['email', 'displayName', 'otApiKey', 'otSecret', 'broadcastEnabled', 'httpSupport'];
+const emptyUser: UserFormData = {
+  email: '',
+  displayName: '',
+  otApiKey: '',
+  otSecret: '',
+  broadcastEnabled: true,
+  httpSupport: false,
+};
 
-type BaseProps = { user: User, toggleEditPanel: Unit, newUser: boolean, errors: FormErrors };
-type DispatchProps = { updateUser: UserFormData => void, createUser: UserFormData => void };
+const formFields = R.keys(emptyUser);
+
+type BaseProps = {
+  user: null | User,
+  toggleEditPanel: Unit,
+  newUser: boolean,
+  errors: FormErrors
+};
+type DispatchProps = {
+  updateUser: UserFormData => void,
+  createUser: UserFormData => Promise<void>
+};
 type Props = BaseProps & DispatchProps;
 class EditUser extends Component {
 
@@ -28,7 +45,7 @@ class EditUser extends Component {
   constructor(props: Props) {
     super(props);
     this.state = {
-      fields: R.pick(formFields, props.user),
+      fields: props.user ? R.pick(formFields, props.user) : emptyUser,
       errors: null,
       submissionAttemped: false,
     };
@@ -53,17 +70,19 @@ class EditUser extends Component {
     return true;
   }
 
-  handleSubmit(e: SyntheticInputEvent) {
+  async handleSubmit(e: SyntheticInputEvent): AsyncVoid {
     e.preventDefault();
     this.setState({ submissionAttemped: true });
     if (this.hasErrors()) { return; }
     const userData = R.prop('fields', this.state);
-    const { newUser, user, toggleEditPanel, createUser, updateUser } = this.props;
-    const initial = R.pick(formFields, this.props.user);
+    const { newUser, toggleEditPanel, createUser, updateUser } = this.props;
+    const user = R.defaultTo({}, this.props.user);
+    const initial = R.pick(formFields, user);
 
     if (!R.equals(initial, userData)) {
       if (newUser) {
-        createUser(R.assoc('password', uuid(), userData));
+        await createUser(R.assoc('password', uuid(), userData));
+        this.setState({ fields: emptyUser });
       } else {
         updateUser(R.assoc('id', user.id, userData));
         toggleEditPanel();
@@ -159,9 +178,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
     updateUser: (userData: UserFormData) => {
       dispatch(updateUserRecord(userData));
     },
-    createUser: (userData: UserFormData) => {
-      dispatch(createNewUser(userData));
-    },
+    createUser: async (userData: UserFormData): AsyncVoid => dispatch(createNewUser(userData)),
   });
 
 export default connect(null, mapDispatchToProps)(EditUser);

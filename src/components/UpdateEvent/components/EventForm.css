@@ -64,6 +64,12 @@
     padding: 6px 12px 6px 30px;
 }
 
+@-moz-document url-prefix() {
+    .EventForm .input-container input {
+        padding-top: 0;
+    }
+}
+
 .EventForm .input-container .date-time-container {
     display: flex;
     width: 66%;
@@ -106,6 +112,7 @@
     margin-bottom: 0;
 }
 
+
 /*.EventForm .input-container input[type=url] {
     font-weight: 700;
 }*/
@@ -118,6 +125,7 @@
 .EventForm .input-container .btn.copy {
     position: absolute;
     right: 4.5%;
+    top: calc(50% - 17px);
     width: 185px;
     height: 34px;
     font-weight: 300;

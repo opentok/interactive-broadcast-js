@@ -14,7 +14,6 @@ import {
   setDisconnected,
   setPrivateCall,
   onChatMessage,
-  monitorProducerPresence,
 } from './broadcast';
 import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { isUserOnStage } from '../services/util';
@@ -257,8 +256,8 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
             const ref = firebase.database().ref(`${base}/${userType}Active`);
             try {
               // eslint-disable-next-line no-console
-              ref.set(true);
               ref.onDisconnect().remove((error: Error): void => error && console.log(error));
+              ref.set(true);
             } catch (error) {
               console.log('Failed to create the record: ', error); // eslint-disable-line no-console
             }
@@ -266,7 +265,6 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
             const { apiKey, stageToken, stageSessionId, status } = eventData;
             const credentials = { apiKey, stageSessionId, stageToken };
             status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
-            dispatch(monitorProducerPresence(userType));
           } else {
             /* Let the user know that he/she is already connected in another tab */
             const options = (): AlertPartialOptions => ({
