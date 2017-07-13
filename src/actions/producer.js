@@ -508,7 +508,7 @@ const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
 
     /* End the private call */
     if (fan.inPrivateCall) {
-      dispatch(connectPrivateCall(fanTypeForActiveFan(fan), fan.id));
+      await dispatch(endPrivateCall());
     }
 
     /* Update the chat state to reflect the change in fan status */
