@@ -6,6 +6,7 @@
 .Producer-main {
     height: 100vh;
     width: calc(100% - 320px);
+    min-width: 750px;
     transition: width .5s;
 }
 
