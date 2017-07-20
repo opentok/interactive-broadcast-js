@@ -36,7 +36,7 @@ class UpdateEvent extends Component {
     super(props);
     this.state = {
       errors: null,
-      dateTimeSet: false,
+      dateTimeSet: false
     };
     this.validateAndFormat = this.validateAndFormat.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -129,7 +129,7 @@ class UpdateEvent extends Component {
           <h3>{ eventId ? 'Edit Event' : 'Add New Event' }</h3>
         </div>
         <div className="admin-page-content">
-          <EventForm event={event} user={user} errors={errors} onUpdate={onUpdate} onSubmit={onSubmit} />
+          <EventForm event={event} user={user} errors={errors} onUpdate={onUpdate} onSubmit={onSubmit}/>
         </div>
       </div>
     );

@@ -19,6 +19,14 @@ const setOrUpdateEvent: ActionCreator = (event: BroadcastEvent): EventsAction =>
   event,
 });
 
+const submitFormEvent: ActionCreator = (submitting: boolean): EventsAction => {
+  return {
+    type: 'SUBMIT_FORM_EVENT',
+    submitting,
+    event,
+  }
+};
+
 const uploadEventImage: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
     const options: AlertPartialOptions = {
@@ -78,6 +86,7 @@ const confirmDeleteEvent: ThunkActionCreator = (id: EventId): Thunk =>
 const createBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
+      dispatch(submitFormEvent(true));
       const event: BroadcastEvent = await createEvent(data);
       const options: AlertPartialOptions = {
         title: 'Event Creation',
@@ -87,6 +96,7 @@ const createBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
       R.forEach(dispatch, [setSuccess(options), setOrUpdateEvent(event), setMostRecentEvent(event)]);
     } catch (error) {
       dispatch(setError(`Duplicate event name: ${data.name}.`));
+      dispatch(submitFormEvent(false));
     }
   };
 
@@ -143,4 +153,5 @@ module.exports = {
   deleteBroadcastEvent,
   uploadEventImage,
   uploadEventImageSuccess,
+  submitFormEvent,
 };

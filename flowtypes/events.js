@@ -65,6 +65,7 @@ declare type EventsAction =
   { type: 'SET_EVENTS', events: BroadcastEventMap } |
   { type: 'SET_MOST_RECENT_EVENT', event: BroadcastEvent } |
   { type: 'UPDATE_EVENT', event: BroadcastEvent } |
+  { type: 'SUBMIT_FORM_EVENT', event: BroadcastEvent, submitting: boolean } |
   { type: 'FILTER_EVENTS', filter: EventFilter } |
   { type: 'SORT_EVENTS', sortBy: EventSortByOption } |
   { type: 'DELETE_BROADCAST_PROMPT', id: string, onConfirm: string => void } |
@@ -85,7 +86,8 @@ declare type BroadcastEventFormData = {
     hostUrl: string,
     celebrityUrl: string,
     redirectUrl?: string,
-    uncomposed: boolean
+    uncomposed: boolean,
+    submitting: boolean
 }
 
 declare type BroadcastEventUpdateFormData = BroadcastEventFormData & { id: string }

@@ -20,7 +20,8 @@ type BaseProps = {
   onUpdate: string => void,
   user: User,
   event: BroadcastEvent,
-  errors: null | { fields: {[field: string]: boolean}, message: string }
+  errors: null | { fields: {[field: string]: boolean}, message: string },
+  submitting: false,
 };
 type DispatchProps = {
   uploadImage: Unit,
@@ -44,7 +45,8 @@ type EventFormState = {
     dateTimeStart: string,
     dateTimeEnd: string,
     uncomposed: boolean
-  }
+  },
+  submitting: boolean
 };
 
 const eventFields = [
@@ -93,6 +95,7 @@ class EventForm extends Component {
         rtmpUrl: '',
         uncomposed: true,
       },
+      submitting: false,
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -108,6 +111,9 @@ class EventForm extends Component {
   }
 
   componentWillReceiveProps(nextProps: Props) {
+    if (R.isNil(nextProps.errors) || !nextProps.submitting) {
+      this.setState({ submitting: false });
+    }
     if (!R.isNil(nextProps.event)) {
       this.setState({ fields: R.pick(eventFields, this.props.event) }, this.updateURLs);
     }
@@ -117,7 +123,9 @@ class EventForm extends Component {
     e.preventDefault();
     const { onSubmit } = this.props;
     const { fields } = this.state;
-    onSubmit(fields);
+    this.setState({ submitting: true }, () => {
+      onSubmit(fields);
+    });
   }
 
   uploadFile(e: SyntheticInputEvent) {
@@ -261,12 +269,15 @@ class EventForm extends Component {
         </div>
 
         <div className="input-container submit">
-          <button className="btn action green" disabled={R.isEmpty(fields.name)}>Save Event</button>
+          <button className="btn action green" disabled={R.isEmpty(fields.name) || this.state.submitting }>Save Event</button>
         </div>
       </form>
     );
   }
 }
+const mapStateToProps =  (state: State) => ({
+  submitting: R.path(['events', 'submitting'], state)
+});
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
@@ -277,4 +288,4 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
       dispatch(uploadEventImageSuccess());
     },
   });
-export default withRouter(connect(null, mapDispatchToProps)(EventForm));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(EventForm));

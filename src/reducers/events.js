@@ -7,6 +7,7 @@ const initialState: EventsState = {
   sorting: { sortBy: 'mostRecent', order: 'descending' },
   mostRecent: null,
   active: null,
+  submitting: false,
 };
 
 // eslint-disable-next-line no-confusing-arrow
@@ -22,6 +23,8 @@ const events = (state: EventsState = initialState, action: EventsAction): Events
       return R.assoc('mostRecent', action.event, state);
     case 'UPDATE_EVENT':
       return R.assocPath(['map', action.event.id], R.merge(R.pathOr({}, ['map', action.event.id], state), action.event), state);
+    case 'SUBMIT_FORM_EVENT':
+      return R.assoc('submitting', action.submitting, state);
     case 'REMOVE_EVENT':
       return R.assoc('map', R.omit([action.id], state.map), state);
     case 'FILTER_EVENTS':
