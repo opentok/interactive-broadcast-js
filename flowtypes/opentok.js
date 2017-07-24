@@ -176,7 +176,7 @@ declare type CoreStateWithPublisher = CoreState & { publisher: Publisher };
 
 declare type SubscriberEventData = { subscriber: Subscriber } & CoreState;
 
-declare type StreamEventHandler = OTStreamEvent => void;
+declare type StreamEventHandler = OTStreamEvent => AsyncVoid | void;
 
 declare type OTEventListener = OTEvent => void;
 declare type StreamEventListener = (UserRole, StreamEventType, Stream) => void;

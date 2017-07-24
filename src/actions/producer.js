@@ -5,6 +5,11 @@ import { updateStatus } from './events';
 import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
+import {
+  Analytics,
+  logVariation,
+  logAction,
+} from '../services/logging';
 import opentok from '../services/opentok';
 import { isFan, isUserOnStage, fanTypeForActiveFan } from '../services/util';
 import {
@@ -24,6 +29,7 @@ import {
   onChatMessage,
 } from './broadcast';
 
+let analytics;
 const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
 
 const notStarted = R.propEq('status', 'notStarted');
@@ -112,6 +118,7 @@ const opentokConfig = (dispatch: Dispatch, getState: GetState, userCredentials: 
 
   const stage = (): CoreInstanceOptions => {
     const { apiKey, stageSessionId, stageToken } = userCredentials;
+    analytics = new Analytics(window.location.origin, stageSessionId, null, apiKey);
     const autoSubscribe = true;
     const credentials = {
       apiKey,
@@ -150,8 +157,14 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const instances: CoreInstanceOptions[] = opentokConfig(dispatch, getState, userCredentials);
     opentok.init(instances);
-    await opentok.connect(['stage', 'backstage']);
-    dispatch(setBroadcastState(opentok.state('stage')));
+    try {
+      analytics.log(logAction.producerConnects, logVariation.attempt);
+      await opentok.connect(['stage', 'backstage']);
+      analytics.log(logAction.producerConnects, logVariation.success);
+      dispatch(setBroadcastState(opentok.state('stage')));
+    } catch (error) {
+      analytics.log(logAction.producerConnects, logVariation.fail);
+    }
   };
 
 const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, userType: string, slug: string): Thunk =>
@@ -548,6 +561,7 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
     const isBackstage = R.propEq('isBackstage', true);
     const fan = R.findLast(isBackstage)(R.values(currentFans));
     if (fan) {
+      analytics.log(logAction.producerMovesFanOnstage, logVariation.attempt);
       const stream = opentok.getStreamById('backstage', fan.streamId);
       const { event } = broadcast;
 
@@ -572,10 +586,12 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
       try {
         const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
         const activeFanRecord = await ref.once('value');
+        analytics.log(logAction.producerMovesFanOnstage, logVariation.success);
         if (activeFanRecord.val()) {
           ref.update({ isOnStage: true, isBackstage: false });
         }
       } catch (error) {
+        analytics.log(logAction.producerMovesFanOnstage, logVariation.fail);
         // @TODO Error handling
         console.log(error);
       }
@@ -602,9 +618,11 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
  */
 const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStatus): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
+    const goLive = newStatus === 'live';
+    const type = goLive ? 'goLive' : 'finishEvent';
+    const actionType = goLive ? logAction.producerGoLive : logAction.producerEndShow;
+    analytics.log(actionType, logVariation.attempt);
     try {
-      const goLive = newStatus === 'live';
-      const type = goLive ? 'goLive' : 'finishEvent';
       /* If the event goes live, the producer should stop publishing to stage session */
       goLive && await opentok.unpublish('stage');
       /* If the event goes live, start the elapsed time counter */
@@ -618,9 +636,15 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
       ];
       R.forEach(dispatch, actions);
 
-      /* Send a signal to everyone connected to stage with the new status */
-      opentok.signal('stage', { type });
+      try {
+        /* Send a signal to everyone connected to stage with the new status */
+        await opentok.signal('stage', { type });
+        analytics.log(actionType, logVariation.success);
+      } catch (error) {
+        analytics.log(actionType, logVariation.fail);
+      }
     } catch (error) {
+      analytics.log(actionType, logVariation.fail);
       console.log('error on change status ==>', error);
     }
   };

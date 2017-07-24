@@ -19,6 +19,11 @@ import {
 } from './broadcast';
 import { setInfo, resetAlert, setBlockUserAlert } from './alert';
 import opentok from '../services/opentok';
+import {
+  Analytics,
+  logVariation,
+  logAction,
+} from '../services/logging';
 import takeSnapshot from '../services/snapshot';
 import networkTest from '../services/networkQuality';
 import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
@@ -28,6 +33,7 @@ const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
 
 const fanRadomKey = uuidv4();
 const fanUid = (): UserId => `${firebase.auth().currentUser.uid}-${fanRadomKey}`;
+let analytics;
 
 // Set the fan's publisher minimized
 const setPublisherMinimized: ActionCreator = (minimized: boolean): FanAction => ({
@@ -479,7 +485,13 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
     const instances: CoreInstanceOptions[] = opentokConfig(userCredentials, dispatch, getState);
     const fanId = fanUid();
     opentok.init(instances);
-    await opentok.connect(['stage']);
+    analytics.log(logAction.fanConnectsOnstage, logVariation.attempt);
+    try {
+      await opentok.connect(['stage']);
+      analytics.log(logAction.fanConnectsOnstage, logVariation.success);
+    } catch (error) {
+      analytics.log(logAction.fanConnectsOnstage, logVariation.fail);
+    }
     dispatch(setBroadcastState(opentok.state('stage')));
     dispatch(monitorPrivateCall(fanId));
   };
@@ -519,7 +531,7 @@ const updateActiveFanRecord: ThunkActionCreator = (name: string, event: Broadcas
       os: platform.os.family,
       mobile: platform.manufacturer !== null,
       snapshot: await createSnapshot(publisher),
-      streamId: publisher.stream.streamId,
+      streamId: publisher ? publisher.stream.streamId : null,
       isBackstage: false,
       inPrivateCall: false,
     };
@@ -559,6 +571,8 @@ const connectToPresence: ThunkActionCreator = (adminId: UserId, fanUrl: string):
       /* Connect to interactive */
       const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
       const credentials = R.pick(credentialProps, eventData);
+      /* Init OT Logging */
+      analytics = new Analytics(window.location.origin, credentials.stageSessionId, null, credentials.apiKey);
       dispatch(connectToInteractive(credentials, fanId, adminId, fanUrl));
     } else {
       const eventData = {
@@ -626,17 +640,34 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
 const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     /* Close the prompt */
-    dispatch(resetAlert())
-    /* Ensure the publisher is not minimzed */;
+    dispatch(resetAlert());
+
+    /* Ensure the publisher is not minimzed */
     dispatch(setPublisherMinimized(false));
+
     /* Save the fan name in the storage */
     dispatch(setFanName(fanName));
+
     /* Connect to backstage session */
-    await opentok.connect(['backstage']);
+    analytics.log(logAction.fanConnectsBackstage, logVariation.attempt);
+    analytics.log(logAction.fanPublishesBackstage, logVariation.attempt);
+    try {
+      await opentok.connect(['backstage']);
+      analytics.log(logAction.fanConnectsBackstage, logVariation.success);
+      analytics.log(logAction.fanPublishesBackstage, logVariation.success);
+    } catch (error) {
+      error.code === 1500 ?
+        analytics.log(logAction.fanConnectsBackstage, logVariation.success) :
+        analytics.log(logAction.fanConnectsBackstage, logVariation.fail);
+      analytics.log(logAction.fanPublishesBackstage, logVariation.fail);
+    }
+
     /* Save the new backstage connection state */
     dispatch(setBackstageConnected(true));
+
     /* Save the fan status  */
     dispatch(setFanStatus('inLine'));
+
     /* update the record in firebase adding the fan name + snapshot */
     dispatch(updateActiveFanRecord(fanName, R.path(['broadcast', 'event'], getState())));
   };

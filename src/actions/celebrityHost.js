@@ -19,9 +19,15 @@ import { getEventWithCredentials, getEmbedEventWithCredentials } from '../servic
 import { isUserOnStage } from '../services/util';
 import { setInfo } from './alert';
 import firebase from '../services/firebase';
+import {
+  Analytics,
+  logVariation,
+  logAction,
+} from '../services/logging';
 import opentok from '../services/opentok';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
+let analytics;
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
@@ -97,13 +103,31 @@ const opentokConfig = (dispatch: Dispatch, { userCredentials, userType }: UserDa
 
     // Assign listener for stream changes
     const otStreamEvents: StreamEventType[] = ['streamCreated', 'streamDestroyed'];
-    const handleStreamEvent: StreamEventHandler = ({ type, stream }: OTStreamEvent) => {
+    const handleStreamEvent: StreamEventHandler = async ({ type, stream }: OTStreamEvent): AsyncVoid => {
       const user: UserRole = R.prop('userType', JSON.parse(stream.connection.data));
       const streamCreated = R.equals(type, 'streamCreated');
       if (R.equals(user, 'producer')) {
         streamCreated ? opentok.createEmptySubscriber('stage', stream) : dispatch(endPrivateCall(userType, true));
       } else {
-        streamCreated && opentok.subscribe('stage', stream);
+        let subscribeAction;
+        if (streamCreated) {
+          if (userType === 'celebrity') {
+            subscribeAction = (user === 'fan') ?
+              logAction.celebritySubscribesToFan :
+              logAction.celebritySubscribesToHost;
+          } else {
+            subscribeAction = (user === 'fan') ?
+              logAction.hostSubscribesToFan :
+              logAction.hostSubscribesToCelebrity;
+          } 
+          try {
+            analytics.log(subscribeAction, logVariation.attempt);
+            await opentok.subscribe('stage', stream);
+            analytics.log(subscribeAction, logVariation.success);
+          } catch (e) {
+            analytics.log(subscribeAction, logVariation.fail);
+          }
+        }
         dispatch(updateParticipants(user, type, stream));
       }
 
@@ -213,7 +237,35 @@ const connectToInteractive: ThunkActionCreator =
     // const { onStateChanged, onStreamChanged, onSignal } = roleListeners;
     const instances: CoreInstanceOptions[] = opentokConfig(dispatch, { userCredentials, userType });
     opentok.init(instances);
-    await opentok.connect(['stage']);
+    let connectAction, publishAction, allowDenyAction;
+    if (userType === 'host') {
+      connectAction = logAction.hostConnects;
+      publishAction = logAction.hostPublishes;
+      allowDenyAction = logAction.hostAcceptsCameraPermissions;
+    } else {
+      connectAction = logAction.celebrityConnects;
+      publishAction = logAction.celebrityPublishes;
+      allowDenyAction = logAction.celebrityAcceptsCameraPermissions;
+    }
+    analytics.log(connectAction, logVariation.attempt);
+    analytics.log(publishAction, logVariation.attempt);
+    analytics.log(allowDenyAction, logVariation.attempt);
+    try {
+      await opentok.connect(['stage']);
+      analytics.log(connectAction, logVariation.success);
+      analytics.log(publishAction, logVariation.success);
+      analytics.log(allowDenyAction, logVariation.success);
+    } catch (error) {
+      if (error.code === 1500) {
+        analytics.log(connectAction, logVariation.success);
+        error.name === 'OT_PERMISSION_DENIED' ?
+          analytics.log(allowDenyAction, logVariation.fail) :
+          analytics.log(allowDenyAction, logVariation.success);
+      } else {
+        analytics.log(connectAction, logVariation.fail);
+      }
+      analytics.log(publishAction, logVariation.fail);
+    }
     dispatch(monitorPrivateCall(userType));
     dispatch(setBroadcastState(opentok.state('stage')));
   };
@@ -264,6 +316,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
             /* Connect to the session */
             const { apiKey, stageToken, stageSessionId, status } = eventData;
             const credentials = { apiKey, stageSessionId, stageToken };
+            analytics = new Analytics(window.location.origin, stageSessionId, null, apiKey);
             status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
           } else {
             /* Let the user know that he/she is already connected in another tab */
