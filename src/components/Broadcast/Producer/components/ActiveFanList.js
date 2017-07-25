@@ -46,6 +46,7 @@ const Fan = SortableElement(({ fan, sortable, actions }: FanProps): ReactCompone
   const { inPrivateCall, isOnStage, isBackstage } = fan;
   const privateCall = R.partial(connectCall, [fanTypeForActiveFan(fan), fan.id]);
   const removeFan = (): void => isBackstage || isOnStage ? kickFan(isBackstage ? 'backstageFan' : 'fan') : forceDisconnect(fan);
+  const fanIcon = R.toLower(fan.browser || fan.os || '');
   return (
     <li className={classNames('ActiveFan', { sortable, backstage: isBackstage, stage: isOnStage })}>
       <div className="ActiveFanImage">
@@ -54,7 +55,7 @@ const Fan = SortableElement(({ fan, sortable, actions }: FanProps): ReactCompone
       <div className="ActiveFanMain">
         <div className="info">
           <div className="name-and-browser">
-            <Icon name={R.toLower(fan.browser)} style={{ marginRight: '3px' }} />
+            <Icon name={fanIcon} style={{ marginRight: '3px' }} />
             <span className="name">{fan.name}</span>
           </div>
           { networkQuality(fan.networkQuality)}
