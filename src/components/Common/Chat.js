@@ -50,6 +50,14 @@ class Chat extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    const newMessages = nextProps.chat.messages;
+    const { messages } = this.props.chat;
+    if (newMessages.length > messages.length) {
+      this.updateScrollPosition();
+    }
+  }
+
   handleChange(e: SyntheticInputEvent) {
     const newMessageText = e.target.value;
     this.setState({ newMessageText });
