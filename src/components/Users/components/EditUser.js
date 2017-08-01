@@ -147,11 +147,13 @@ class EditUser extends Component {
               <Icon className="icon" name="user-secret" style={{ color: 'darkgrey' }} />
               <input
                 className={classNames({ error: errorFields.otSecret })}
-                type="password"
+                type="text"
                 value={otSecret}
                 name="otSecret"
                 placeholder="OT API Secret"
                 onChange={handleChange}
+                autoComplete="off"
+                size={42}
               />
             </div>
           </div>
