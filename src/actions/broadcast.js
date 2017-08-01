@@ -204,9 +204,8 @@ const startCountdown: ThunkActionCreator = (): Thunk =>
 
 const publishOnly: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const state = getState();
-    const enabled = !R.path(['broadcast', 'publishOnlyEnabled'], state);
-    const newBroadcastState = enabled ? opentok.unsubscribeAll('stage') : opentok.subscribeAll('stage');
+    const enabled = !R.path(['broadcast', 'publishOnlyEnabled'], getState());
+    const newBroadcastState = enabled ? opentok.unsubscribeAll('stage', false, true) : opentok.subscribeAll('stage', false, true);
     const actions = [
       setBroadcastState(newBroadcastState),
       setPublishOnly(enabled),
