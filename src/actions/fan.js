@@ -17,7 +17,7 @@ import {
   setPrivateCall,
   onChatMessage,
 } from './broadcast';
-import { setInfo, resetAlert, setBlockUserAlert } from './alert';
+import { setInfo, resetAlert, setBlockUserAlert, setCameraError } from './alert';
 import opentok from '../services/opentok';
 import {
   Analytics,
@@ -655,21 +655,25 @@ const connectToBackstage: ThunkActionCreator = (fanName: string): Thunk =>
       await opentok.connect(['backstage']);
       analytics.log(logAction.fanConnectsBackstage, logVariation.success);
       analytics.log(logAction.fanPublishesBackstage, logVariation.success);
+
+      /* Save the new backstage connection state */
+      dispatch(setBackstageConnected(true));
+
+      /* Save the fan status  */
+      dispatch(setFanStatus('inLine'));
+
+      /* update the record in firebase adding the fan name + snapshot */
+      dispatch(updateActiveFanRecord(fanName, R.path(['broadcast', 'event'], getState())));
     } catch (error) {
-      error.code === 1500 ?
-        analytics.log(logAction.fanConnectsBackstage, logVariation.success) :
+      if (error.code === 1500) {
+        analytics.log(logAction.fanConnectsBackstage, logVariation.success);
+        dispatch(setCameraError());
+        dispatch(leaveTheLine());
+      } else {
         analytics.log(logAction.fanConnectsBackstage, logVariation.fail);
+      }
       analytics.log(logAction.fanPublishesBackstage, logVariation.fail);
     }
-
-    /* Save the new backstage connection state */
-    dispatch(setBackstageConnected(true));
-
-    /* Save the fan status  */
-    dispatch(setFanStatus('inLine'));
-
-    /* update the record in firebase adding the fan name + snapshot */
-    dispatch(updateActiveFanRecord(fanName, R.path(['broadcast', 'event'], getState())));
   };
 
 const getInLine: ThunkActionCreator = (): Thunk =>

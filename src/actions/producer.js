@@ -2,7 +2,7 @@
 import R from 'ramda';
 import { browserHistory } from 'react-router';
 import { updateStatus } from './events';
-import { setInfo, resetAlert, setBlockUserAlert } from './alert';
+import { setInfo, resetAlert, setBlockUserAlert, setCameraError } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
 import {
@@ -443,14 +443,18 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
 
       // Connect to the session
       await dispatch(connectToInteractive(credentials));
-      createEmptyPublisher('stage');
-      createEmptyPublisher('backstage');
-      dispatch(updateActiveFans(event));
-      dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
-
-      /* Let the fans know that the admin has connected */
-      signal('stage', { type: 'startEvent' });
-
+      try {
+        await createEmptyPublisher('stage');
+        await createEmptyPublisher('backstage');
+        dispatch(updateActiveFans(event));
+        dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
+      } catch (error) {
+        console.log('error!!', error);
+        if (error.code === 1500) {
+          dispatch(setCameraError());
+        }
+      }
+      
     });
   };
 

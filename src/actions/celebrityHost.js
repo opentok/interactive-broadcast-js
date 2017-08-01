@@ -17,7 +17,7 @@ import {
 } from './broadcast';
 import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { isUserOnStage } from '../services/util';
-import { setInfo } from './alert';
+import { setInfo, setCameraError } from './alert';
 import firebase from '../services/firebase';
 import {
   Analytics,
@@ -237,16 +237,10 @@ const connectToInteractive: ThunkActionCreator =
     // const { onStateChanged, onStreamChanged, onSignal } = roleListeners;
     const instances: CoreInstanceOptions[] = opentokConfig(dispatch, { userCredentials, userType });
     opentok.init(instances);
-    let connectAction, publishAction, allowDenyAction;
-    if (userType === 'host') {
-      connectAction = logAction.hostConnects;
-      publishAction = logAction.hostPublishes;
-      allowDenyAction = logAction.hostAcceptsCameraPermissions;
-    } else {
-      connectAction = logAction.celebrityConnects;
-      publishAction = logAction.celebrityPublishes;
-      allowDenyAction = logAction.celebrityAcceptsCameraPermissions;
-    }
+    const isHost = userType === 'host';
+    const connectAction = isHost ? logAction.hostConnects : logAction.celebrityConnects;
+    const publishAction = isHost ? logAction.hostPublishes : logAction.celebrityPublishes;
+    const allowDenyAction = isHost ? logAction.hostAcceptsCameraPermissions : logAction.celebrityAcceptsCameraPermissions;
     analytics.log(connectAction, logVariation.attempt);
     analytics.log(publishAction, logVariation.attempt);
     analytics.log(allowDenyAction, logVariation.attempt);
@@ -255,8 +249,12 @@ const connectToInteractive: ThunkActionCreator =
       analytics.log(connectAction, logVariation.success);
       analytics.log(publishAction, logVariation.success);
       analytics.log(allowDenyAction, logVariation.success);
+      dispatch(monitorPrivateCall(userType));
+      dispatch(setBroadcastState(opentok.state('stage')));
     } catch (error) {
       if (error.code === 1500) {
+        dispatch(setCameraError());
+        /* Add logs */
         analytics.log(connectAction, logVariation.success);
         error.name === 'OT_PERMISSION_DENIED' ?
           analytics.log(allowDenyAction, logVariation.fail) :
@@ -266,8 +264,6 @@ const connectToInteractive: ThunkActionCreator =
       }
       analytics.log(publishAction, logVariation.fail);
     }
-    dispatch(monitorPrivateCall(userType));
-    dispatch(setBroadcastState(opentok.state('stage')));
   };
 
 const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, userType: string, slug: string): Thunk =>

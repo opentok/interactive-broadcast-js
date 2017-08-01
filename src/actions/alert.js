@@ -41,6 +41,7 @@ const setError: ThunkActionCreator = (text: string): Thunk =>
       type: 'error',
       title: 'Error',
       text,
+      html: true,
       onConfirm: (): void => dispatch(resetAlert()),
     };
     dispatch(setAlert(options));
@@ -71,6 +72,22 @@ const setBlockUserAlert: ThunkActionCreator = (): Thunk =>
     dispatch(setAlert(options));
   };
 
+const setCameraError: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch) => {
+    const text = 'Please allow access to your camera and microphone to continue.' +
+                    '<br/>Click the camera icon in your browser bar to view the permissions dialog.';
+    const options = {
+      show: true,
+      title: 'Aw, what happened?',
+      type: 'error',
+      text,
+      showConfirmButton: true,
+      html: true,
+      onConfirm: (): void => dispatch(resetAlert()),
+    };
+    dispatch(setAlert(options));
+  };
+
 module.exports = {
   setAlert,
   setError,
@@ -79,4 +96,5 @@ module.exports = {
   setWarning,
   resetAlert,
   setBlockUserAlert,
+  setCameraError,
 };
