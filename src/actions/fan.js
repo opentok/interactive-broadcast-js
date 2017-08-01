@@ -110,13 +110,11 @@ const setupNetworkTest: ThunkActionCreator = (fanId: UserId, adminId: UserId, fa
         ]);
         try {
           // If the subscriber is no longer available, get or create a new one
-          if (subscriber && !subscriber.stream) {
+          if (!subscriber.stream) {
             subscriber = await getSubscriber();
-            const qualityRating: QualityRating = await networkTest({ subscriber });
-            ref.update({ networkQuality: networkQuality(qualityRating) });
-          } else {
-            ref.update({ networkQuality: null });
           }
+          const qualityRating: QualityRating = await networkTest({ subscriber });
+          ref.update({ networkQuality: networkQuality(qualityRating) });
         } catch (error) {
           console.log(error);
           ref.update({ networkQuality: null });
