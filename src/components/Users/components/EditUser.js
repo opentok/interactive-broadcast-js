@@ -93,8 +93,8 @@ class EditUser extends Component {
   }
 
   handleChange(e: SyntheticInputEvent) {
-    const value = e.target.type === 'checkbox' ? !e.target.checked : e.target.value;
     const field = e.target.name;
+    const value = e.target.type === 'checkbox' ? !this.state.fields[field] : e.target.value;
     this.setState({ fields: R.assoc(field, value, this.state.fields) });
     this.state.submissionAttemped && this.hasErrors();
   }
