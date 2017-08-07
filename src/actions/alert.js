@@ -1,5 +1,6 @@
 // @flow
 import R from 'ramda';
+import { browserHistory } from 'react-router';
 
 const setAlert: ActionCreator = (options: AlertState): AlertAction => ({
   type: 'SET_ALERT',
@@ -65,9 +66,13 @@ const setBlockUserAlert: ThunkActionCreator = (): Thunk =>
       show: true,
       title: '',
       text: 'It seems you have the event opened in another tab. Please make sure you have only one tab opened at a time.',
-      showConfirmButton: false,
+      showConfirmButton: true,
       html: true,
       allowEscapeKey: false,
+      onConfirm: () => {
+        browserHistory.push('/admin');
+        dispatch(resetAlert());
+      },
     };
     dispatch(setAlert(options));
   };

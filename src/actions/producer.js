@@ -422,47 +422,47 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
       const base = `activeBroadcasts/${event.adminId}/${event.fanUrl}`;
       const query = await firebase.database().ref(`${base}/producerActive`).once('value');
       const producerActive = query.val();
-
       /* Let's check if the producer is already connected */
       if (producerActive) {
         /* Let the user know that he/she is already connected in another tab */
         dispatch(setBlockUserAlert());
-        return;
-      }
+      } else {
 
-      const presenceRef = firebase.database().ref(`${base}/producerActive`);
-      const privateCallRef = firebase.database().ref(`${base}/privateCall`);
-      try {
-        presenceRef.onDisconnect().remove((error: Error): void => error && console.log(error));
-        presenceRef.set(true);
-        privateCallRef.set(null);
-        privateCallRef.onDisconnect().remove((error: Error): void => error && console.log(error));
-      } catch (error) {
-        console.log('Failed to create the record: ', error);
-      }
+        const presenceRef = firebase.database().ref(`${base}/producerActive`);
+        const privateCallRef = firebase.database().ref(`${base}/privateCall`);
+        try {
+          presenceRef.onDisconnect().remove((error: Error): void => error && console.log(error));
+          presenceRef.set(true);
+          privateCallRef.set(null);
+          privateCallRef.onDisconnect().remove((error: Error): void => error && console.log(error));
+        } catch (error) {
+          console.log('Failed to create the record: ', error);
+        }
 
-      // Connect to the session
-      await dispatch(connectToInteractive(credentials));
-      try {
-        await createEmptyPublisher('stage');
-        await createEmptyPublisher('backstage');
-        dispatch(updateActiveFans(event));
-        dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
-      } catch (error) {
-        console.log('error!!', error);
-        if (error.code === 1500) {
-          dispatch(setCameraError());
+        // Connect to the session
+        await dispatch(connectToInteractive(credentials));
+        try {
+          await createEmptyPublisher('stage');
+          await createEmptyPublisher('backstage');
+          dispatch(updateActiveFans(event));
+          dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
+        } catch (error) {
+          console.log('error!!', error);
+          if (error.code === 1500) {
+            dispatch(setCameraError());
+          }
         }
       }
-      
     });
   };
 
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
-    const { adminId, fanUrl } = R.defaultTo({})(getState().broadcast.event);
-    disconnect();
-    if (adminId && fanUrl) {
+    const state = getState();
+    const { adminId, fanUrl } = R.defaultTo({})(state.broadcast.event);
+    const connected = R.path(['broadcast', 'connected'], state);
+    if (adminId && fanUrl && connected) {
+      disconnect();
       const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
       firebase.database().ref(`${baseRef}/producerActive`).set(false);
       firebase.database().ref(`${baseRef}/privateCall`).set(null);

@@ -617,14 +617,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
       // Connect to firebase and check the number of viewers
       firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
         if (user) {
-          const fanId = fanUid();
-          const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${eventData.fanUrl}/activeFans/${fanId}`).once('value');
-          const fanConnected = query.val();
-          if (fanConnected) {
-            dispatch(setBlockUserAlert());
-          } else {
-            dispatch(connectToPresence(adminId, eventData.fanUrl));
-          }
+          dispatch(connectToPresence(adminId, eventData.fanUrl));
         } else {
           await firebase.auth().signInAnonymously();
         }
