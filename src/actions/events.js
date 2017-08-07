@@ -19,13 +19,10 @@ const setOrUpdateEvent: ActionCreator = (event: BroadcastEvent): EventsAction =>
   event,
 });
 
-const submitFormEvent: ActionCreator = (submitting: boolean): EventsAction => {
-  return {
-    type: 'SUBMIT_FORM_EVENT',
-    submitting,
-    event,
-  }
-};
+const submitFormEvent: ActionCreator = (submitting: boolean): EventsAction => ({
+  type: 'SUBMIT_FORM_EVENT',
+  submitting,
+});
 
 const uploadEventImage: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
