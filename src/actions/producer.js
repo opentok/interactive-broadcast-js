@@ -459,13 +459,16 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
 const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const state = getState();
-    const { adminId, fanUrl } = R.defaultTo({})(state.broadcast.event);
+    const { adminId, fanUrl, status } = R.defaultTo({})(state.broadcast.event);
     const connected = R.path(['broadcast', 'connected'], state);
+    const isClosed = status === 'closed';
     if (adminId && fanUrl && connected) {
       disconnect();
-      const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
-      firebase.database().ref(`${baseRef}/producerActive`).set(false);
-      firebase.database().ref(`${baseRef}/privateCall`).set(null);
+      if (!isClosed) {
+        const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
+        firebase.database().ref(`${baseRef}/producerActive`).set(false);
+        firebase.database().ref(`${baseRef}/privateCall`).set(null);
+      }
     }
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
   };
