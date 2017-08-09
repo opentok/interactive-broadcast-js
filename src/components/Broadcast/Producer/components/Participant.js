@@ -50,6 +50,7 @@ const Participant = (props: Props): ReactComponent => {
   };
   const statusIconClass = classNames('icon', { green: me.connected });
   const controlIconClass = classNames('icon', { active: me.connected });
+  const volumeIconClass = classNames('icon', { active: inPrivateCall });
   const privateCallIconClass = classNames('icon', { active: me.connected && availableForPrivateCall() });
   const status = me.connected ? 'Online' : 'Offline';
   return (
@@ -82,8 +83,8 @@ const Participant = (props: Props): ReactComponent => {
         <div className="controls">
           <ControlIcon
             name={me.volume === 100 ? 'volume-up' : 'volume-down'}
-            className={controlIconClass}
-            disabled={!me.connected}
+            className={volumeIconClass}
+            disabled={!inPrivateCall}
             onClick={toggleVolume}
           />
           <ControlIcon

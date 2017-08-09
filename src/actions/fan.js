@@ -16,8 +16,9 @@ import {
   setDisconnected,
   setPrivateCall,
   onChatMessage,
+  monitorVolume,
 } from './broadcast';
-import { setInfo, resetAlert, setBlockUserAlert, setCameraError } from './alert';
+import { setInfo, resetAlert, setCameraError } from './alert';
 import opentok from '../services/opentok';
 import {
   Analytics,
@@ -491,6 +492,7 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
       analytics.log(logAction.fanConnectsOnstage, logVariation.fail);
     }
     dispatch(setBroadcastState(opentok.state('stage')));
+    dispatch(monitorVolume());
     dispatch(monitorPrivateCall(fanId));
   };
 

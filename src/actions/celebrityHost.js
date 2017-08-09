@@ -14,6 +14,7 @@ import {
   setDisconnected,
   setPrivateCall,
   onChatMessage,
+  monitorVolume,
 } from './broadcast';
 import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { isUserOnStage } from '../services/util';
@@ -302,9 +303,11 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
 
           if (!userActive) { // Prevent duplicated celeb/host
             const ref = firebase.database().ref(`${base}/${userType}Active`);
+            const refVolume = firebase.database().ref(`${base}/volume/${userType}`);
             try {
               // eslint-disable-next-line no-console
               ref.onDisconnect().remove((error: Error): void => error && console.log(error));
+              refVolume.onDisconnect().remove((error: Error): void => error && console.log(error));
               ref.set(true);
             } catch (error) {
               console.log('Failed to create the record: ', error); // eslint-disable-line no-console
@@ -313,7 +316,10 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
             const { apiKey, stageToken, stageSessionId, status } = eventData;
             const credentials = { apiKey, stageSessionId, stageToken };
             analytics = new Analytics(window.location.origin, stageSessionId, null, apiKey);
-            status !== 'closed' && await dispatch(connectToInteractive(credentials, userType));
+            if (status !== 'closed') {
+              await dispatch(connectToInteractive(credentials, userType));
+              dispatch(monitorVolume());
+            }
           } else {
             /* Let the user know that he/she is already connected in another tab */
             const options = (): AlertPartialOptions => ({

@@ -4,6 +4,13 @@ import moment from 'moment';
 import { setInfo, resetAlert } from './alert';
 import opentok from '../services/opentok';
 import firebase from '../services/firebase';
+import { isUserOnStage } from '../services/util';
+
+const avPropertyChanged: ActionCreator = (participantType: UserRole, update: ParticipantAVPropertyUpdate): BroadcastAction => ({ 
+  type: 'PARTICIPANT_AV_PROPERTY_CHANGED',
+  participantType,
+  update,
+});
 
 const setReconnecting: ActionCreator = (): BroadcastAction => ({
   type: 'SET_RECONNECTING',
@@ -73,11 +80,12 @@ const endPrivateCall: ThunkActionCreator = (participant: ParticipantType, userIn
 const toggleParticipantProperty: ThunkActionCreator = (participantType: ParticipantType, property: ParticipantAVProperty): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const participant = R.path(['broadcast', 'participants', participantType], getState());
+    const { adminId, fanUrl } = R.path(['event'], getState().broadcast);
     const currentValue = R.prop(property, participant);
 
     const update: ParticipantAVPropertyUpdate = R.ifElse(
       R.equals('volume'), // $FlowFixMe
-      (): { property: 'volume', value: number } => ({ property, value: currentValue === 100 ? 50 : 100 }), // $FlowFixMe
+      (): { property: 'volume', value: number } => ({ property, value: currentValue === 100 ? 25 : 100 }), // $FlowFixMe
       (): { property: 'audio' | 'video', value: boolean } => ({ property, value: !currentValue }) // eslint-disable-line comma-dangle
     )(property);
     const { value } = update;
@@ -91,16 +99,22 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
     switch (property) {
       case 'audio':
         opentok.signal(instance, { type: 'muteAudio', to, data: { mute: value ? 'off' : 'on' } });
+        dispatch(avPropertyChanged(participantType, update));
         break;
       case 'video':
         opentok.signal(instance, { type: 'videoOnOff', to, data: { video: value ? 'on' : 'off' } });
+        dispatch(avPropertyChanged(participantType, update));
         break;
       case 'volume':
-        opentok.signal(instance, { type: 'changeVolume', data: { userType: participantType, volume: value ? 100 : 50 } });
+        try {
+          const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/volume/${participantType}`);
+          ref.set(value);
+        } catch (error) {
+          console.log(error);
+        }
         break;
       default: // Do Nothing
     }
-    dispatch({ type: 'PARTICIPANT_AV_PROPERTY_CHANGED', participantType, update });
   };
 
 /**
@@ -170,6 +184,29 @@ const updateParticipants: ThunkActionCreator = (participantType: ParticipantType
       default:
         break;
     }
+  };
+
+/**
+ * Update the participants state when someone joins or leaves
+ */
+const monitorVolume: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const event = R.prop('event', getState().broadcast);
+    const { adminId, fanUrl } = event;
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/volume`);
+    ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
+      const volumeMap = snapshot.val();
+      const participants = R.prop('participants', getState().broadcast);
+      R.forEachObjIndexed((value: number, participantType: UserRole) => {
+        if (participants[participantType].volume !== value) {
+          const instance = isUserOnStage(participantType) ? 'stage' : 'backstage';
+          console.log('getState()', getState());
+          opentok.changeVolume(instance, participantType, value);
+          const update = { property: 'volume', value };
+          dispatch(avPropertyChanged(participantType, update));
+        }
+      }, volumeMap);
+    });
   };
 
 
@@ -288,6 +325,7 @@ module.exports = {
   sendChatMessage,
   kickFanFromFeed,
   minimizeChat,
+  monitorVolume,
   displayChat,
   onChatMessage,
   updateStageCountdown,

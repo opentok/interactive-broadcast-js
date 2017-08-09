@@ -27,10 +27,11 @@ import {
   setDisconnected,
   setPrivateCall,
   onChatMessage,
+  monitorVolume,
 } from './broadcast';
 
 let analytics;
-const { disconnect, changeVolume, signal, createEmptyPublisher, publishAudio } = opentok;
+const { disconnect, signal, createEmptyPublisher, publishAudio } = opentok;
 
 const notStarted = R.propEq('status', 'notStarted');
 const isLive = R.propEq('status', 'live');
@@ -39,22 +40,20 @@ const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' 
 const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: Signal) => {
   const signalData = data ? JSON.parse(data) : {};
   const signalType = R.last(R.split(':', type));
-  const fromData = JSON.parse(from.data);
-  const fromProducer = fromData.userType === 'producer';
-  switch (signalType) {
-    case 'changeVolume':
-      fromProducer && changeVolume('stage', signalData.userType, signalData.volume);
-      break;
-    case 'chatMessage':
-      {
-        const { fromType, fromId } = signalData;
-        const chatId = isFan(fromType) ? fromId : fromType;
-        dispatch(onChatMessage(chatId));
-        dispatch({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', false, signalData) });
-      }
-      break;
-    default:
-      break;
+  if (signalType === 'chatMessage') {
+    const { fromType, fromId } = signalData;
+    const chatId = isFan(fromType) ? fromId : fromType;
+    dispatch(onChatMessage(chatId));
+    dispatch({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', false, signalData) });
+  }
+};
+
+const restoreVolume = (adminId: string, fanUrl: string, userType: UserRole): void => {
+  try {
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/volume/${userType}`);
+    ref.set(100);
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -162,6 +161,7 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
       await opentok.connect(['stage', 'backstage']);
       analytics.log(logAction.producerConnects, logVariation.success);
       dispatch(setBroadcastState(opentok.state('stage')));
+      dispatch(monitorVolume());
     } catch (error) {
       analytics.log(logAction.producerConnects, logVariation.fail);
     }
@@ -521,9 +521,9 @@ const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     /* Remove the current backstagefan */
     const { broadcast } = getState();
-
     const participant = R.path(['participants', 'backstageFan'], broadcast);
     const event = R.prop('event', broadcast);
+    const { adminId, fanUrl } = event;
     participant.stream && await dispatch(kickFanFromFeed('backstageFan'));
 
     /* End the private call */
@@ -538,15 +538,17 @@ const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
 
     /* Get the stream */
     const stream = opentok.getStreamById('backstage', fan.streamId);
+
     /* Add the participant to the backstage fan feed and start subscribing */
     dispatch(updateParticipants('backstageFan', 'streamCreated', stream));
-
     opentok.subscribe('backstage', stream, { subscribeToAudio: false });
+
     /* Let the fan know that he is on backstage */
     signal('backstage', { type: 'joinBackstage', to: stream.connection });
 
     /* Let the celeb & host know that there is a new fan on backstage */
     signal('stage', { type: 'newBackstageFan' });
+
     /* update the record in firebase */
     try {
       const ref = firebase.database().ref(`activeBroadcasts/${R.prop('adminId', event)}/${R.prop('fanUrl', event)}/activeFans/${fan.id}`);
@@ -558,6 +560,9 @@ const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
       // @TODO Error handling
       console.log(error);
     }
+
+    /* update the volume for the backstageFan to 100 */
+    restoreVolume(adminId, fanUrl, 'backstageFan');
   };
 
 const sendToStage: ThunkActionCreator = (): Thunk =>
@@ -571,6 +576,7 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
       analytics.log(logAction.producerMovesFanOnstage, logVariation.attempt);
       const stream = opentok.getStreamById('backstage', fan.streamId);
       const { event } = broadcast;
+      const { adminId, fanUrl } = event;
 
       /* Remove the current user in stage */
       const currentFanOnStage = R.path(['participants', 'fan'], broadcast);
@@ -602,6 +608,9 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
         // @TODO Error handling
         console.log(error);
       }
+
+      /* update the volume for the fan to 100 */
+      restoreVolume(adminId, fanUrl, 'fan');
 
       /* Display the countdown and send the signal */
       let counter = 5;
