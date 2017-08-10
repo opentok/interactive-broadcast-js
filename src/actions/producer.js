@@ -37,14 +37,35 @@ const notStarted = R.propEq('status', 'notStarted');
 const isLive = R.propEq('status', 'live');
 const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' ? 'preshow' : s };
 
+/**
+ * Start (or resume) a chat session with an on-stage participant
+ */
+const chatWithParticipant: ThunkActionCreator = (participantType: ParticipantType): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const chatId = participantType;
+    const { broadcast, chat } = getState();
+    const existingChat = R.path(['chats', chatId], broadcast);
+    const participant = R.path(['participants', participantType], broadcast);
+    const connection = R.path(['stream', 'connection'], participant);
+    if (existingChat) {
+      dispatch({ type: 'DISPLAY_CHAT', chatId, display: true });
+    } else {
+      dispatch({ type: 'START_NEW_PARTICIPANT_CHAT', participantType, participant: R.assoc('connection', connection, participant) });
+    }
+  };
+
 const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: Signal) => {
   const signalData = data ? JSON.parse(data) : {};
   const signalType = R.last(R.split(':', type));
   if (signalType === 'chatMessage') {
     const { fromType, fromId } = signalData;
     const chatId = isFan(fromType) ? fromId : fromType;
-    dispatch(onChatMessage(chatId));
-    dispatch({ type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', false, signalData) });
+    const actions = [
+      chatWithParticipant(chatId),
+      onChatMessage(chatId),
+      { type: 'NEW_CHAT_MESSAGE', chatId, message: R.assoc('isMe', false, signalData) },
+    ];
+    R.forEach(dispatch, actions);
   }
 };
 
@@ -177,25 +198,6 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
       console.log(error);
     }
   };
-
-
-/**
- * Start (or resume) a chat session with an on-stage participant
- */
-const chatWithParticipant: ThunkActionCreator = (participantType: ParticipantType): Thunk =>
-  (dispatch: Dispatch, getState: GetState) => {
-    const chatId = participantType;
-    const { broadcast } = getState();
-    const existingChat = R.path(['chats', chatId], broadcast);
-    const participant = R.path(['participants', participantType], broadcast);
-    const connection = R.path(['stream', 'connection'], participant);
-    if (existingChat) {
-      dispatch({ type: 'DISPLAY_CHAT', chatId, display: true });
-    } else {
-      dispatch({ type: 'START_NEW_PARTICIPANT_CHAT', participantType, participant: R.assoc('connection', connection, participant) });
-    }
-  };
-
 
 /**
  * Start (or resume) a chat session with a fan
