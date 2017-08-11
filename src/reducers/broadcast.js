@@ -31,6 +31,7 @@ const initialChatState = (fromType: ChatUser, fromId?: UserId, toType: ChatUser,
 
 const initialState = (): BroadcastState => ({
   event: null,
+  connecting: false,
   connected: false,
   backstageConnected: false,
   publishOnlyEnabled: false,
@@ -111,6 +112,8 @@ const broadcast = (state: BroadcastState = initialState(), action: BroadcastActi
       return R.assoc('elapsedTime', action.elapsedTime, state);
     case 'BROADCAST_CONNECTED':
       return R.assoc('connected', action.connected, state);
+    case 'PRESENCE_CONNECTING':
+      return R.assoc('connecting', action.connecting, state);
     case 'BACKSTAGE_CONNECTED':
       return R.assoc('backstageConnected', action.connected, state);
     case 'SET_PRIVATE_CALL_STATE':

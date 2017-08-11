@@ -168,6 +168,7 @@ declare type BroadcastAction =
   { type: 'RESET_BROADCAST_EVENT' } |
   { type: 'BACKSTAGE_CONNECTED', connected: boolean } |
   { type: 'BROADCAST_CONNECTED', connected: boolean } |
+  { type: 'PRESENCE_CONNECTING', connecting: boolean } |
   { type: 'SET_PUBLISH_ONLY_ENABLED', publishOnlyEnabled: boolean } |
   { type: 'BROADCAST_PARTICIPANT_JOINED', participantType: ParticipantType, stream: Stream } |
   { type: 'BROADCAST_PARTICIPANT_LEFT', participantType: ParticipantType } |

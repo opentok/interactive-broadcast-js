@@ -209,13 +209,6 @@ const monitorVolume: ThunkActionCreator = (): Thunk =>
     });
   };
 
-
-const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
-  (dispatch: Dispatch) => {
-    opentok.disconnect();
-    dispatch({ type: 'RESET_BROADCAST_EVENT' });
-  };
-
 /**
  * Start the go live countdown
  */
@@ -314,7 +307,6 @@ module.exports = {
   setDisconnected,
   setPrivateCall,
   setPublishOnly,
-  resetBroadcastEvent,
   startCountdown,
   endPrivateCall,
   publishOnly,

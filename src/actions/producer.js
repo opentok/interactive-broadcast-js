@@ -31,6 +31,8 @@ import {
 } from './broadcast';
 
 let analytics;
+let presenceRef;
+let privateCallRef;
 const { disconnect, signal, createEmptyPublisher, publishAudio } = opentok;
 
 const notStarted = R.propEq('status', 'notStarted');
@@ -43,7 +45,7 @@ const setStatus = { status: (s: EventStatus): EventStatus => s === 'notStarted' 
 const chatWithParticipant: ThunkActionCreator = (participantType: ParticipantType): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const chatId = participantType;
-    const { broadcast, chat } = getState();
+    const { broadcast } = getState();
     const existingChat = R.path(['chats', chatId], broadcast);
     const participant = R.path(['participants', participantType], broadcast);
     const connection = R.path(['stream', 'connection'], participant);
@@ -54,7 +56,7 @@ const chatWithParticipant: ThunkActionCreator = (participantType: ParticipantTyp
     }
   };
 
-const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: Signal) => {
+const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data }: Signal) => {
   const signalData = data ? JSON.parse(data) : {};
   const signalType = R.last(R.split(':', type));
   if (signalType === 'chatMessage') {
@@ -69,7 +71,7 @@ const onSignal = (dispatch: Dispatch): SignalListener => ({ type, data, from }: 
   }
 };
 
-const restoreVolume = (adminId: string, fanUrl: string, userType: UserRole): void => {
+const restoreVolume = (adminId: string, fanUrl: string, userType: UserRole) => {
   try {
     const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/volume/${userType}`);
     ref.set(100);
@@ -415,7 +417,7 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
   };
 
 const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const credentialProps = ['apiKey', 'sessionId', 'stageSessionId', 'stageToken', 'backstageToken'];
     const credentials = R.pick(credentialProps, await getAdminCredentials(event.id));
 
@@ -424,19 +426,23 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
       const base = `activeBroadcasts/${event.adminId}/${event.fanUrl}`;
       const query = await firebase.database().ref(`${base}/producerActive`).once('value');
       const producerActive = query.val();
+
+      dispatch({ type: 'PRESENCE_CONNECTING', connecting: true });
+
       /* Let's check if the producer is already connected */
       if (producerActive) {
         /* Let the user know that he/she is already connected in another tab */
         dispatch(setBlockUserAlert());
       } else {
 
-        const presenceRef = firebase.database().ref(`${base}/producerActive`);
-        const privateCallRef = firebase.database().ref(`${base}/privateCall`);
+        presenceRef = firebase.database().ref(`${base}/producerActive`);
+        privateCallRef = firebase.database().ref(`${base}/privateCall`);
         try {
-          presenceRef.onDisconnect().remove((error: Error): void => error && console.log(error));
+          presenceRef.onDisconnect().set(false);
           presenceRef.set(true);
           privateCallRef.set(null);
-          privateCallRef.onDisconnect().remove((error: Error): void => error && console.log(error));
+          privateCallRef.onDisconnect().set(null);
+          dispatch({ type: 'PRESENCE_CONNECTING', connecting: false });
         } catch (error) {
           console.log('Failed to create the record: ', error);
         }
@@ -449,9 +455,12 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
           dispatch(updateActiveFans(event));
           dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
         } catch (error) {
-          console.log('error!!', error);
           if (error.code === 1500) {
-            dispatch(setCameraError());
+            /** Display the camera error alert only if we're in the producer panel */
+            const { broadcast } = getState();
+            if (broadcast.event) {
+              dispatch(setCameraError());
+            }
           }
         }
       }
@@ -462,11 +471,13 @@ const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
     const state = getState();
     const { adminId, fanUrl, status } = R.defaultTo({})(state.broadcast.event);
-    const connected = R.path(['broadcast', 'connected'], state);
+    const connecting = R.path(['broadcast', 'connecting'], state);
     const isClosed = status === 'closed';
-    if (adminId && fanUrl && connected) {
+    if (adminId && fanUrl) {
       disconnect();
-      if (!isClosed) {
+      presenceRef && presenceRef.onDisconnect().cancel();
+      privateCallRef && privateCallRef.onDisconnect().cancel();
+      if (!isClosed && !connecting) {
         const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
         firebase.database().ref(`${baseRef}/producerActive`).set(false);
         firebase.database().ref(`${baseRef}/privateCall`).set(null);
