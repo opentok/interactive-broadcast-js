@@ -18,7 +18,7 @@ import { properCase, fanTypeForActiveFan } from '../../../../services/util';
 import './ActiveFanList.css';
 
 const networkQuality = (quality: null | NetworkQuality): ReactComponent => {
-  const qualityClass = classNames('quality', R.defaultTo('retrieving')(quality));
+  const qualityClass = classNames('quality', R.defaultTo('retrieving')(R.toLower(quality)));
   return (
     <div className="connection">
       {
