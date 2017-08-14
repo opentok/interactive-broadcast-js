@@ -140,7 +140,6 @@ const changeVolume = (instance: SessionName, userType: UserRole, volume: number)
   const stream = getStreamByUserType(instance, userType);
   if (stream) {
     const subscribers = core.getSubscribersForStream(stream);
-    console.log('volume', volume);
     subscribers.forEach((subscriber: Subscriber): Subscriber => subscriber.setAudioVolume(volume));
   }
 };

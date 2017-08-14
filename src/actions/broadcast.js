@@ -200,7 +200,7 @@ const monitorVolume: ThunkActionCreator = (): Thunk =>
       R.forEachObjIndexed((value: number, participantType: UserRole) => {
         if (participants[participantType].volume !== value) {
           const instance = isUserOnStage(participantType) ? 'stage' : 'backstage';
-          console.log('getState()', getState());
+          console.log('instante', instance);
           opentok.changeVolume(instance, participantType, value);
           const update = { property: 'volume', value };
           dispatch(avPropertyChanged(participantType, update));

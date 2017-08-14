@@ -50,7 +50,8 @@ const Participant = (props: Props): ReactComponent => {
   };
   const statusIconClass = classNames('icon', { green: me.connected });
   const controlIconClass = classNames('icon', { active: me.connected });
-  const volumeIconClass = classNames('icon', { active: inPrivateCall });
+  const volumeIconDisabled = (!inPrivateCall && isBackstageFan(type)) || !me.connected;
+  const volumeIconClass = classNames('icon', { active: !volumeIconDisabled });
   const privateCallIconClass = classNames('icon', { active: me.connected && availableForPrivateCall() });
   const status = me.connected ? 'Online' : 'Offline';
   return (
@@ -84,7 +85,7 @@ const Participant = (props: Props): ReactComponent => {
           <ControlIcon
             name={me.volume === 100 ? 'volume-up' : 'volume-down'}
             className={volumeIconClass}
-            disabled={!inPrivateCall}
+            disabled={volumeIconDisabled}
             onClick={toggleVolume}
           />
           <ControlIcon

@@ -30,7 +30,7 @@ import networkTest from '../services/networkQuality';
 import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { fanTypeByStatus, isUserOnStage } from '../services/util';
 
-const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
+const { toggleLocalAudio, toggleLocalVideo } = opentok;
 
 const fanRadomKey = uuidv4();
 const fanUid = (): UserId => `${firebase.auth().currentUser.uid}-${fanRadomKey}`;
@@ -244,9 +244,6 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         break;
       case 'muteAudio':
         toggleLocalAudio(instance, signalData.mute === 'off');
-        break;
-      case 'changeVolume':
-        changeVolume('stage', signalData.userType, signalData.volume);
         break;
       case 'chatMessage':
         dispatch(receivedChatMessage(from, signalData));
