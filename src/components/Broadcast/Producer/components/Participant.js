@@ -8,8 +8,8 @@ import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
 import { isFan } from '../../../../services/util';
 import ControlIcon from './ControlIcon';
-import { toggleParticipantProperty, kickFanFromFeed } from '../../../../actions/broadcast';
-import { connectPrivateCall, chatWithParticipant, sendToStage } from '../../../../actions/producer';
+import { toggleParticipantProperty } from '../../../../actions/broadcast';
+import { connectPrivateCall, chatWithParticipant, sendToStage, kickFanFromFeed } from '../../../../actions/producer';
 import './Participant.css';
 
 const isBackstageFan = R.equals('backstageFan');

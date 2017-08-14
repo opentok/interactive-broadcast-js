@@ -4,8 +4,8 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import Icon from 'react-fontawesome';
 import Chat from '../../../Common/Chat';
-import { minimizeChat, displayChat, kickFanFromFeed } from '../../../../actions/broadcast';
-import { sendToBackstage, sendToStage, connectPrivateCall } from '../../../../actions/producer';
+import { minimizeChat, displayChat } from '../../../../actions/broadcast';
+import { sendToBackstage, sendToStage, connectPrivateCall, kickFanFromFeed } from '../../../../actions/producer';
 import { fanTypeForActiveFan } from '../../../../services/util';
 import './ProducerChat.css';
 

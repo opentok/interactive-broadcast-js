@@ -17,7 +17,6 @@ import {
   setBroadcastEventShowStarted,
   startElapsedTime,
   stopElapsedTime,
-  kickFanFromFeed,
   setBroadcastState,
   updateParticipants,
   updateStageCountdown,
@@ -530,6 +529,37 @@ const reorderActiveFans: ActionCreator = (update: ActiveFanOrderUpdate): Broadca
   update,
 });
 
+/**
+ * Kick fan from stage or backstage feeds
+ */
+const kickFanFromFeed: ThunkActionCreator = (participantType: FanParticipantType): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    const state = getState();
+    const participant = R.path(['broadcast', 'participants', participantType], state);
+    const to = R.path(['stream', 'connection'], participant);
+    const stream = R.path(['stream'], participant);
+    const isStage = R.equals('fan', participantType);
+    const instance = isStage ? 'stage' : 'backstage';
+    const type = isStage ? 'disconnect' : 'disconnectBackstage';
+    const { adminId, fanUrl } = R.path(['event'], state.broadcast);
+    const fan = participant.record;
+    const inPrivateCall = R.equals(participantType, R.path(['broadcast', 'privateCall', 'isWith'], getState()));
+    
+    if (!isStage) {
+      try {
+        const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fan.id}`);
+        ref.update({ isBackstage: false });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    await opentok.signal(instance, { type, to });
+    await opentok.unsubscribe(instance, stream);
+    inPrivateCall && await dispatch(endPrivateCall());
+    dispatch({ type: 'REMOVE_CHAT', chatId: participantType });
+    dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
+  };
+
 const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     /* Remove the current backstagefan */
@@ -690,4 +720,5 @@ module.exports = {
   chatWithParticipant,
   sendToStage,
   changeStatus,
+  kickFanFromFeed,
 };

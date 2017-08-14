@@ -127,34 +127,6 @@ const forceFanToDisconnect: ThunkActionCreator = (fan: ActiveFan): Thunk =>
   };
 
 /**
- * Kick fan from stage or backstage feeds
- */
-const kickFanFromFeed: ThunkActionCreator = (participantType: FanParticipantType): Thunk =>
-  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
-    const state = getState();
-    const participant = R.path(['broadcast', 'participants', participantType], state);
-    const to = R.path(['stream', 'connection'], participant);
-    const stream = R.path(['stream'], participant);
-    const isStage = R.equals('fan', participantType);
-    const instance = isStage ? 'stage' : 'backstage';
-    const type = isStage ? 'disconnect' : 'disconnectBackstage';
-    const { adminId, fanUrl } = R.path(['event'], state.broadcast);
-    const fan = participant.record;
-    if (!isStage) {
-      try {
-        const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fan.id}`);
-        ref.update({ isBackstage: false });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    await opentok.signal(instance, { type, to });
-    await opentok.unsubscribe(instance, stream);
-    dispatch({ type: 'REMOVE_CHAT', chatId: participantType });
-    dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
-  };
-
-/**
  * Update the participants state when someone joins or leaves
  */
 const updateParticipants: ThunkActionCreator = (participantType: ParticipantType, event: ParticipantEventType, stream: Stream): Thunk =>
@@ -200,7 +172,6 @@ const monitorVolume: ThunkActionCreator = (): Thunk =>
       R.forEachObjIndexed((value: number, participantType: UserRole) => {
         if (participants[participantType].volume !== value) {
           const instance = isUserOnStage(participantType) ? 'stage' : 'backstage';
-          console.log('instante', instance);
           opentok.changeVolume(instance, participantType, value);
           const update = { property: 'volume', value };
           dispatch(avPropertyChanged(participantType, update));
@@ -315,7 +286,6 @@ module.exports = {
   updateParticipants,
   setBackstageConnected,
   sendChatMessage,
-  kickFanFromFeed,
   minimizeChat,
   monitorVolume,
   displayChat,

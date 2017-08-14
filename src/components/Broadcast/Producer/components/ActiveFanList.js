@@ -11,8 +11,9 @@ import {
   connectPrivateCall,
   sendToBackstage,
   sendToStage,
+  kickFanFromFeed,
 } from '../../../../actions/producer';
-import { kickFanFromFeed, forceFanToDisconnect } from '../../../../actions/broadcast';
+import { forceFanToDisconnect } from '../../../../actions/broadcast';
 import { properCase, fanTypeForActiveFan } from '../../../../services/util';
 import './ActiveFanList.css';
 
