@@ -12,6 +12,10 @@ const FanStatusBar = (props: Props): ReactComponent => {
   let statusText = '';
   let statusClass = '';
   switch (fanStatus) {
+    case 'connecting':
+      statusText = 'Connecting ...';
+      statusClass = 'lightBlue';
+      break;
     case 'inLine':
       statusText = 'You Are In Line';
       statusClass = 'lightBlue';

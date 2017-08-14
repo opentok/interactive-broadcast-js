@@ -35,10 +35,10 @@ const FanHeader = (props: Props): ReactComponent => {
 
   const inPrivateCallWith = R.propOr(null, 'isWith', privateCall || {});
   const onStageUserInPrivateCall = !inPrivateCall && R.equals('stage', fanStatus) && inPrivateCallWith && isUserOnStage(inPrivateCallWith);
-
+  const isConnecting = fanStatus === 'connecting';
   const getInLineButton = (): ReactComponent =>
     !backstageConnected ?
-      <button className="btn green getInLine" onClick={getInLine}>GET IN LINE</button> :
+      !isConnecting && <button className="btn green getInLine" onClick={getInLine}>GET IN LINE</button> :
       <button className="btn red getInLine" onClick={leaveLine}>LEAVE LINE</button>;
 
   return (

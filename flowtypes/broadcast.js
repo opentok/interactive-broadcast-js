@@ -107,7 +107,7 @@ declare type BroadcastState = {
   elapsedTime: string
 };
 
-declare type FanStatus = 'disconnected' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
+declare type FanStatus = 'disconnected' | 'connecting' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
 
 declare type FanState = {
   ableToJoin: boolean,
