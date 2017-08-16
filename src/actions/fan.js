@@ -36,6 +36,13 @@ const fanRadomKey = uuidv4();
 const fanUid = (): UserId => `${firebase.auth().currentUser.uid}-${fanRadomKey}`;
 let analytics;
 
+/**
+ * Redirect the fan when the event ends
+ */
+const redirectFan = (url: string) => {
+  if (url) window.top.location = url;
+};
+
 // Set the fan's publisher minimized
 const setPublisherMinimized: ActionCreator = (minimized: boolean): FanAction => ({
   type: 'SET_PUBLISHER_MINIMIZED',
@@ -143,7 +150,6 @@ const cancelNetworkTest: ThunkActionCreator = (): Thunk =>
     dispatch({ type: 'SET_NETWORK_TEST_TIMEOUT', timeout: null });
   };
 
-
 /**
  * Handle a new chat message from the producer
  */
@@ -225,7 +231,8 @@ const updateStream: ThunkActionCreator = (streamId: string): Thunk =>
 
 const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
   async ({ type, data, from }: Signal): AsyncVoid => {
-    const { fan } = getState();
+    const { fan, broadcast } = getState();
+    const event = R.prop('event', broadcast);
     const signalData = data ? JSON.parse(data) : {};
     const signalType = R.last(R.split(':', type));
     const fromData = JSON.parse(from.data);
@@ -254,6 +261,7 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
       case 'finishEvent':
         dispatch(setBroadcastEventStatus('closed'));
         dispatch(cancelNetworkTest());
+        redirectFan(event.redirectUrl);
         break;
       case 'joinBackstage':
         dispatch(setFanStatus('backstage'));
