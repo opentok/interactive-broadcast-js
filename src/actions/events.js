@@ -45,6 +45,11 @@ const uploadEventImageSuccess: ThunkActionCreator = (): Thunk =>
     dispatch(setSuccess(options));
   };
 
+const uploadEventImageCancel: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch) => {
+    dispatch(resetAlert());
+  };
+
 const removeEvent: ActionCreator = (id: string): EventsAction => ({
   type: 'REMOVE_EVENT',
   id,
@@ -150,5 +155,6 @@ module.exports = {
   deleteBroadcastEvent,
   uploadEventImage,
   uploadEventImageSuccess,
+  uploadEventImageCancel,
   submitFormEvent,
 };

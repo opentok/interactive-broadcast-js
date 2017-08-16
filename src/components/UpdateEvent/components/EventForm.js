@@ -11,7 +11,7 @@ import CopyToClipboard from '../../Common/CopyToClipboard';
 import DatePicker from '../../Common/DatePicker';
 import firebase from '../../../services/firebase';
 import createUrls from '../../../services/eventUrls';
-import { uploadEventImage, uploadEventImageSuccess } from '../../../actions/events';
+import { uploadEventImage, uploadEventImageSuccess, uploadEventImageCancel } from '../../../actions/events';
 import './EventForm.css';
 
 /* beautify preserve:start */
@@ -25,7 +25,8 @@ type BaseProps = {
 };
 type DispatchProps = {
   uploadImage: Unit,
-  uploadImageSuccess: Unit
+  uploadImageSuccess: Unit,
+  uploadImageCancel: Unit
 };
 type Props = BaseProps & DispatchProps;
 /* beautify preserve:end */
@@ -128,17 +129,23 @@ class EventForm extends Component {
     });
   }
 
-  uploadFile(e: SyntheticInputEvent) {
-    this.props.uploadImage();
+  async uploadFile(e: SyntheticInputEvent): AsyncVoid {
     const field = e.target.name;
     const file = R.head(e.target.files);
-    const imageId = shortid.generate();
-    const ref = firebase.storage().ref().child(`eventImages/${imageId}`);
-    ref.put(file).then((snapshot: *) => {
-      const imageData = { id: imageId, url: snapshot.downloadURL };
-      this.setState({ fields: R.assoc(field, imageData, this.state.fields) });
-      this.props.uploadImageSuccess();
-    });
+    if (file) {
+      this.props.uploadImage();
+      const imageId = shortid.generate();
+      const ref = firebase.storage().ref().child(`eventImages/${imageId}`);
+      try {
+        const snapshot: * = await ref.put(file);
+        const imageData = { id: imageId, url: snapshot.downloadURL };
+        this.setState({ fields: R.assoc(field, imageData, this.state.fields) });
+        this.props.uploadImageSuccess();
+      } catch (error) {
+        console.log('Error uploading image', error);
+        this.props.uploadImageCancel();
+      }
+    }
   }
 
   updateURLs() {
@@ -286,6 +293,9 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
     },
     uploadImageSuccess: () => {
       dispatch(uploadEventImageSuccess());
+    },
+    uploadCancel: () => {
+      dispatch(uploadEventImageCancel());
     },
   });
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(EventForm));
