@@ -32,7 +32,7 @@ const FanHeader = (props: Props): ReactComponent => {
     disconnected,
     postProduction,
   } = props;
-
+  const displayGetInLineButton = ableToJoin && status !== 'closed' && !postProduction && !disconnected;
   const inPrivateCallWith = R.propOr(null, 'isWith', privateCall || {});
   const onStageUserInPrivateCall = !inPrivateCall && R.equals('stage', fanStatus) && inPrivateCallWith && isUserOnStage(inPrivateCallWith);
   const isConnecting = fanStatus === 'connecting';
@@ -45,9 +45,9 @@ const FanHeader = (props: Props): ReactComponent => {
     <div className="FanHeader">
       <div className="FanHeader-main">
         <h4>{name}<sup>{status === 'notStarted' ? 'NOT STARTED' : status}</sup></h4>
-        { ableToJoin && status !== 'closed' &&
+        { displayGetInLineButton &&
           <div>
-            { !postProduction && getInLineButton() }
+            { getInLineButton() }
           </div>
         }
       </div>

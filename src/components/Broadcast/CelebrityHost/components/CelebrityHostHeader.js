@@ -25,7 +25,7 @@ const CelebrityHostHeader = (props: Props): ReactComponent => {
       <div className="CelebrityHostHeader-main">
         <div>
           <h4>{name}<sup>{status === 'notStarted' ? 'NOT STARTED' : status}</sup></h4>
-          { status !== 'closed' &&
+          { status !== 'closed' && !disconnected &&
             <div>
               <button className={btnClass} onClick={togglePublishOnly}>PUBLISH ONLY {publishOnlyEnabled ? 'ON' : 'OFF'}</button>
             </div>

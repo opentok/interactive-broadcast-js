@@ -30,7 +30,7 @@ type Props = InitialProps & BaseProps & DispatchProps;
 const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentUser, goLive, endShow }: Props): ReactComponent => {
   const event = R.defaultTo({})(broadcast.event);
   const { status, archiveId } = event;
-  const { connected, archiving } = broadcast;
+  const { connected, archiving, disconnected } = broadcast;
   const { fanAudioUrl } = createUrls(event);
 
   return (
@@ -52,13 +52,13 @@ const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentU
             <i className="fa fa-circle" /><span> ARCHIVING</span>
           </span>
         }
-        { status === 'preshow' &&
+        { status === 'preshow' && !disconnected &&
           <button className="btn white go-live" onClick={R.partial(goLive, [event.id])}>
             <Icon className="icon" name={connected ? 'circle' : 'spinner'} />
             { connected ? 'GO LIVE' : 'CONNECTING' }
           </button>
         }
-        { status === 'live' &&
+        { status === 'live' && !disconnected &&
           <button className="btn red end-show" onClick={R.partial(endShow, [event.id])}>
             <Icon className="icon" name="times" />
             END SHOW
