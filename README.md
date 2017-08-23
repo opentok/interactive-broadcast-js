@@ -6,7 +6,7 @@ The ibs-js application (this project) is a web server that serves up client page
 users of the Interactive Broadcast Solution application.
 
 The ibs-js web server must be used in conjunction with the
-[ibs-backend](https://github.com/opentok/ibs-backend) server.
+[interactive-broadcast-api](https://github.com/opentok/interactive-broadcast-api) server.
 The ibs-backend server is a web service that manages interactive broadcast events.
 
 Note that there are also Interactive Broadcasting Solution client apps for
