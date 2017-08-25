@@ -1,0 +1,11 @@
+const firebase = {
+  apiKey: '', // firebase apikey
+  authDomain: '', // firebase authDomain
+  databaseURL: '', // firebase databaseURL
+  projectId: '', // firebase projectId
+  storageBucket: '', // firebase storageBucket
+  messagingSenderId: '',  // firebase messagingSenderId
+};
+
+export default firebase;
+ 
