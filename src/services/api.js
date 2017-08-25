@@ -4,7 +4,11 @@ import { loadAuthToken as jwt } from './localStorage';
 
 /** Constants */
 const origin = window.location.origin;
-const url = R.contains('localhost', origin) ? 'http://localhost:3001' : 'https://ibs-dev-server.herokuapp.com';
+// Replace this url for your local API server.
+const localhost = 'http://localhost:3001';
+// Replace this url for your production API server.
+const production = 'https://ibs-dev-server.herokuapp.com';
+const url = R.contains('localhost', origin) ? localhost : production;
 const apiUrl = `${url}/api`;
 const defaultHeaders = {
   'Content-Type': 'application/json',
