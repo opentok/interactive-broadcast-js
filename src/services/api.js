@@ -1,14 +1,11 @@
 // @flow
 import R from 'ramda';
 import { loadAuthToken as jwt } from './localStorage';
+import api from '../config/api';
 
 /** Constants */
 const origin = window.location.origin;
-// Replace this url for your local API server.
-const localhost = 'http://localhost:3001';
-// Replace this url for your production API server.
-const production = 'https://ibs-dev-server.herokuapp.com';
-const url = R.contains('localhost', origin) ? localhost : production;
+const url = R.contains('localhost', origin) ? api.localhost : api.production;
 const apiUrl = `${url}/api`;
 const defaultHeaders = {
   'Content-Type': 'application/json',
