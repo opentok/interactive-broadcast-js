@@ -4000,9 +4000,9 @@ open@0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/open/-/open-0.0.5.tgz#42c3e18ec95466b6bf0dc42f3a2945c3f0cad8fc"
 
-opentok-accelerator-core@*:
-  version "2.0.11"
-  resolved "https://registry.yarnpkg.com/opentok-accelerator-core/-/opentok-accelerator-core-2.0.11.tgz#36f81d4e4e7ac85817634b1a06027a3ae1fa88cf"
+opentok-accelerator-core@^2.0.12:
+  version "2.0.12"
+  resolved "https://registry.yarnpkg.com/opentok-accelerator-core/-/opentok-accelerator-core-2.0.12.tgz#253c551234596cece5d37770bca2a8ce9df7e58c"
   dependencies:
     opentok-solutions-logging "^1.0.7"
 
