@@ -20,7 +20,6 @@ const logIn: ThunkActionCreator = (userId: string): Thunk =>
 const logOut: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
     dispatch(setCurrentUser(null));
-    browserHistory.push('/');
   };
 
 module.exports = {

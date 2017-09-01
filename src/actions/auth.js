@@ -2,7 +2,7 @@
 import R from 'ramda';
 import firebase from '../services/firebase';
 import { getAuthToken, getAuthTokenUser } from '../services/api';
-import { saveAuthToken } from '../services/localStorage';
+import { saveAuthToken, saveState } from '../services/localStorage';
 import { logIn, logOut } from './currentUser';
 import { setSuccess, resetAlert, setInfo } from './alert';
 
@@ -52,7 +52,9 @@ const signIn: ThunkActionCreator = ({ email, password }: AuthCredentials): Thunk
 const signOut: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch) => {
     dispatch(logOut());
-    firebase.auth().signOut();
+    // We need to ensure the localstorage is updated ASAP
+    saveState({ currentUser: null });
+    firebase.auth().signOut().then((): void => (window.location.href = '/'));
   };
 
 const resetPassword: ThunkActionCreator = ({ email }: AuthCredentials): Thunk =>
