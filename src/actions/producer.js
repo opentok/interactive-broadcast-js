@@ -421,7 +421,9 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     const credentials = R.pick(credentialProps, await getAdminCredentials(event.id));
 
     // Register the producer in firebase
-    firebase.auth().onAuthStateChanged(async (): AsyncVoid => {
+    firebase.auth().onAuthStateChanged(async (user: AuthState): AsyncVoid => {
+      if (!user) return;
+      
       const base = `activeBroadcasts/${event.adminId}/${event.fanUrl}`;
       const query = await firebase.database().ref(`${base}/producerActive`).once('value');
       const producerActive = query.val();
