@@ -190,6 +190,7 @@ const startCountdown: ThunkActionCreator = (): Thunk =>
       text: `<h1>${counter}</h1>`,
       showConfirmButton: false,
       html: true,
+      allowEscapeKey: false,
     });
     let counter = 5;
     const interval = setInterval(() => {

@@ -53,9 +53,14 @@ const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener =>
     const fromProducer = fromData.userType === 'producer';
 
     switch (signalType) {
+      case 'prepareGoLive':
+        if (fromProducer) {
+          dispatch(startCountdown());
+        }
+        break;
       case 'goLive':
         if (fromProducer) {
-          R.forEach(dispatch, [setBroadcastEventStatus('live'), startCountdown()]);
+          dispatch(setBroadcastEventStatus('live'));
         }
         break;
       case 'videoOnOff':
@@ -345,5 +350,4 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
 
 module.exports = {
   initializeBroadcast,
-  startCountdown,
 };

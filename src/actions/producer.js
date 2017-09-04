@@ -505,27 +505,6 @@ const initializeBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
     }
   };
 
-const startCountdown: ThunkActionCreator = (): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
-    const options = (counter: number): AlertPartialOptions => ({
-      title: 'GOING LIVE IN',
-      text: `<h1>${counter}</h1>`,
-      showConfirmButton: false,
-      html: true,
-    });
-    let counter = 5;
-    const interval = setInterval(() => {
-      dispatch(setInfo(options(counter || 1)));
-      if (counter >= 1) {
-        counter -= 1;
-      } else {
-        clearInterval(interval);
-        dispatch(resetAlert());
-      }
-    }, 1000);
-  };
-
-
 const reorderActiveFans: ActionCreator = (update: ActiveFanOrderUpdate): BroadcastAction => ({
   type: 'REORDER_BROADCAST_ACTIVE_FANS',
   update,
@@ -710,6 +689,31 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
     }
   };
 
+/**
+ * Start the go live countdown
+ */
+const startCountdown: ThunkActionCreator = (eventId: EventId): Thunk =>
+  async (dispatch: Dispatch): AsyncVoid => {
+    const options = (counter?: number = 1): AlertPartialOptions => ({
+      title: 'GOING LIVE IN',
+      text: `<h1>${counter}</h1>`,
+      showConfirmButton: false,
+      html: true,
+      allowEscapeKey: false,
+    });
+    let counter = 5;
+    await opentok.signal('stage', { type: 'prepareGoLive' });
+    const interval = setInterval(() => {
+      dispatch(setInfo(options(counter)));
+      if (counter >= 1) {
+        counter -= 1;
+      } else {
+        clearInterval(interval);
+        dispatch(resetAlert());
+        dispatch(changeStatus(eventId, 'live'));
+      }
+    }, 1000);
+  };
 module.exports = {
   initializeBroadcast,
   resetBroadcastEvent,
