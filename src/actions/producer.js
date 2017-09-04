@@ -2,7 +2,7 @@
 import R from 'ramda';
 import { browserHistory } from 'react-router';
 import { updateStatus } from './events';
-import { setInfo, resetAlert, setBlockUserAlert, setCameraError } from './alert';
+import { setInfo, setBlockUserAlert, setCameraError } from './alert';
 import { getEvent, getAdminCredentials, getEventWithCredentials } from '../services/api';
 import firebase from '../services/firebase';
 import {
@@ -27,6 +27,7 @@ import {
   setPrivateCall,
   onChatMessage,
   monitorVolume,
+  startCountdown,
 } from './broadcast';
 
 let analytics;
@@ -692,32 +693,17 @@ const changeStatus: ThunkActionCreator = (eventId: EventId, newStatus: EventStat
 /**
  * Start the go live countdown
  */
-const startCountdown: ThunkActionCreator = (eventId: EventId): Thunk =>
+const goLive: ThunkActionCreator = (eventId: EventId): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
-    const options = (counter?: number = 1): AlertPartialOptions => ({
-      title: 'GOING LIVE IN',
-      text: `<h1>${counter}</h1>`,
-      showConfirmButton: false,
-      html: true,
-      allowEscapeKey: false,
-    });
-    let counter = 5;
     await opentok.signal('stage', { type: 'prepareGoLive' });
-    const interval = setInterval(() => {
-      dispatch(setInfo(options(counter)));
-      if (counter >= 1) {
-        counter -= 1;
-      } else {
-        clearInterval(interval);
-        dispatch(resetAlert());
-        dispatch(changeStatus(eventId, 'live'));
-      }
-    }, 1000);
+    await dispatch(startCountdown());
+    dispatch(changeStatus(eventId, 'live'));
   };
+
 module.exports = {
   initializeBroadcast,
   resetBroadcastEvent,
-  startCountdown,
+  goLive,
   setBroadcastEventWithCredentials,
   connectPrivateCall,
   reorderActiveFans,

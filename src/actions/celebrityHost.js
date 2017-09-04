@@ -55,7 +55,7 @@ const onSignal = (dispatch: Dispatch, userType: HostCeleb): SignalListener =>
     switch (signalType) {
       case 'prepareGoLive':
         if (fromProducer) {
-          dispatch(startCountdown());
+          await dispatch(startCountdown());
         }
         break;
       case 'goLive':

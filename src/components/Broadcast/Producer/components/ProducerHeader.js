@@ -7,7 +7,7 @@ import truncate from 'lodash.truncate';
 import Icon from 'react-fontawesome';
 import CopyToClipboard from '../../../Common/CopyToClipboard';
 import createUrls from '../../../../services/eventUrls';
-import { changeStatus, startCountdown } from '../../../../actions/producer';
+import { changeStatus, goLive } from '../../../../actions/producer';
 import './ProducerHeader.css';
 
 type InitialProps = {
@@ -76,7 +76,7 @@ const ProducerHeader = ({ broadcast, showingSidePanel, toggleSidePanel, currentU
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
     goLive: (id: string) => {
-      dispatch(startCountdown(id));
+      dispatch(goLive(id));
     },
     endShow: (id: string) => {
       dispatch(changeStatus(id, 'closed'));
