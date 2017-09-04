@@ -184,12 +184,13 @@ const monitorVolume: ThunkActionCreator = (): Thunk =>
  * Start the go live countdown
  */
 const startCountdown: ThunkActionCreator = (): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
+  (dispatch: Dispatch): AsyncVoid => new Promise(resolve => {
     const options = (counter?: number = 1): AlertPartialOptions => ({
       title: 'GOING LIVE IN',
       text: `<h1>${counter}</h1>`,
       showConfirmButton: false,
       html: true,
+      allowEscapeKey: false,
     });
     let counter = 5;
     const interval = setInterval(() => {
@@ -199,9 +200,10 @@ const startCountdown: ThunkActionCreator = (): Thunk =>
       } else {
         clearInterval(interval);
         dispatch(resetAlert());
+        resolve();
       }
     }, 1000);
-  };
+  });
 
 const publishOnly: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {

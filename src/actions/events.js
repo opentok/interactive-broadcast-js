@@ -123,6 +123,7 @@ const updateStatus: ThunkActionCreator = (id: EventId, status: EventStatus): Thu
       const event: BroadcastEvent = await updateEventStatus(id, status);
       const options: AlertPartialOptions = {
         text: 'Event has been closed',
+        showConfirmButton: true,
         onConfirm: () => {
           browserHistory.push('/admin');
           dispatch(resetAlert());
