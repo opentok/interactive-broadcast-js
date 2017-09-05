@@ -4,6 +4,7 @@
 
 declare type PubSub = 'publisher' | 'subscriber';
 declare type VideoType = 'camera' | 'screen';
+declare type FitMode = 'cover' | 'contain';
 declare type SessionCredentials = {
   apiKey: string,
   sessionId: string,

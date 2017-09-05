@@ -206,4 +206,5 @@ declare type FanAction =
   { type: 'SET_FAN_PRIVATE_CALL', inPrivateCall: boolean } |
   { type: 'SET_NETWORK_TEST_INTERVAL', interval: null | number } |
   { type: 'SET_NETWORK_TEST_TIMEOUT', timeout: null | number } |
+  { type: 'SET_FITMODE', fitMode: FitMode } |
   { type: 'SET_PUBLISHER_MINIMIZED', minimized: boolean };
