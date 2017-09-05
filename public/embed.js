@@ -47,7 +47,7 @@ window.IBSApp = {
       iframe.src = [parser.origin, '/show-', config.userType, '/', config.adminId].join('');
     }
 
-    if (!config.fitMode && config.fitMode === 'cover') {
+    if (config.fitMode === 'cover') {
       iframe.src += '?fitMode=cover';
     } 
 
