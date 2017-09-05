@@ -4,6 +4,7 @@ import R from 'ramda';
 const initialState = (): FanState => ({
   ableToJoin: false,
   fanName: '',
+  fitMode: 'contain',
   status: 'disconnected',
   inPrivateCall: false,
   postProduction: R.startsWith('/post-production/', window.location.pathname),
@@ -16,6 +17,8 @@ const initialState = (): FanState => ({
 
 const fan = (state: FanState = initialState(), action: FanAction): FanState => {
   switch (action.type) {
+    case 'SET_FITMODE':
+      return R.assoc('fitMode', action.fitMode, state);
     case 'SET_FAN_STATUS':
       return R.assoc('status', action.status, state);
     case 'SET_FAN_PRIVATE_CALL':

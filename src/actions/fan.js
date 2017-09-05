@@ -43,6 +43,12 @@ const redirectFan = (url: string) => {
   if (url) window.top.location = url;
 };
 
+// Set the subscribers fitMode
+const setFitMode: ActionCreator = (fitMode: FitMode): FanAction => ({
+  type: 'SET_FITMODE',
+  fitMode,
+});
+
 // Set the fan's publisher minimized
 const setPublisherMinimized: ActionCreator = (minimized: boolean): FanAction => ({
   type: 'SET_PUBLISHER_MINIMIZED',
@@ -332,12 +338,13 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
       const isStage = R.propEq('name', 'stage', instance);
       const { userType } = JSON.parse(stream.connection.data);
       const state = getState();
+      const fitMode = R.path(['fan', 'fitMode'], state);
       const isLive = R.equals('live', R.path(['broadcast', 'event', 'status'], state));
       const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
       const userHasJoined = R.equals(type, 'streamCreated');
       const postProduction = R.path(['fan', 'postProduction'], state);
       const subscribeToAudio = !postProduction || R.equals('fan', userType);
-      const options = { subscribeToAudio };
+      const options = { subscribeToAudio, fitMode };
       const subscribeStage = (isLive || fanOnStage || postProduction) && userHasJoined && isStage;
       const subscribeBackStage = userHasJoined && R.equals('producer', userType) && !isStage;
       subscribeStage && opentok.subscribe('stage', stream, options);
@@ -605,7 +612,7 @@ const connectToPresence: ThunkActionCreator = (adminId: UserId, fanUrl: string):
     }
   };
 
-const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOptions): Thunk =>
+const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl, fitMode }: FanInitOptions): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
       // Get an Auth Token
@@ -613,6 +620,9 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userUrl }: FanInitOp
 
       // If the user receives an auth error here means there's no event.
       if (R.prop('error', getState().auth)) return;
+
+      // Set fitMode for subscribers
+      fitMode && dispatch(setFitMode(fitMode));
 
       /* Get the event data */
       const data = { adminId, fanUrl: userUrl, userType: 'fan' };

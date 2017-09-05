@@ -55,11 +55,12 @@ class Fan extends Component {
   changeEventStatus: Unit;
 
   componentDidMount() {
-    const { adminId, userType, userUrl, init } = this.props;
+    const { adminId, userType, userUrl, init, fitMode } = this.props;
     const options = {
       adminId,
       userType,
       userUrl,
+      fitMode,
     };
     init(options);
   }
@@ -142,6 +143,7 @@ class Fan extends Component {
 const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
   const { fanUrl } = ownProps.params;
   return {
+    fitMode: R.path(['location', 'query', 'fitMode'], ownProps),
     adminId: R.path(['params', 'adminId'], ownProps),
     userType: R.path(['route', 'userType'], ownProps),
     isEmbed: R.path(['route', 'embed'], ownProps),
