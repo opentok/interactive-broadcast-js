@@ -10,6 +10,9 @@ const createEmbed = (userType: UserRole, adminId: string): string => {
             adminId: '${adminId}',
             container: '#show',
             userType: '${userType}',
+            width: '600', 
+            height: '400', 
+            fitMode: 'contain'
           });
           </script>`;
 };
