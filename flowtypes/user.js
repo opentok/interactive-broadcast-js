@@ -10,7 +10,7 @@ declare type User = {
   otApiKey: string,
   otSecret: string,
   superAdmin: boolean,
-  broadcastEnabled: boolean,
+  hls: boolean,
   httpSupport: boolean
  };
 
@@ -53,7 +53,7 @@ declare type UserFormData = {
   email: string,
   otApiKey: string,
   otSecret: string,
-  broadcastEnabled: boolean,
+  hls: boolean,
   httpSupport: boolean
 };
 

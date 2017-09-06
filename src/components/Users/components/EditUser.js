@@ -13,7 +13,7 @@ const emptyUser: UserFormData = {
   displayName: '',
   otApiKey: '',
   otSecret: '',
-  broadcastEnabled: true,
+  hls: true,
   httpSupport: false,
 };
 
@@ -101,7 +101,7 @@ class EditUser extends Component {
 
   render(): ReactComponent {
     const { errors, fields } = this.state;
-    const { email, displayName, otApiKey, otSecret, broadcastEnabled, httpSupport } = fields;
+    const { email, displayName, otApiKey, otSecret, hls, httpSupport } = fields;
     const { toggleEditPanel, newUser } = this.props;
     const { handleSubmit, handleChange } = this;
     const errorFields = R.propOr({}, 'fields', errors);
@@ -159,7 +159,7 @@ class EditUser extends Component {
           </div>
           <div className="edit-user-bottom">
             <div className="input-container">
-              <input type="checkbox" name="broadcastEnabled" checked={!!broadcastEnabled} onChange={handleChange} />
+              <input type="checkbox" name="hls" checked={!!hls} onChange={handleChange} />
               <span className="label">Broadcast Support Enabled</span>
             </div>
             <div className="input-container">
