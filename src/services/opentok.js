@@ -16,6 +16,11 @@ const getStreamByUserType = (instance: SessionName, userType: UserRole): Stream 
   return R.find(streamByUserType, R.values(core.state().streams));
 };
 
+const getConnectionByUserType = (instance: SessionName, userType: UserRole): Connection => {
+  const stream = getStreamByUserType(instance, userType);
+  return stream && stream.connection;
+};
+
 /**
  * Get a stream by its id
  */
@@ -327,6 +332,7 @@ module.exports = {
   disconnect,
   disconnectFromInstance,
   changeVolume,
+  getConnectionByUserType,
   getStreamByUserType,
   getStreamById,
   createEmptyPublisher,
