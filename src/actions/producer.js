@@ -493,6 +493,13 @@ const initializeBroadcast: ThunkActionCreator = (eventId: EventId): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
       const event = R.path(['events', 'map', eventId], getState()) || await getEvent(eventId);
+
+      // Validate if the event requested belongs to the current admin
+      if (!R.equals(firebase.auth().currentUser.uid, event.adminId)) {
+        browserHistory.replace('/admin');
+        return;
+      }
+
       const actions = [
         updateStatus(eventId, 'preshow'),
         connectBroadcast(event),
