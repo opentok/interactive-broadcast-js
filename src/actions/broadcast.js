@@ -221,7 +221,7 @@ const sendChatMessage: ThunkActionCreator = (chatId: ChatId, message: ChatMessag
     const chat: ChatState = R.path(['broadcast', 'chats', chatId], getState());
     const to = chatId === 'producer' ? opentok.getConnectionByUserType(chat.session, 'producer') : chat.to.connection;
     try {
-      await opentok.signal(chat.session, { type: 'chatMessage', to, data: message });
+      to && await opentok.signal(chat.session, { type: 'chatMessage', to, data: message });
     } catch (error) {
       // @TODO Error handling
       console.log('Failed to send chat message', error);
