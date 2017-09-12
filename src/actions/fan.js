@@ -451,7 +451,7 @@ const monitorPrivateCall: ThunkActionCreator = (fanId: UserId): Thunk =>
 
       // A new call
       if (R.isNil(currentState) && !!update) {
-        if (R.equals(fanType, update.isWith)) {
+        if (R.equals(fanType, update.isWith) && R.equals(fanId, update.fanId)) {
           // If the call is with us, we need to subcribe only to producer audio
           opentok.unsubscribeAll('stage', true);
           // const instance = onStage ? 'stage' : 'backstage';
