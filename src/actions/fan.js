@@ -381,7 +381,7 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
     communication: {
       autoSubscribe,
       callProperties: {
-        fitMode: 'contain',
+        fitMode: R.path(['fan', 'fitMode'], getState()),
       },
     },
     controlsContainer: null,
@@ -570,7 +570,7 @@ const connectToPresence: ThunkActionCreator = (adminId: UserId, fanUrl: string):
     const query = await firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`).once('value');
     const closedEvent = { status: 'closed' };
     const activeBroadcast = query.val() || closedEvent;
-    const { activeFans, interactiveLimit } = activeBroadcast;
+    const { activeFans, interactiveLimit, hlsEnabled } = activeBroadcast;
     const useSafari = platform.name === 'Safari';
     /* Check if the fan is able to join to the interactive broadcast. If not, the fan will see the HLS video */
     const ableToJoin = !useSafari && (!interactiveLimit || !activeFans || (activeFans && R.length(R.keys(activeFans)) < interactiveLimit));
@@ -586,7 +586,18 @@ const connectToPresence: ThunkActionCreator = (adminId: UserId, fanUrl: string):
       /* Init OT Logging */
       analytics = new Analytics(window.location.origin, credentials.stageSessionId, null, credentials.apiKey);
       dispatch(connectToInteractive(credentials, fanId, adminId, fanUrl));
+    } else if (!hlsEnabled) {
+      const options = (): AlertPartialOptions => ({
+        title: ["<div style='color: #3dbfd9; font-size:22px'>This show is over the maximum number of participants.</div>"].join(''),
+        text: "<h4 style='font-size:1.2em'>Please try again in a few minutes.</h4>",
+        showConfirmButton: false,
+        html: true,
+        type: null,
+        allowEscapeKey: false,
+      });
+      dispatch(setInfo(options()));
     } else {
+      /* HLS enabled */
       const eventData = {
         name: activeBroadcast.name,
         status: activeBroadcast.status,
