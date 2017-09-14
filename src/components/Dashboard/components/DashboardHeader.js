@@ -48,9 +48,12 @@ class DashboardHeader extends Component {
           <Link to="/events/new">
             <button className="btn white control"><Icon name="plus" />Add New Event</button>
           </Link>
-          <Link to="/users">
-            <button className="btn white control"><Icon name="user" />Manage Users</button>
-          </Link>
+          {
+            currentUser.superAdmin &&
+            <Link to="/users">
+              <button className="btn white control"><Icon name="user" />Manage Users</button>
+            </Link>
+          }
         </div>
       </div>
     );
