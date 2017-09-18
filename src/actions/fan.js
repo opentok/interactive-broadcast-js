@@ -286,8 +286,6 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         }
       case 'joinHost':
         {
-          /* Unpublish from backstage */
-          await opentok.endCall('backstage');
           /* Display the going live alert */
           const options = (): AlertPartialOptions => ({
             title: '<h5>GOING LIVE NOW</h5>',
@@ -302,6 +300,8 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         }
       case 'joinHostNow':
         {
+          /* Unpublish from backstage */
+          await opentok.endCall('backstage');
           /* Change the status of the fan to 'stage' */
           dispatch(setFanStatus('stage'));
           /* Close the alert */
@@ -488,6 +488,29 @@ const monitorPrivateCall: ThunkActionCreator = (fanId: UserId): Thunk =>
     });
   };
 
+const monitorProducer: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const event = R.prop('event', getState().broadcast);
+    const { adminId, fanUrl } = event;
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/producerActive`);
+    ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
+      const fanOnBackstage = R.equals('backstage', R.path(['fan', 'status'], getState()));
+      const producerActive: ProducerActiveState = snapshot.val();
+      if (!producerActive && fanOnBackstage) {
+        /* If the producer disconnects and the fan is on backstage, let's put the fan in line */
+        if (fanOnBackstage) {
+          // Put the fan in line
+          dispatch(setFanStatus('inLine'));
+          // Reset all alerts
+          dispatch(resetAlert());
+          // Update our record in firebase
+          const activeFanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanUid()}`);
+          activeFanRef.update({ isBackstage: false, isOnStage: false });
+        }
+      }
+    });
+  };
+
 /**
  * Connect to OpenTok sessions
  */
@@ -505,6 +528,7 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
     }
     dispatch(setBroadcastState(opentok.state('stage')));
     dispatch(monitorVolume());
+    dispatch(monitorProducer());
     dispatch(monitorPrivateCall(fanId));
   };
 

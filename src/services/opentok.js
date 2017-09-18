@@ -239,7 +239,7 @@ const toggleSubscribeAudio = (instance: SessionName, stream: Stream, shouldSubsc
   const core = instances[instance];
   const { streamMap, subscribers } = core.state();
   const subscriber = R.prop(R.prop(stream.streamId, streamMap), R.merge(subscribers.camera, subscribers.sip));
-  subscriber.subscribeToAudio(shouldSubscribe);
+  subscriber && subscriber.subscribeToAudio(shouldSubscribe);
 };
 
 const subscribeToAudio: ((SessionName, Stream) => void) = R.partialRight(toggleSubscribeAudio, [true]);
@@ -248,7 +248,7 @@ const unsubscribe = (instance: SessionName, stream: Stream) => {
   const core = instances[instance];
   const { streamMap, subscribers } = core.state();
   const subscriber = subscribers.camera[streamMap[stream.streamId]] || subscribers.sip[streamMap[stream.streamId]];
-  core.unsubscribe(subscriber);
+  subscriber && core.unsubscribe(subscriber);
 };
 
 const unsubscribeFromAudio: ((SessionName, Stream) => void) = R.partialRight(toggleSubscribeAudio, [false]);
