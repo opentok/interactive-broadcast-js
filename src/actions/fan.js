@@ -286,8 +286,6 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         }
       case 'joinHost':
         {
-          /* Unpublish from backstage */
-          await opentok.endCall('backstage');
           /* Display the going live alert */
           const options = (): AlertPartialOptions => ({
             title: '<h5>GOING LIVE NOW</h5>',
@@ -302,6 +300,8 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
         }
       case 'joinHostNow':
         {
+          /* Unpublish from backstage */
+          await opentok.endCall('backstage');
           /* Change the status of the fan to 'stage' */
           dispatch(setFanStatus('stage'));
           /* Close the alert */
@@ -496,12 +496,17 @@ const monitorProducer: ThunkActionCreator = (): Thunk =>
     ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
       const fanOnBackstage = R.equals('backstage', R.path(['fan', 'status'], getState()));
       const producerActive: ProducerActiveState = snapshot.val();
-      /* If the producer disconnects and the fan is on backstage, let put the fan in line */
       if (!producerActive && fanOnBackstage) {
-        dispatch(setFanStatus('inLine'));
-        // Update our record in firebase
-        const activeFanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanUid()}`);
-        activeFanRef.update({ isBackstage: false });
+        /* If the producer disconnects and the fan is on backstage, let's put the fan in line */
+        if (fanOnBackstage) {
+          // Put the fan in line
+          dispatch(setFanStatus('inLine'));
+          // Reset all alerts
+          dispatch(resetAlert());
+          // Update our record in firebase
+          const activeFanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanUid()}`);
+          activeFanRef.update({ isBackstage: false, isOnStage: false });
+        }
       }
     });
   };
