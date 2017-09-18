@@ -248,7 +248,7 @@ const unsubscribe = (instance: SessionName, stream: Stream) => {
   const core = instances[instance];
   const { streamMap, subscribers } = core.state();
   const subscriber = subscribers.camera[streamMap[stream.streamId]] || subscribers.sip[streamMap[stream.streamId]];
-  core.unsubscribe(subscriber);
+  subscriber && core.unsubscribe(subscriber);
 };
 
 const unsubscribeFromAudio: ((SessionName, Stream) => void) = R.partialRight(toggleSubscribeAudio, [false]);
