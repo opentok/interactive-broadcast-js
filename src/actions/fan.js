@@ -488,6 +488,24 @@ const monitorPrivateCall: ThunkActionCreator = (fanId: UserId): Thunk =>
     });
   };
 
+const monitorProducer: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const event = R.prop('event', getState().broadcast);
+    const { adminId, fanUrl } = event;
+    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/producerActive`);
+    ref.on('value', (snapshot: firebase.database.DataSnapshot) => {
+      const fanOnBackstage = R.equals('backstage', R.path(['fan', 'status'], getState()));
+      const producerActive: ProducerActiveState = snapshot.val();
+      /* If the producer disconnects and the fan is on backstage, let put the fan in line */
+      if (!producerActive && fanOnBackstage) {
+        dispatch(setFanStatus('inLine'));
+        // Update our record in firebase
+        const activeFanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanUid()}`);
+        activeFanRef.update({ isBackstage: false });
+      }
+    });
+  };
+
 /**
  * Connect to OpenTok sessions
  */
@@ -505,6 +523,7 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
     }
     dispatch(setBroadcastState(opentok.state('stage')));
     dispatch(monitorVolume());
+    dispatch(monitorProducer());
     dispatch(monitorPrivateCall(fanId));
   };
 

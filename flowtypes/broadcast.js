@@ -81,7 +81,7 @@ declare type ChatId = ParticipantType | UserId;
 declare type ProducerChats = {[chatId: ChatId]: ChatState };
 declare type PrivateCallParticipant = ParticipantType | 'activeFan';
 declare type PrivateCallState = null | { isWith: HostCeleb } | { isWith: FanType, fanId: UserId };
-
+declare type ProducerActiveState = null | boolean;
 
 declare type BroadcastState = {
   event: null | BroadcastEvent,
