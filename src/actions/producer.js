@@ -533,7 +533,7 @@ const kickFanFromFeed: ThunkActionCreator = (participantType: FanParticipantType
     const { adminId, fanUrl } = R.path(['event'], state.broadcast);
     const fan = participant.record;
     const inPrivateCall = R.equals(participantType, R.path(['broadcast', 'privateCall', 'isWith'], getState()));
-    
+
     if (!isStage) {
       try {
         const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fan.id}`);
@@ -543,7 +543,7 @@ const kickFanFromFeed: ThunkActionCreator = (participantType: FanParticipantType
       }
     }
     await opentok.signal(instance, { type, to });
-    await opentok.unsubscribe(instance, stream);
+    stream && await opentok.unsubscribe(instance, stream);
     inPrivateCall && await dispatch(endPrivateCall());
     dispatch({ type: 'REMOVE_CHAT', chatId: participantType });
     dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType });
