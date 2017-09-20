@@ -497,16 +497,13 @@ const monitorProducer: ThunkActionCreator = (): Thunk =>
       const fanOnBackstage = R.equals('backstage', R.path(['fan', 'status'], getState()));
       const producerActive: ProducerActiveState = snapshot.val();
       if (!producerActive && fanOnBackstage) {
-        /* If the producer disconnects and the fan is on backstage, let's put the fan in line */
-        if (fanOnBackstage) {
-          // Put the fan in line
-          dispatch(setFanStatus('inLine'));
-          // Reset all alerts
-          dispatch(resetAlert());
-          // Update our record in firebase
-          const activeFanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanUid()}`);
-          activeFanRef.update({ isBackstage: false, isOnStage: false });
-        }
+        // If the producer disconnects and the fan is on backstage, let's put the fan in line
+        dispatch(setFanStatus('inLine'));
+        // Reset all alerts
+        dispatch(resetAlert());
+        // Update our record in firebase
+        const activeFanRef = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/activeFans/${fanUid()}`);
+        activeFanRef.update({ isBackstage: false, isOnStage: false });
       }
     });
   };
