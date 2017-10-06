@@ -56,7 +56,8 @@ class EditUser extends Component {
 
   hasErrors(): boolean {
     const userData = this.state.fields;
-    const isEmptyField = (acc: string[], field: string): string[] => R.isEmpty(userData[field]) ? R.append(field, acc) : acc;
+    const isRequired = (field: string): boolean => field === 'displayName' || field === 'email';
+    const isEmptyField = (acc: string[], field: string): string[] => R.isEmpty(userData[field]) && isRequired(field) ? R.append(field, acc) : acc;
     const emptyFields = R.reduce(isEmptyField, [], R.keys(userData));
     if (R.isEmpty(emptyFields)) {
       this.setState({ errors: null });
@@ -139,7 +140,7 @@ class EditUser extends Component {
                 type="text"
                 value={otApiKey}
                 name="otApiKey"
-                placeholder="OT API Key"
+                placeholder="OT API Key (optional)"
                 onChange={handleChange}
               />
             </div>
@@ -147,12 +148,12 @@ class EditUser extends Component {
               <Icon className="icon" name="user-secret" style={{ color: 'darkgrey' }} />
               <input
                 className={classNames({ error: errorFields.otSecret })}
-                type="text"
+                type="password"
                 value={otSecret}
                 name="otSecret"
-                placeholder="OT API Secret"
+                placeholder="OT API Secret (optional)"
                 onChange={handleChange}
-                autoComplete="off"
+                autoComplete="new-password"
                 size={42}
               />
             </div>
