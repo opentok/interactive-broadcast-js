@@ -1,7 +1,9 @@
 // @flow
 import R from 'ramda';
 import { resetAlert, setError, setWarning, setSuccess } from './alert';
+import firebase from '../services/firebase';
 import { getAllUsers, deleteUserRecord, updateUser as update, createUser } from '../services/api';
+
 
 const setUsers: ActionCreator = (users: UserMap): ManageUsersAction => ({
   type: 'SET_USERS',
@@ -69,6 +71,7 @@ const createNewUser: ThunkActionCreator = (user: UserFormData): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
       await createUser(user);
+      await firebase.auth().sendPasswordResetEmail(user.email);
       const options: AlertPartialOptions = {
         title: 'User Created',
         text: `${user.displayName} has been created as a new user.`,
