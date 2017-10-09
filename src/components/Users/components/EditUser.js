@@ -17,7 +17,7 @@ const emptyUser: UserFormData = {
   httpSupport: false,
 };
 
-const formFields = R.keys(emptyUser);
+const formFields = ['email', 'displayName', 'hls', 'httpSupport'];
 
 type BaseProps = {
   user: null | User,
@@ -36,10 +36,12 @@ class EditUser extends Component {
   state: {
     fields: UserFormData,
     errors: FormErrors,
-    submissionAttemped: boolean
+    submissionAttemped: boolean,
+    showCredentials: boolean
   };
   handleChange: (string, SyntheticInputEvent) => void;
   hasErrors: () => boolean;
+  toggleCredentials: () => void;
   handleSubmit: Unit;
 
   constructor(props: Props) {
@@ -48,10 +50,12 @@ class EditUser extends Component {
       fields: props.user ? R.pick(formFields, props.user) : emptyUser,
       errors: null,
       submissionAttemped: false,
+      showCredentials: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.hasErrors = this.hasErrors.bind(this);
+    this.toggleCredentials = this.toggleCredentials.bind(this);
   }
 
   hasErrors(): boolean {
@@ -75,7 +79,7 @@ class EditUser extends Component {
     e.preventDefault();
     this.setState({ submissionAttemped: true });
     if (this.hasErrors()) { return; }
-    const userData = R.prop('fields', this.state);
+    let userData = R.prop('fields', this.state);
     const { newUser, toggleEditPanel, createUser, updateUser } = this.props;
     const user = R.defaultTo({}, this.props.user);
     const initial = R.pick(formFields, user);
@@ -85,12 +89,18 @@ class EditUser extends Component {
         await createUser(R.assoc('password', uuid(), userData));
         this.setState({ fields: emptyUser });
       } else {
-        updateUser(R.assoc('id', user.id, userData));
+        userData = R.assoc('id', user.id, userData);
+        userData = !userData.otApiKey && !userData.otSecret ? R.omit(['otApiKKey', 'otSecret'], userData) : userData;
+        updateUser(userData);
         toggleEditPanel();
       }
     } else {
       !newUser && toggleEditPanel();
     }
+  }
+
+  toggleCredentials() {
+    this.setState({ showCredentials: !this.state.showCredentials });
   }
 
   handleChange(e: SyntheticInputEvent) {
@@ -101,11 +111,12 @@ class EditUser extends Component {
   }
 
   render(): ReactComponent {
-    const { errors, fields } = this.state;
+    const { errors, fields, showCredentials } = this.state;
     const { email, displayName, otApiKey, otSecret, hls, httpSupport } = fields;
     const { toggleEditPanel, newUser } = this.props;
     const { handleSubmit, handleChange } = this;
     const errorFields = R.propOr({}, 'fields', errors);
+    const shouldShowCredentials = newUser || showCredentials;
     return (
       <div className="EditUser">
         <form className="EditUser-form" onSubmit={handleSubmit}>
@@ -133,30 +144,35 @@ class EditUser extends Component {
                 placeholder="Name"
               />
             </div>
-            <div className="input-container">
-              <Icon className="icon" name="key" style={{ color: 'darkgrey' }} />
-              <input
-                className={classNames({ error: errorFields.otApiKey })}
-                type="text"
-                value={otApiKey}
-                name="otApiKey"
-                placeholder="OT API Key (optional)"
-                onChange={handleChange}
-              />
-            </div>
-            <div className="input-container">
-              <Icon className="icon" name="user-secret" style={{ color: 'darkgrey' }} />
-              <input
-                className={classNames({ error: errorFields.otSecret })}
-                type="password"
-                value={otSecret}
-                name="otSecret"
-                placeholder="OT API Secret (optional)"
-                onChange={handleChange}
-                autoComplete="new-password"
-                size={42}
-              />
-            </div>
+            { !shouldShowCredentials && <button className="btn action orange" onClick={this.toggleCredentials}>Change OT credentials</button> }
+            { shouldShowCredentials &&
+              <div className="input-container">
+                <Icon className="icon" name="key" style={{ color: 'darkgrey' }} />
+                <input
+                  className={classNames({ error: errorFields.otApiKey })}
+                  type="text"
+                  name="otApiKey"
+                  value={otApiKey}
+                  placeholder="OT API Key (optional)"
+                  onChange={handleChange}
+                />
+              </div>
+            }
+            { shouldShowCredentials &&
+              <div className="input-container">
+                <Icon className="icon" name="user-secret" style={{ color: 'darkgrey' }} />
+                <input
+                  className={classNames({ error: errorFields.otSecret })}
+                  type="password"
+                  name="otSecret"
+                  value={otSecret}
+                  placeholder="OT API Secret (optional)"
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  size={42}
+                />
+              </div>
+            }
           </div>
           <div className="edit-user-bottom">
             <div className="input-container">
