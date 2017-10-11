@@ -146,6 +146,21 @@ const deleteBroadcastEvent: ThunkActionCreator = ({ id, name }: { id: EventId, n
     dispatch(setWarning(options));
   };
 
+const displayNoApiKeyAlert: ThunkActionCreator = (): Thunk =>
+  (dispatch: Dispatch, getState: GetState) => {
+    const { currentUser } = getState();
+    const options: AlertPartialOptions = {
+      title: 'Missing information',
+      text: 'For creating events you need to set your Opentok APIKey and Secret',
+      onConfirm: () => {
+        browserHistory.push(['/users/', currentUser.id].join(''));
+        dispatch(resetAlert());
+      },
+      showCancelButton: false,
+    };
+    dispatch(setWarning(options));
+  };
+
 module.exports = {
   getBroadcastEvents,
   filterBroadcastEvents,
@@ -158,4 +173,5 @@ module.exports = {
   uploadEventImageSuccess,
   uploadEventImageCancel,
   submitFormEvent,
+  displayNoApiKeyAlert,
 };

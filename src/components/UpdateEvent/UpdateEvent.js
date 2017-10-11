@@ -4,7 +4,7 @@ import R from 'ramda';
 import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router';
 import moment from 'moment';
-import { createBroadcastEvent, updateBroadcastEvent, getBroadcastEvents } from '../../actions/events';
+import { createBroadcastEvent, updateBroadcastEvent, getBroadcastEvents, displayNoApiKeyAlert } from '../../actions/events';
 import EventForm from './components/EventForm';
 import './UpdateEvent.css';
 
@@ -18,7 +18,8 @@ type BaseProps = {
 type DispatchProps = {
   loadEvents: UserId => void,
   createEvent: BroadcastEventFormData => void,
-  updateEvent: BroadcastEventUpdateFormData => void
+  updateEvent: BroadcastEventUpdateFormData => void,
+  noApiKeyAlert: Unit
 };
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
@@ -43,8 +44,12 @@ class UpdateEvent extends Component {
     this.onUpdate = this.onUpdate.bind(this);
   }
   componentDidMount() {
+    const { user } = this.props;
     if (!this.props.events) {
-      this.props.loadEvents(R.path(['user', 'id'], this.props));
+      this.props.loadEvents(user.id);
+    }
+    if (!user.otApiKey) {
+      this.props.noApiKeyAlert();
     }
   }
 
@@ -151,6 +156,9 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   },
   updateEvent: (data: BroadcastEventUpdateFormData) => {
     dispatch(updateBroadcastEvent(data));
+  },
+  noApiKeyAlert: () => {
+    dispatch(displayNoApiKeyAlert());
   },
 });
 
