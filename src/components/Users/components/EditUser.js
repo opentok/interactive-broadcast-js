@@ -120,7 +120,7 @@ class EditUser extends Component {
   render(): ReactComponent {
     const { errors, fields, showCredentials } = this.state;
     const { email, displayName, otApiKey, otSecret, hls, httpSupport } = fields;
-    const { toggleEditPanel, newUser } = this.props;
+    const { toggleEditPanel, newUser, user } = this.props;
     const { handleSubmit, handleChange } = this;
     const errorFields = R.propOr({}, 'fields', errors);
     const shouldShowCredentials = newUser || showCredentials;

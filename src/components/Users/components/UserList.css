@@ -22,3 +22,12 @@
 .UserList-item .user-info .email {
   font-weight: 300;
 }
+
+.EditUser-warning {
+    text-align: left;
+    color: #EF4836;
+}
+
+.EditUser-warning i {
+    padding-right: 5px;
+}
