@@ -25,4 +25,5 @@ const logOut: ThunkActionCreator = (): Thunk =>
 module.exports = {
   logIn,
   logOut,
+  setCurrentUser,
 };

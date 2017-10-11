@@ -8,30 +8,37 @@ import UserList from './components/UserList';
 import './Users.css';
 
 /* beautify preserve:start */
-type BaseProps = { currentUser: User} ;
+type InitialProps = { params: { adminId: string } };
+type BaseProps = {
+  adminId: string,
+  currentUser: User
+};
 type DispatchProps = { loadUsers: Unit };
-type Props = BaseProps & DispatchProps;
+type Props = InitialProps & BaseProps & DispatchProps;
+
+
 /* beautify preserve:end */
 
 class Users extends Component {
   props: Props;
 
   componentWillMount() {
-    if (!this.props.currentUser.superAdmin) {
+    if (!this.props.currentUser.superAdmin && this.props.currentUser.id !== this.props.adminId) {
       browserHistory.replace('/');
     }
   }
 
   componentDidMount() {
-    this.props.loadUsers(this.props.currentUser.id);
+    this.props.loadUsers();
   }
 
   render(): ReactComponent {
+    const { adminId } = this.props;
     return (
       <div className="Users">
         <div className="UsersHeader admin-page-header">
           <Link to="admin">Back to Events</Link>
-          <h3>Users</h3>
+          <h3>{ !adminId ? 'Users' : 'My profile' }</h3>
         </div>
         <div className="admin-page-content">
           <UserList />
@@ -41,7 +48,11 @@ class Users extends Component {
   }
 }
 
-const mapStateToProps = (state: State): BaseProps => R.pick(['currentUser'], state);
+const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => ({
+  adminId: R.path(['params', 'adminId'], ownProps),
+  currentUser: R.path(['currentUser'], state),
+});
+
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
     loadUsers: () => {

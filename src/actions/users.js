@@ -85,6 +85,7 @@ const createNewUser: ThunkActionCreator = (user: UserFormData): Thunk =>
 
 module.exports = {
   getUsers,
+  setUsers,
   deleteUser,
   createNewUser,
   updateUserRecord,

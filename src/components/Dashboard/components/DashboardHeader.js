@@ -54,6 +54,12 @@ class DashboardHeader extends Component {
               <button className="btn white control"><Icon name="user" />Manage Users</button>
             </Link>
           }
+          {
+            !currentUser.superAdmin &&
+            <Link to={['/users/', currentUser.id].join('')}>
+              <button className="btn white control"><Icon name="user" />My profile</button>
+            </Link>
+          }
         </div>
       </div>
     );

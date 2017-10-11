@@ -1,6 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router';
 import R from 'ramda';
 import UserActions from './UserActions';
 import EditUser from './EditUser';
@@ -42,28 +43,36 @@ class UserListItem extends Component {
   }
 }
 
-type BaseProps = { users: User[] };
+type BaseProps = { users: User[], currentUser: User };
 type DispatchProps = { delete: UserId => void };
-type Props = BaseProps & DispatchProps;
-const renderUser = (user: User): ReactComponent => <UserListItem key={user.id} user={user} />;
-const UserList = ({ users }: Props): ReactComponent =>
+type InitialProps = { adminId: string };
+type Props = BaseProps & DispatchProps & InitialProps;
+const renderUser = (user: User): ReactComponent =>
+  <UserListItem key={user.id} user={user} />;
+const UserList = ({ users, adminId, currentUser }: Props): ReactComponent =>
   <ul className="UserList admin-page-list">
     {
-      R.ifElse(
+      !adminId && R.ifElse(
         R.isEmpty,
         (): null => null,
         R.map(renderUser) // eslint-disable-line comma-dangle
       )(R.values(users))
     }
-    <AddUser />
+    { adminId && renderUser(currentUser) }
+    { !adminId && <AddUser /> }
   </ul>;
 
 
-const mapStateToProps = (state: State): BaseProps => R.pick(['users'], state);
+const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => ({
+  users: R.path(['users'], state),
+  adminId: R.path(['params', 'adminId'], ownProps),
+  currentUser: R.path(['currentUser'], state),
+});
+
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
     delete: (userId: UserId) => {
       dispatch(deleteUser(userId));
     },
   });
-export default connect(mapStateToProps, mapDispatchToProps)(UserList);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(UserList));
