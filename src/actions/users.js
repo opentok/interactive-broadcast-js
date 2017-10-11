@@ -1,7 +1,9 @@
 // @flow
 import R from 'ramda';
 import { resetAlert, setError, setWarning, setSuccess } from './alert';
+import firebase from '../services/firebase';
 import { getAllUsers, deleteUserRecord, updateUser as update, createUser } from '../services/api';
+
 
 const setUsers: ActionCreator = (users: UserMap): ManageUsersAction => ({
   type: 'SET_USERS',
@@ -68,11 +70,12 @@ const updateUserRecord: ThunkActionCreator = (userData: UserUpdateFormData): Thu
 const createNewUser: ThunkActionCreator = (user: UserFormData): Thunk =>
   async (dispatch: Dispatch): AsyncVoid => {
     try {
-      await createUser(user);
+      const newUser = await createUser(user);
+      await firebase.auth().sendPasswordResetEmail(newUser.email);
       const options: AlertPartialOptions = {
         title: 'User Created',
-        text: `${user.displayName} has been created as a new user.`,
-        onConfirm: (): void => R.forEach(dispatch, [resetAlert(), updateUser(user)]),
+        text: `${newUser.displayName} has been created as a new user.`,
+        onConfirm: (): void => R.forEach(dispatch, [resetAlert(), updateUser(newUser)]),
       };
       dispatch(setSuccess(options));
     } catch (error) {
@@ -82,6 +85,7 @@ const createNewUser: ThunkActionCreator = (user: UserFormData): Thunk =>
 
 module.exports = {
   getUsers,
+  setUsers,
   deleteUser,
   createNewUser,
   updateUserRecord,

@@ -168,7 +168,7 @@ class EventForm extends Component {
     const errorFields = R.propOr({}, 'fields', errors);
     const { fields } = this.state;
     const { startImage, endImage } = fields;
-
+    const hasAPIKey = this.props.user.otApiKey;
     return (
       <form className="EventForm" onSubmit={handleSubmit}>
         <div className="input-container">
@@ -275,15 +275,17 @@ class EventForm extends Component {
           <span className="label">Archive Individual Streams (Uncheck for Composed Video)</span>
         </div>
 
-        <div className="input-container submit">
-          <button className="btn action green" disabled={R.isEmpty(fields.name) || this.state.submitting }>Save Event</button>
-        </div>
+        { hasAPIKey &&
+          <div className="input-container submit">
+            <button className="btn action green" disabled={R.isEmpty(fields.name) || this.state.submitting }>Save Event</button>
+          </div>
+        }
       </form>
     );
   }
 }
-const mapStateToProps =  (state: State) => ({
-  submitting: R.path(['events', 'submitting'], state)
+const mapStateToProps = (state: State) => ({
+  submitting: R.path(['events', 'submitting'], state),
 });
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>

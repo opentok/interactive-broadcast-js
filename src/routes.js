@@ -27,6 +27,7 @@ const routes = (
       <Route component={AuthRoutes}>
         <Route path="admin" component={Dashboard} />
         <Route path="users" component={Users} />
+        <Route path="users/:adminId" component={Users} />
         <Route path="events/new" component={UpdateEvent} />
         <Route path="events/:id/edit" component={UpdateEvent} />
         <Route path="events/:id" component={Producer} />
