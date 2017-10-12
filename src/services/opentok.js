@@ -49,7 +49,11 @@ const init = (instancesToCreate: CoreInstanceOptions[]) => {
     listeners[name] = eventListeners;
     options[name] = opentokOptions;
   };
-  R.forEach(createCoreInstance, instancesToCreate);
+  try {
+    R.forEach(createCoreInstance, instancesToCreate);
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
