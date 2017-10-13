@@ -3,6 +3,7 @@ import R from 'ramda';
 import { resetAlert, setError, setWarning, setSuccess } from './alert';
 import firebase from '../services/firebase';
 import { getAllUsers, deleteUserRecord, updateUser as update, createUser } from '../services/api';
+import { setCurrentUser } from './currentUser';
 
 
 const setUsers: ActionCreator = (users: UserMap): ManageUsersAction => ({
@@ -53,14 +54,18 @@ const deleteUser: ThunkActionCreator = (userId: UserId): Thunk =>
   };
 
 const updateUserRecord: ThunkActionCreator = (userData: UserUpdateFormData): Thunk =>
-  async (dispatch: Dispatch): AsyncVoid => {
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
       await update(userData);
+      const currentUser = R.path(['currentUser'], getState());
       const options: AlertPartialOptions = {
         title: 'User Updated',
         text: `The user record for ${userData.displayName} has been updated.`,
         onConfirm: (): void => dispatch(resetAlert()) && dispatch(updateUser(userData)),
       };
+      if (currentUser.id === userData.id) {
+        dispatch(setCurrentUser(R.merge(currentUser, userData)));
+      }
       dispatch(setSuccess(options));
     } catch (error) {
       dispatch(setError('Failed to update user. Please check credentials and try again.'));

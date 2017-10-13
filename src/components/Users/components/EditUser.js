@@ -8,7 +8,6 @@ import Icon from 'react-fontawesome';
 import uuid from 'uuid';
 import './EditUser.css';
 import { createNewUser, updateUserRecord } from '../../../actions/users';
-import { setCurrentUser } from '../../../actions/currentUser';
 
 const emptyUser: UserFormData = {
   email: '',
@@ -32,8 +31,7 @@ type DispatchProps = {
   updateCurrentUser: UserFormData => void,
   createUser: UserFormData => Promise<void>
 };
-type InitialProps = { adminId: string };
-type Props = BaseProps & DispatchProps & InitialProps;
+type Props = BaseProps & DispatchProps;
 class EditUser extends Component {
 
   props: Props;
@@ -84,7 +82,7 @@ class EditUser extends Component {
     this.setState({ submissionAttemped: true });
     if (this.hasErrors()) { return; }
     let userData = R.prop('fields', this.state);
-    const { newUser, toggleEditPanel, createUser, updateUser, adminId } = this.props;
+    const { newUser, toggleEditPanel, createUser, updateUser } = this.props;
     const user = R.defaultTo({}, this.props.user);
     const initial = R.pick(formFields, user);
 
@@ -96,9 +94,6 @@ class EditUser extends Component {
         userData = R.assoc('id', user.id, userData);
         userData = !userData.otApiKey && !userData.otSecret ? R.omit(['otApiKKey', 'otSecret'], userData) : userData;
         await updateUser(userData);
-        if (adminId === user.id) {
-          this.props.updateCurrentUser(userData);
-        }
         toggleEditPanel();
       }
     } else {
@@ -198,20 +193,12 @@ class EditUser extends Component {
     );
   }
 }
-
-const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => ({
-  adminId: R.path(['params', 'adminId'], ownProps),
-});
-
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps =>
   ({
     updateUser: (userData: UserFormData) => {
       dispatch(updateUserRecord(userData));
     },
     createUser: async (userData: UserFormData): AsyncVoid => dispatch(createNewUser(userData)),
-    updateCurrentUser: (userData: UserFormData) => {
-      dispatch(setCurrentUser(userData));
-    },
   });
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(EditUser));
+export default withRouter(connect(null, mapDispatchToProps)(EditUser));
