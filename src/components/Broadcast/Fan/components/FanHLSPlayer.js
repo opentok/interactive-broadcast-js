@@ -19,7 +19,7 @@ class FanHLSPlayer extends Component {
 
   componentWillReceiveProps() {
     const { isLive } = this.props;
-    if (isLive) this.start();
+    if (isLive && !window.flowplayer) this.start();
   }
 
   start() {
@@ -45,14 +45,14 @@ class FanHLSPlayer extends Component {
   render(): ReactComponent {
     return (
       <div className="FanHLSPlayer">
-        <div id="hlsjslive" />
+        <div id="hlsjslive" className="fp-minimal" />
       </div>);
   }
 }
 
 export default scriptLoader(
   [
-    'https://releases.flowplayer.org/6.0.5/flowplayer.min.js',
+    'https://releases.flowplayer.org/7.2.1/flowplayer.min.js',
     'https://releases.flowplayer.org/hlsjs/flowplayer.hlsjs.min.js',
   ],
   '/assets/bootstrap-markdown.js',
