@@ -281,7 +281,7 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
           dispatch(leaveTheLine());
           const message =
             `Thank you for participating, you are no longer sharing video/voice.
-            You can continue to watch the session at your leisure.'`;
+            You can continue to watch the session at your leisure.`;
           toastr.success(message, { showCloseButton: false });
           break;
         }

@@ -12,6 +12,16 @@ const avPropertyChanged: ActionCreator = (participantType: UserRole, update: Par
   update,
 });
 
+const startFanTransition: ActionCreator = (): BroadcastAction => ({
+  type: 'FAN_TRANSITION',
+  fanTransition: true,
+});
+
+const stopFanTransition: ActionCreator = (): BroadcastAction => ({
+  type: 'FAN_TRANSITION',
+  fanTransition: false,
+});
+
 const setReconnecting: ActionCreator = (): BroadcastAction => ({
   type: 'SET_RECONNECTING',
   reconnecting: true,
@@ -121,7 +131,8 @@ const toggleParticipantProperty: ThunkActionCreator = (participantType: Particip
  * Kick fan from stage or backstage feeds
  */
 const forceFanToDisconnect: ThunkActionCreator = (fan: ActiveFan): Thunk =>
-  () => {
+  (dispatch: Dispatch) => {
+    dispatch(stopFanTransition());
     const stream = opentok.getStreamById('backstage', fan.streamId);
     opentok.forceDisconnect('backstage', stream.connection);
   };
@@ -298,4 +309,6 @@ module.exports = {
   stopElapsedTime,
   startElapsedTime,
   forceFanToDisconnect,
+  startFanTransition,
+  stopFanTransition,
 };
