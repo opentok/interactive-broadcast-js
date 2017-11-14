@@ -728,6 +728,7 @@ const getInLine: ThunkActionCreator = (): Thunk =>
       allowEscapeKey: false,
       html: true,
       confirmButtonColor: '#00a3e3',
+      onCancel: (): void => dispatch(connectToBackstage('Anonymous')),
       onConfirm: (inputValue: string): void => dispatch(connectToBackstage(inputValue || 'Anonymous')),
     });
     dispatch(setFanStatus('connecting'));
