@@ -16,6 +16,10 @@ const FanStatusBar = (props: Props): ReactComponent => {
       statusText = 'Connecting ...';
       statusClass = 'lightBlue';
       break;
+    case 'disconnecting':
+      statusText = 'Disconnecting ...';
+      statusClass = 'lightBlue';
+      break;
     case 'inLine':
       statusText = 'You Are In Line';
       statusClass = 'lightBlue';
