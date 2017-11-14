@@ -17,7 +17,7 @@ const FanStatusBar = (props: Props): ReactComponent => {
       statusClass = 'lightBlue';
       break;
     case 'disconnecting':
-      statusText = 'Disconnecting ...';
+      statusText = 'Leaving The Line...';
       statusClass = 'lightBlue';
       break;
     case 'inLine':
