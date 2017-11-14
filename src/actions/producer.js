@@ -626,7 +626,6 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
     const fan = R.findLast(isBackstage)(R.values(currentFans));
     if (fan) {
       analytics.log(logAction.producerMovesFanOnstage, logVariation.attempt);
-      dispatch({ type: 'START_FAN_TRANSITION' });
       const stream = opentok.getStreamById('backstage', fan.streamId);
       const { event } = broadcast;
       const { adminId, fanUrl } = event;
@@ -649,7 +648,6 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
       signal('backstage', { type: 'joinHost', to: stream.connection });
 
       /* Stop subscribing the backstage fan */
-      console.log('stream', stream);
       await opentok.unsubscribe('backstage', stream);
       dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType: 'backstageFan' });
 

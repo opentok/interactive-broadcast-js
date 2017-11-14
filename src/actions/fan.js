@@ -279,6 +279,7 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
       case 'disconnect':
         {
           dispatch(leaveTheLine());
+          dispatch(resetAlert());
           const message =
             `Thank you for participating, you are no longer sharing video/voice.
             You can continue to watch the session at your leisure.`;
@@ -370,6 +371,7 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
       } else {
         dispatch(setDisconnected());
       }
+      dispatch(resetAlert());
     });
   };
 
