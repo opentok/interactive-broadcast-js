@@ -265,8 +265,10 @@ const endCall = async (instance: SessionName): AsyncVoid => instances[instance].
 const unpublish = async (instance: SessionName): AsyncVoid => {
   try {
     const core = instances[instance];
-    const publisher = getPublisher(instance);
-    await core.communication.session.unpublish(publisher);
+    const publishers = core.state().publishers;
+    const destroyPublisher = async (publisher: Publisher): AsyncVoid => core.communication.session.unpublish(publisher);
+    Object.values(publishers.camera).forEach(destroyPublisher);
+    core.communication.state.removeAllPublishers();
   } catch (error) {
     console.log('unpublish error', error);
   }
