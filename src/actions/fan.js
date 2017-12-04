@@ -200,13 +200,14 @@ const leaveTheLine: ThunkActionCreator = (): Thunk =>
     const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
     const event = R.path(['broadcast', 'event'], state);
     const isLive = R.equals('live', event.status);
+    await opentok.unpublish('backstage');
     await opentok.disconnectFromInstance('backstage');
     if (fanOnStage) isLive ? await opentok.unpublish('stage') : await opentok.endCall('stage');
     dispatch(setFanStatus('disconnecting'));
     await dispatch(cancelNetworkTest());
     await dispatch(removeActiveFanRecord(event));
     dispatch(setBackstageConnected(false));
-    setTimeout((): void => dispatch(setFanStatus('disconnected')), 3 * 1000);
+    dispatch(setFanStatus('disconnected'));
   };
 
 /**
