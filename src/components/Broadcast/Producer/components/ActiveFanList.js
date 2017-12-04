@@ -62,7 +62,7 @@ const Fan = SortableElement(({ fan, sortable, actions, fanTransition }: FanProps
           { networkQuality(fan.networkQuality)}
         </div>
         <div className="actions">
-          {!isBackstage && !isOnStage && <button disabled={fanTransition} className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
+          {!isBackstage && !isOnStage && <button disabled={fanTransition} className={classNames('btn white', { disabled: fanTransition })} onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
           {isBackstage && <button className="btn white" onClick={R.partial(sendFanToStage, [fan])}>Send to stage</button>}
           {!isOnStage && <button className="btn white" onClick={R.partial(privateCall, [fan])}>{ inPrivateCall ? 'Hang Up' : 'Call'}</button>}
           <button className="btn white" onClick={R.partial(chat, [fan])}>Chat</button>
