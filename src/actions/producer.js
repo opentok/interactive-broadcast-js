@@ -625,6 +625,7 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
     const isBackstage = R.propEq('isBackstage', true);
     const fan = R.findLast(isBackstage)(R.values(currentFans));
     if (fan) {
+      dispatch(startFanTransition());
       analytics.log(logAction.producerMovesFanOnstage, logVariation.attempt);
       const stream = opentok.getStreamById('backstage', fan.streamId);
       const { event } = broadcast;
@@ -679,6 +680,7 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
         } else {
           clearInterval(timer);
           sendSignal();
+          dispatch(stopFanTransition());
         }
       };
       timer = setInterval(updateCounter, 1000);
