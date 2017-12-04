@@ -104,7 +104,8 @@ declare type BroadcastState = {
   archiving: boolean,
   reconnecting: boolean,
   disconnected: boolean,
-  elapsedTime: string
+  elapsedTime: string,
+  fanTransition: boolean
 };
 
 declare type FanStatus = 'disconnected' | 'connecting' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
