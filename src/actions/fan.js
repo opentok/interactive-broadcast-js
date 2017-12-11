@@ -197,14 +197,16 @@ const removeActiveFanRecord: ThunkActionCreator = (event: BroadcastEvent): Thunk
 const leaveTheLine: ThunkActionCreator = (): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     const state = getState();
+    const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
     const event = R.path(['broadcast', 'event'], state);
     const isLive = R.equals('live', event.status);
-    const fanOnStage = R.equals('stage', R.path(['fan', 'status'], state));
+    await opentok.unpublish('backstage');
     await opentok.disconnectFromInstance('backstage');
-    if (fanOnStage) await isLive ? opentok.unpublish('stage') : opentok.endCall('stage');
-    dispatch(cancelNetworkTest());
+    if (fanOnStage) isLive ? await opentok.unpublish('stage') : await opentok.endCall('stage');
+    dispatch(setFanStatus('disconnecting'));
+    await dispatch(cancelNetworkTest());
+    await dispatch(removeActiveFanRecord(event));
     dispatch(setBackstageConnected(false));
-    dispatch(removeActiveFanRecord(event));
     dispatch(setFanStatus('disconnected'));
   };
 
@@ -278,9 +280,10 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
       case 'disconnect':
         {
           dispatch(leaveTheLine());
+          dispatch(resetAlert());
           const message =
             `Thank you for participating, you are no longer sharing video/voice.
-            You can continue to watch the session at your leisure.'`;
+            You can continue to watch the session at your leisure.`;
           toastr.success(message, { showCloseButton: false });
           break;
         }
@@ -369,6 +372,7 @@ const opentokConfig = (userCredentials: UserCredentials, dispatch: Dispatch, get
       } else {
         dispatch(setDisconnected());
       }
+      dispatch(resetAlert());
     });
   };
 
@@ -728,6 +732,7 @@ const getInLine: ThunkActionCreator = (): Thunk =>
       allowEscapeKey: false,
       html: true,
       confirmButtonColor: '#00a3e3',
+      onCancel: (): void => dispatch(connectToBackstage('Anonymous')),
       onConfirm: (inputValue: string): void => dispatch(connectToBackstage(inputValue || 'Anonymous')),
     });
     dispatch(setFanStatus('connecting'));

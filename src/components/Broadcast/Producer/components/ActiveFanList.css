@@ -85,3 +85,7 @@
     font-size: 12px;
     padding: 2px 5px;
 }
+
+.ActiveFan .ActiveFanMain .actions .btn.disabled {
+   color: lightgray;
+}

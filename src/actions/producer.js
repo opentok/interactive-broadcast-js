@@ -28,6 +28,8 @@ import {
   onChatMessage,
   monitorVolume,
   startCountdown,
+  startFanTransition,
+  stopFanTransition,
 } from './broadcast';
 
 let analytics;
@@ -567,6 +569,7 @@ const kickFanFromFeed: ThunkActionCreator = (participantType: FanParticipantType
 
 const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    dispatch(startFanTransition());
     /* Remove the current backstagefan */
     const { broadcast } = getState();
     const participant = R.path(['participants', 'backstageFan'], broadcast);
@@ -588,8 +591,9 @@ const sendToBackstage: ThunkActionCreator = (fan: ActiveFan): Thunk =>
     const stream = opentok.getStreamById('backstage', fan.streamId);
 
     /* Add the participant to the backstage fan feed and start subscribing */
+    await opentok.subscribe('backstage', stream, { subscribeToAudio: false });
     dispatch(updateParticipants('backstageFan', 'streamCreated', stream));
-    opentok.subscribe('backstage', stream, { subscribeToAudio: false });
+    dispatch(stopFanTransition());
 
     /* Let the fan know that he is on backstage */
     signal('backstage', { type: 'joinBackstage', to: stream.connection });
@@ -621,6 +625,7 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
     const isBackstage = R.propEq('isBackstage', true);
     const fan = R.findLast(isBackstage)(R.values(currentFans));
     if (fan) {
+      dispatch(startFanTransition());
       analytics.log(logAction.producerMovesFanOnstage, logVariation.attempt);
       const stream = opentok.getStreamById('backstage', fan.streamId);
       const { event } = broadcast;
@@ -642,6 +647,10 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
 
       /* Send the first signal to the fan */
       signal('backstage', { type: 'joinHost', to: stream.connection });
+
+      /* Stop subscribing the backstage fan */
+      await opentok.unsubscribe('backstage', stream);
+      dispatch({ type: 'BROADCAST_PARTICIPANT_LEFT', participantType: 'backstageFan' });
 
       /* update the record in firebase */
       try {
@@ -671,6 +680,7 @@ const sendToStage: ThunkActionCreator = (): Thunk =>
         } else {
           clearInterval(timer);
           sendSignal();
+          dispatch(stopFanTransition());
         }
       };
       timer = setInterval(updateCounter, 1000);

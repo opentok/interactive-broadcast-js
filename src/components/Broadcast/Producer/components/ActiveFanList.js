@@ -41,8 +41,8 @@ type ActiveFanActions = {
 };
 
 const snapshot = 'https://assets.tokbox.com/solutions/images/tokbox.png';
-type FanProps = { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, backstageFan: FanParticipantState };
-const Fan = SortableElement(({ fan, sortable, actions }: FanProps): ReactComponent => {
+type FanProps = { fan: ActiveFan, sortable: boolean, actions: ActiveFanActions, backstageFan: FanParticipantState, fanTransition: boolean };
+const Fan = SortableElement(({ fan, sortable, actions, fanTransition }: FanProps): ReactComponent => {
   const { chat, sendFanToBackstage, sendFanToStage, kickFan, connectCall, forceDisconnect } = actions;
   const { inPrivateCall, isOnStage, isBackstage } = fan;
   const privateCall = R.partial(connectCall, [fanTypeForActiveFan(fan), fan.id]);
@@ -62,7 +62,7 @@ const Fan = SortableElement(({ fan, sortable, actions }: FanProps): ReactCompone
           { networkQuality(fan.networkQuality)}
         </div>
         <div className="actions">
-          {!isBackstage && !isOnStage && <button className="btn white" onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
+          {!isBackstage && !isOnStage && <button disabled={fanTransition} className={classNames('btn white', { disabled: fanTransition })} onClick={R.partial(sendFanToBackstage, [fan])}>Send to backstage</button>}
           {isBackstage && <button className="btn white" onClick={R.partial(sendFanToStage, [fan])}>Send to stage</button>}
           {!isOnStage && <button className="btn white" onClick={R.partial(privateCall, [fan])}>{ inPrivateCall ? 'Hang Up' : 'Call'}</button>}
           <button className="btn white" onClick={R.partial(chat, [fan])}>Chat</button>
@@ -73,20 +73,20 @@ const Fan = SortableElement(({ fan, sortable, actions }: FanProps): ReactCompone
   );
 });
 
-type SortableContainerProps = { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: FanParticipantState };
-const SortableFanList: { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: FanParticipantState } => ReactComponent =
-  SortableContainer(({ fans, actions, backstageFan }: SortableContainerProps): ReactComponent => {
+type SortableContainerProps = { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: FanParticipantState, fanTransition: boolean };
+const SortableFanList: { fans: ActiveFan[], actions: ActiveFanActions, backstageFan: FanParticipantState, fanTransition: boolean } => ReactComponent =
+  SortableContainer(({ fans, actions, backstageFan, fanTransition }: SortableContainerProps): ReactComponent => {
     const sortable = fans.length > 1;
     return (
       <ul className={classNames('ActiveFanList', { sortable })} >
         {fans.map((fan: ActiveFan, index: number): ReactComponent => (
-          <Fan key={`fan-${fan.id}`} index={index} fan={fan} sortable={sortable} actions={actions} backstageFan={backstageFan} /> // eslint-disab
+          <Fan key={`fan-${fan.id}`} index={index} fan={fan} sortable={sortable} actions={actions} backstageFan={backstageFan} fanTransition={fanTransition} /> // eslint-disab
         ))}
       </ul>
     );
   });
 
-type BaseProps = { activeFans: ActiveFans, backstageFan: FanParticipantState };
+type BaseProps = { activeFans: ActiveFans, backstageFan: FanParticipantState, fanTransition: boolean };
 type DispatchProps = {
   reorderFans: ActiveFanOrderUpdate => void,
   actions: ActiveFanActions
@@ -108,13 +108,13 @@ class ActiveFanList extends Component {
 
   render(): ReactComponent {
     const { onSortEnd } = this;
-    const { actions, backstageFan } = this.props;
+    const { actions, backstageFan, fanTransition } = this.props;
     const { map, order } = this.props.activeFans;
     const buildList = (acc: ActiveFan[], id: UserId): ActiveFan[] => R.append(R.prop(id, map), acc);
     return (
       <SortableFanList
         fans={R.reduce(buildList, [], order)}
-        onSortEnd={onSortEnd} actions={actions} backstageFan={backstageFan}
+        onSortEnd={onSortEnd} actions={actions} backstageFan={backstageFan} fanTransition={fanTransition}
         lockAxis="y"
         helperClass="ProducerSidePanel-reordering"
       />
@@ -125,6 +125,7 @@ class ActiveFanList extends Component {
 const mapStateToProps = (state: State): BaseProps => ({
   activeFans: state.broadcast.activeFans,
   backstageFan: state.broadcast.participants.backstageFan,
+  fanTransition: state.broadcast.fanTransition,
 });
 
 const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatch): DispatchProps => ({

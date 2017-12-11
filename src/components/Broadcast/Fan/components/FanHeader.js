@@ -32,10 +32,12 @@ const FanHeader = (props: Props): ReactComponent => {
     disconnected,
     postProduction,
   } = props;
-  const displayGetInLineButton = ableToJoin && status !== 'closed' && !postProduction && !disconnected;
-  const inPrivateCallWith = R.propOr(null, 'isWith', privateCall || {});
-  const onStageUserInPrivateCall = !inPrivateCall && R.equals('stage', fanStatus) && inPrivateCallWith && isUserOnStage(inPrivateCallWith);
   const isConnecting = fanStatus === 'connecting';
+  const isDisconnecting = fanStatus === 'disconnecting';
+  const isOnStage = fanStatus === 'stage';
+  const displayGetInLineButton = ableToJoin && status !== 'closed' && !isOnStage && !isConnecting && !isDisconnecting && !postProduction && !disconnected;
+  const inPrivateCallWith = R.propOr(null, 'isWith', privateCall || {});
+  const onStageUserInPrivateCall = !inPrivateCall && isOnStage && inPrivateCallWith && isUserOnStage(inPrivateCallWith);
   const getInLineButton = (): ReactComponent =>
     !backstageConnected ?
       !isConnecting && <button className="btn green getInLine" onClick={getInLine}>GET IN LINE</button> :

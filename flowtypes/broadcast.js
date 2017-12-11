@@ -104,7 +104,8 @@ declare type BroadcastState = {
   archiving: boolean,
   reconnecting: boolean,
   disconnected: boolean,
-  elapsedTime: string
+  elapsedTime: string,
+  fanTransition: boolean
 };
 
 declare type FanStatus = 'disconnected' | 'connecting' | 'inLine' | 'backstage' | 'stage' | 'privateCall' | 'temporarillyMuted';
@@ -164,6 +165,7 @@ declare type ChatState = {
  */
 
 declare type BroadcastAction =
+  { type: 'FAN_TRANSITION', fanTransition: boolean } |
   { type: 'SET_BROADCAST_EVENT', event: BroadcastEvent } |
   { type: 'RESET_BROADCAST_EVENT' } |
   { type: 'BACKSTAGE_CONNECTED', connected: boolean } |
