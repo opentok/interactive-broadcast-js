@@ -51,11 +51,18 @@ const analyzeStats = (results: PerSecondStats, subscriber: TestSubscriber): Qual
     const { width, height }: TestVideoDimensions = subscriber.stream.videoDimensions; // $FlowFixMe
     const resolution: Resolution = `${width}x${height}`;
     if (resolution === '1280x720') {
-      const aVideoLimits = {
-        '1280x720-30': [250, 350, 600, 1000],
-        '1280x720-15': [150, 250, 350, 800],
-        '1280x720-7': [120, 150, 250, 400],
-      };
+      let aVideoLimits;
+      switch (frameRate) {
+        case '30':
+          aVideoLimits = [250, 350, 600, 1000];
+          break;
+        case '15':
+          aVideoLimits = [150, 250, 350, 800];
+          break;
+        default:
+          aVideoLimits = [120, 150, 250, 400];
+          break;
+      }
       if (videoBw > aVideoLimits[3] && videoPLRatio < 0.1) {
         return MOSQuality.Excellent;
       } else if (videoBw > aVideoLimits[2] && videoBw <= aVideoLimits[3] && videoPLRatio < 0.02) {
