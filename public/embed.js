@@ -56,6 +56,7 @@ window.IBSApp = {
     iframe.width = config.width;
     iframe.height = config.height;
     iframe.scrolling = 'no';
+    iframe.allow = 'microphone; camera';
     iframe.onload = function() {
       iframe.contentWindow.document.body.style.background = '#262626';
     }
