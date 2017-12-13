@@ -269,6 +269,7 @@ const onSignal = (dispatch: Dispatch, getState: GetState): SignalListener =>
       case 'finishEvent':
         dispatch(setBroadcastEventStatus('closed'));
         dispatch(cancelNetworkTest());
+        dispatch(setFanStatus('disconnected'));
         redirectFan(event.redirectUrl);
         break;
       case 'joinBackstage':
