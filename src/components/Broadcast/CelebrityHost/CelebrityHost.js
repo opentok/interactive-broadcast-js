@@ -84,7 +84,7 @@ class CelebrityHost extends Component {
             disconnected={disconnected}
           />
           <CelebrityHostBody
-            endImage={event.endImage.url}
+            endImage={event.endImage}
             participants={availableParticipants}
             status={event.status}
             userType={userType}
