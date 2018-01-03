@@ -1,5 +1,6 @@
 // @flow
 import R from 'ramda';
+import moment from 'moment';
 import { toastr } from 'react-redux-toastr';
 import { validateUser } from './auth';
 import {
@@ -15,6 +16,7 @@ import {
   setPrivateCall,
   onChatMessage,
   monitorVolume,
+  startHeartBeat,
 } from './broadcast';
 import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { isUserOnStage } from '../services/util';
@@ -303,10 +305,12 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
       firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
         if (user) {
           const base = `activeBroadcasts/${adminId}/${eventData.fanUrl}`;
-          const query = await firebase.database().ref(`${base}/${userType}Active`).once('value');
-          const userActive = query.val();
-
-          if (!userActive) { // Prevent duplicated celeb/host
+          const userActiveQuery = await firebase.database().ref(`${base}/${userType}Active`).once('value');
+          const userHeartBeatQuery = await firebase.database().ref(`${base}/${userType}HeartBeat`).once('value');
+          const userActive = userActiveQuery.val();
+          const userHeartBeat = userHeartBeatQuery.val();
+          const heartbeatExpired = moment.duration(moment().diff(userHeartBeat)).seconds() > 10 || false;
+          if (!userActive || heartbeatExpired) { // Prevent duplicated celeb/host
             const ref = firebase.database().ref(`${base}/${userType}Active`);
             const refVolume = firebase.database().ref(`${base}/volume/${userType}`);
             try {
@@ -323,6 +327,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
             analytics = new Analytics(window.location.origin, stageSessionId, null, apiKey);
             if (status !== 'closed') {
               await dispatch(connectToInteractive(credentials, userType));
+              dispatch(startHeartBeat(userType));
               dispatch(monitorVolume());
             }
           } else {
@@ -351,3 +356,4 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
 module.exports = {
   initializeBroadcast,
 };
+

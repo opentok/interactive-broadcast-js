@@ -192,6 +192,21 @@ const monitorVolume: ThunkActionCreator = (): Thunk =>
   };
 
 /**
+ * Heartbeat that keeps track of the user presence
+ */
+const startHeartBeat: ThunkActionCreator = (userType: UserType): Thunk =>
+(dispatch: Dispatch, getState: GetState) => {
+  const event = R.prop('event', getState().broadcast);
+  const { adminId, fanUrl } = event;
+  const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/${userType}HeartBeat`);
+  const updateHeartbeat = (): void => ref.set(moment.utc().valueOf());
+  updateHeartbeat();
+  setInterval(() => {
+    updateHeartbeat();
+  }, 10 * 1000);
+};
+
+/**
  * Start the go live countdown
  */
 const startCountdown: ThunkActionCreator = (): Thunk =>
@@ -311,4 +326,6 @@ module.exports = {
   forceFanToDisconnect,
   startFanTransition,
   stopFanTransition,
+  startHeartBeat,
 };
+
