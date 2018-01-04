@@ -17,6 +17,7 @@ import {
   onChatMessage,
   monitorVolume,
   startHeartBeat,
+  heartBeatTime,
 } from './broadcast';
 import { getEventWithCredentials, getEmbedEventWithCredentials } from '../services/api';
 import { isUserOnStage } from '../services/util';
@@ -309,7 +310,7 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
           const userHeartBeatQuery = await firebase.database().ref(`${base}/${userType}HeartBeat`).once('value');
           const userActive = userActiveQuery.val();
           const userHeartBeat = userHeartBeatQuery.val();
-          const heartbeatExpired = moment.duration(moment().diff(userHeartBeat)).seconds() > 10 || false;
+          const heartbeatExpired = moment.duration(moment().diff(userHeartBeat)).seconds() > heartBeatTime || false;
           if (!userActive || heartbeatExpired) { // Prevent duplicated celeb/host
             const ref = firebase.database().ref(`${base}/${userType}Active`);
             const refVolume = firebase.database().ref(`${base}/volume/${userType}`);

@@ -6,6 +6,9 @@ import opentok from '../services/opentok';
 import firebase from '../services/firebase';
 import { isUserOnStage } from '../services/util';
 
+// Presence heartbeat time in seconds.
+const heartBeatTime = 10;
+
 const avPropertyChanged: ActionCreator = (participantType: UserRole, update: ParticipantAVPropertyUpdate): BroadcastAction => ({ 
   type: 'PARTICIPANT_AV_PROPERTY_CHANGED',
   participantType,
@@ -203,7 +206,7 @@ const startHeartBeat: ThunkActionCreator = (userType: UserType): Thunk =>
   updateHeartbeat();
   setInterval(() => {
     updateHeartbeat();
-  }, 10 * 1000);
+  }, heartBeatTime * 1000);
 };
 
 /**
@@ -327,5 +330,6 @@ module.exports = {
   startFanTransition,
   stopFanTransition,
   startHeartBeat,
+  heartBeatTime,
 };
 

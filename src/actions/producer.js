@@ -32,6 +32,7 @@ import {
   startFanTransition,
   stopFanTransition,
   startHeartBeat,
+  heartBeatTime,
 } from './broadcast';
 
 let analytics;
@@ -454,7 +455,7 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
       const producerHeartBeatQuery = await firebase.database().ref(`${base}/producerHeartBeat`).once('value');
       const producerActive = producerActiveQuery.val();
       const producerHeartBeat = producerHeartBeatQuery.val();
-      const heartbeatExpired = moment.duration(moment().diff(producerHeartBeat)).seconds() > 10 || false;
+      const heartbeatExpired = moment.duration(moment().diff(producerHeartBeat)).seconds() > heartBeatTime || false;
 
       if (producerActive && !heartbeatExpired) {
         /* Let the user know that he/she is already connected in another tab */
