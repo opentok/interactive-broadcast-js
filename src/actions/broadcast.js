@@ -6,6 +6,9 @@ import opentok from '../services/opentok';
 import firebase from '../services/firebase';
 import { isUserOnStage } from '../services/util';
 
+// Presence heartbeat time in seconds.
+const heartBeatTime = 10;
+let heartBeatInterval;
 const avPropertyChanged: ActionCreator = (participantType: UserRole, update: ParticipantAVPropertyUpdate): BroadcastAction => ({ 
   type: 'PARTICIPANT_AV_PROPERTY_CHANGED',
   participantType,
@@ -192,6 +195,30 @@ const monitorVolume: ThunkActionCreator = (): Thunk =>
   };
 
 /**
+ * Heartbeat that keeps track of the user presence
+ */
+const startHeartBeat: ThunkActionCreator = (userType: UserType): Thunk =>
+(dispatch: Dispatch, getState: GetState) => {
+  const event = R.prop('event', getState().broadcast);
+  const { adminId, fanUrl } = event;
+  const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/${userType}HeartBeat`);
+  const updateHeartbeat = (): void => ref.set(moment.utc().valueOf());
+  updateHeartbeat();
+  heartBeatInterval = setInterval(() => {
+    updateHeartbeat();
+  }, heartBeatTime * 1000);
+};
+
+/**
+ * Heartbeat that keeps track of the user presence
+ */
+const stopHeartBeat: ThunkActionCreator = (): Thunk =>
+() => {
+  clearInterval(heartBeatInterval);
+  heartBeatInterval = null;
+};
+
+/**
  * Start the go live countdown
  */
 const startCountdown: ThunkActionCreator = (): Thunk =>
@@ -311,4 +338,8 @@ module.exports = {
   forceFanToDisconnect,
   startFanTransition,
   stopFanTransition,
+  startHeartBeat,
+  stopHeartBeat,
+  heartBeatTime,
 };
+

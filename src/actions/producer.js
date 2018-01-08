@@ -1,5 +1,6 @@
 // @flow
 import R from 'ramda';
+import moment from 'moment';
 import { browserHistory } from 'react-router';
 import { updateStatus } from './events';
 import { setInfo, setBlockUserAlert, setCameraError, resetAlert } from './alert';
@@ -30,6 +31,9 @@ import {
   startCountdown,
   startFanTransition,
   stopFanTransition,
+  startHeartBeat,
+  stopHeartBeat,
+  heartBeatTime,
 } from './broadcast';
 
 let analytics;
@@ -204,6 +208,7 @@ const connectToInteractive: ThunkActionCreator = (userCredentials: UserCredentia
       analytics.log(logAction.producerConnects, logVariation.success);
       dispatch(setBroadcastState(opentok.state('stage')));
       dispatch(monitorVolume());
+      dispatch(startHeartBeat('producer'));
     } catch (error) {
       analytics.log(logAction.producerConnects, logVariation.fail);
     }
@@ -443,14 +448,17 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     // Register the producer in firebase
     firebase.auth().onAuthStateChanged(async (user: AuthState): AsyncVoid => {
       if (!user) return;
-      const base = `activeBroadcasts/${event.adminId}/${event.fanUrl}`;
-      const query = await firebase.database().ref(`${base}/producerActive`).once('value');
-      const producerActive = query.val();
-
       dispatch({ type: 'PRESENCE_CONNECTING', connecting: true });
+      const base = `activeBroadcasts/${event.adminId}/${event.fanUrl}`;
 
       /* Let's check if the producer is already connected */
-      if (producerActive) {
+      const producerActiveQuery = await firebase.database().ref(`${base}/producerActive`).once('value');
+      const producerHeartBeatQuery = await firebase.database().ref(`${base}/producerHeartBeat`).once('value');
+      const producerActive = producerActiveQuery.val();
+      const producerHeartBeat = producerHeartBeatQuery.val();
+      const heartbeatExpired = moment.duration(moment().diff(producerHeartBeat)).seconds() > heartBeatTime || false;
+
+      if (producerActive && !heartbeatExpired) {
         /* Let the user know that he/she is already connected in another tab */
         dispatch(setBlockUserAlert());
       } else {
@@ -494,6 +502,7 @@ const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
     const connecting = R.path(['broadcast', 'connecting'], state);
     const isClosed = status === 'closed';
     if (adminId && fanUrl) {
+      dispatch(stopHeartBeat());
       disconnect();
       presenceRef && presenceRef.onDisconnect().cancel();
       privateCallRef && privateCallRef.onDisconnect().cancel();
@@ -747,3 +756,4 @@ module.exports = {
   changeStatus,
   kickFanFromFeed,
 };
+
