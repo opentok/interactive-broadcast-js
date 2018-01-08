@@ -32,6 +32,7 @@ import {
   startFanTransition,
   stopFanTransition,
   startHeartBeat,
+  stopHeartBeat,
   heartBeatTime,
 } from './broadcast';
 
@@ -501,6 +502,7 @@ const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
     const connecting = R.path(['broadcast', 'connecting'], state);
     const isClosed = status === 'closed';
     if (adminId && fanUrl) {
+      dispatch(stopHeartBeat());
       disconnect();
       presenceRef && presenceRef.onDisconnect().cancel();
       privateCallRef && privateCallRef.onDisconnect().cancel();

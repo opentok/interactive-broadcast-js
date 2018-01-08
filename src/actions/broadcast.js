@@ -8,7 +8,7 @@ import { isUserOnStage } from '../services/util';
 
 // Presence heartbeat time in seconds.
 const heartBeatTime = 10;
-
+let heartBeatInterval;
 const avPropertyChanged: ActionCreator = (participantType: UserRole, update: ParticipantAVPropertyUpdate): BroadcastAction => ({ 
   type: 'PARTICIPANT_AV_PROPERTY_CHANGED',
   participantType,
@@ -204,9 +204,18 @@ const startHeartBeat: ThunkActionCreator = (userType: UserType): Thunk =>
   const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/${userType}HeartBeat`);
   const updateHeartbeat = (): void => ref.set(moment.utc().valueOf());
   updateHeartbeat();
-  setInterval(() => {
+  heartBeatInterval = setInterval(() => {
     updateHeartbeat();
   }, heartBeatTime * 1000);
+};
+
+/**
+ * Heartbeat that keeps track of the user presence
+ */
+const stopHeartBeat: ThunkActionCreator = (): Thunk =>
+() => {
+  clearInterval(heartBeatInterval);
+  heartBeatInterval = null;
 };
 
 /**
@@ -330,6 +339,7 @@ module.exports = {
   startFanTransition,
   stopFanTransition,
   startHeartBeat,
+  stopHeartBeat,
   heartBeatTime,
 };
 
