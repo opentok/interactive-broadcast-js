@@ -203,7 +203,6 @@ const startHeartBeat: ThunkActionCreator = (userType: UserType): Thunk =>
   const { adminId, fanUrl } = event;
   const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}/${userType}HeartBeat`);
   const updateHeartbeat = (): void => ref.set(moment.utc().valueOf());
-  updateHeartbeat();
   heartBeatInterval = setInterval(() => {
     updateHeartbeat();
   }, heartBeatTime * 1000);

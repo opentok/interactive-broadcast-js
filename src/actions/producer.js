@@ -37,8 +37,7 @@ import {
 } from './broadcast';
 
 let analytics;
-let presenceRef;
-let privateCallRef;
+let activeBroadcastRef;
 const { disconnect, signal, createEmptyPublisher, publishAudio } = opentok;
 
 const notStarted = R.propEq('status', 'notStarted');
@@ -273,8 +272,7 @@ const endPrivateCall: ThunkActionCreator = (): Thunk =>
 
     // Update broadcast record in firebase
     try {
-      const broadcastRef = firebase.database().ref(baseRef);
-      await broadcastRef.update({ privateCall: null });
+      await activeBroadcastRef.update({ privateCall: null });
     } catch (error) {
       console.log('Failed to update active broadcast record in firebase', error);
     }
@@ -352,10 +350,8 @@ const startPrivateCall: ThunkActionCreator = (isWith: PrivateCallParticipant, fa
       }
 
       // Update broadcast record
-      const broadcastRef = firebase.database().ref(`${baseRef}/privateCall`);
       const broadcastUpdate = isWithFan ? { isWith, fanId } : { isWith };
-      await broadcastRef.update(broadcastUpdate);
-
+      await activeBroadcastRef.update({ privateCall: broadcastUpdate });
 
       // We need to dispatch this action before trying to subscribe to get the correct stream container
       dispatch(setPrivateCall({ isWith, fanId }));
@@ -393,11 +389,9 @@ const connectPrivateCall: ThunkActionCreator = (isWith: PrivateCallParticipant, 
     }
   };
 
-const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
+const updateActiveFans: ThunkActionCreator = (): Thunk =>
   (dispatch: Dispatch, getState: GetState) => {
-    const { adminId, fanUrl } = event;
-    const ref = firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`);
-    ref.on('value', async (snapshot: firebase.database.DataSnapshot): AsyncVoid => {
+    activeBroadcastRef.on('value', async (snapshot: firebase.database.DataSnapshot): AsyncVoid => {
       const { broadcast } = getState();
       const isInLine = (record: ActiveFan): boolean => R.has('name', record);
       const activeBroadcast = snapshot.val() || {};
@@ -415,7 +409,6 @@ const updateActiveFans: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
       onStageFanRecord && dispatch({ type: 'UPDATE_ACTIVE_FAN_RECORD', fanType: 'fan', record: onStageFanRecord });
 
       R.forEach((fanId: ChatId): void => dispatch({ type: 'REMOVE_CHAT', chatId: fanId }), fansNoLongerActive);
-
 
       const privateCall = R.defaultTo({})(broadcast.privateCall);
       // Handle the case where a fan in a private call disconnects
@@ -449,27 +442,27 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
     firebase.auth().onAuthStateChanged(async (user: AuthState): AsyncVoid => {
       if (!user) return;
       dispatch({ type: 'PRESENCE_CONNECTING', connecting: true });
-      const base = `activeBroadcasts/${event.adminId}/${event.fanUrl}`;
+      activeBroadcastRef = firebase.database().ref(`activeBroadcasts/${event.adminId}/${event.fanUrl}`);
 
       /* Let's check if the producer is already connected */
-      const producerActiveQuery = await firebase.database().ref(`${base}/producerActive`).once('value');
-      const producerHeartBeatQuery = await firebase.database().ref(`${base}/producerHeartBeat`).once('value');
-      const producerActive = producerActiveQuery.val();
-      const producerHeartBeat = producerHeartBeatQuery.val();
+      const activeBroadcastSnapshot = await activeBroadcastRef.once('value');
+      const { producerActive, producerHeartBeat } = activeBroadcastSnapshot.val();
       const heartbeatExpired = moment.duration(moment().diff(producerHeartBeat)).seconds() > heartBeatTime || false;
 
       if (producerActive && !heartbeatExpired) {
         /* Let the user know that he/she is already connected in another tab */
         dispatch(setBlockUserAlert());
       } else {
-
-        presenceRef = firebase.database().ref(`${base}/producerActive`);
-        privateCallRef = firebase.database().ref(`${base}/privateCall`);
         try {
-          presenceRef.onDisconnect().set(false);
-          presenceRef.set(true);
-          privateCallRef.set(null);
-          privateCallRef.onDisconnect().set(null);
+          await activeBroadcastRef.update({
+            producerActive: true,
+            privateCall: null,
+            producerHeartBeat: moment.utc().valueOf(),
+          });
+          activeBroadcastRef.onDisconnect().update({
+            producerActive: false,
+            privateCall: null,
+          });
           dispatch({ type: 'PRESENCE_CONNECTING', connecting: false });
         } catch (error) {
           console.log('Failed to create the record: ', error);
@@ -480,7 +473,7 @@ const connectBroadcast: ThunkActionCreator = (event: BroadcastEvent): Thunk =>
         try {
           await createEmptyPublisher('stage');
           await createEmptyPublisher('backstage');
-          dispatch(updateActiveFans(event));
+          dispatch(updateActiveFans());
           dispatch({ type: 'BROADCAST_CONNECTED', connected: true });
         } catch (error) {
           if (error.code === 1500) {
@@ -504,12 +497,12 @@ const resetBroadcastEvent: ThunkActionCreator = (): Thunk =>
     if (adminId && fanUrl) {
       dispatch(stopHeartBeat());
       disconnect();
-      presenceRef && presenceRef.onDisconnect().cancel();
-      privateCallRef && privateCallRef.onDisconnect().cancel();
+      activeBroadcastRef && activeBroadcastRef.onDisconnect().cancel();
       if (!isClosed && !connecting) {
-        const baseRef = `activeBroadcasts/${adminId}/${fanUrl}`;
-        firebase.database().ref(`${baseRef}/producerActive`).set(false);
-        firebase.database().ref(`${baseRef}/privateCall`).set(null);
+        firebase.database().ref(`activeBroadcasts/${adminId}/${fanUrl}`).update({
+          producerActive: false,
+          privateCall: null,
+        });
       }
     }
     dispatch({ type: 'RESET_BROADCAST_EVENT' });
