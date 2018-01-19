@@ -97,7 +97,19 @@ const createBroadcastEvent: ThunkActionCreator = (data: BroadcastEventFormData):
       };
       R.forEach(dispatch, [setSuccess(options), setOrUpdateEvent(event), setMostRecentEvent(event)]);
     } catch (error) {
-      dispatch(setError(`Duplicate event name: ${data.name}.`));
+      let errorDescription;
+      switch (error.message) {
+        case 'Failed to createSession':
+          errorDescription = 'There\'s an error with your Opentok credentials. Please check your credentials and try again.';
+          break;
+        case 'Event exists':
+          errorDescription = `Duplicate event name: ${data.name}.`;
+          break;
+        default:
+          errorDescription = error.message;
+          break;
+      }
+      dispatch(setError(errorDescription));
       dispatch(submitFormEvent(false));
     }
   };
