@@ -125,11 +125,9 @@ const opentokConfig = (dispatch: Dispatch, getState: GetState, userCredentials: 
       if (R.propEq('isWith', 'activeFan', privateCall)) {
         const getStreamId = R.prop('streamId');
         const fan = R.path(['activeFans', 'map', R.prop('fanId', privateCall)], broadcast);
-        if (!R.equals(getStreamId(fan), getStreamId(stream || {}))) {
-          // @TODO
-          console.log('Streams do not match.  What do we do here???', pubSub, data);
+        if (R.equals(getStreamId(fan), getStreamId(stream || {}))) {
+          return `#videoActiveFan${fan.id}`;
         }
-        return `#videoActiveFan${fan.id}`;
       }
       return `#video${pubSub === 'subscriber' ? data.userType : publisherRole}`;
     },
