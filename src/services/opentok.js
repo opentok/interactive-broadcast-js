@@ -98,7 +98,8 @@ const publishAudio = async (instance: SessionName, shouldPublish: boolean): Asyn
   const publisher = getPublisher(instance);
   if (shouldPublish) {
     if (publisher) {
-      setTimeout((): void => publisher.publishAudio(true), 0);
+      publisher.publishAudio(true);
+      return;
     } else {
       // Since the producer is creating an empty publisher when joining, we should never get here =)
       try {
@@ -204,7 +205,12 @@ const subscribeAll = async (instance: SessionName, audioOnly?: boolean = false, 
 const createEmptySubscriber = async (instance: SessionName, stream: Stream): AsyncVoid => {
   const core = instances[instance];
   try {
-    await core.subscribe(stream, { subscribeToAudio: false, subscribeToVideo: false });
+    /** 
+     * Putting subscribeToAudio in true by default and then turn it to false is just a temporary workaround  
+     * to solve an issue in OT 2.14
+    */
+    const subscriber = await core.subscribe(stream, { subscribeToAudio: true, subscribeToVideo: false });
+    subscriber.subscribeToAudio(false);
     return;
   } catch (error) {
     throw error;
