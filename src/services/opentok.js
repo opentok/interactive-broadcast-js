@@ -205,12 +205,7 @@ const subscribeAll = async (instance: SessionName, audioOnly?: boolean = false, 
 const createEmptySubscriber = async (instance: SessionName, stream: Stream): AsyncVoid => {
   const core = instances[instance];
   try {
-    /** 
-     * Putting subscribeToAudio in true by default and then turn it to false is just a temporary workaround  
-     * to solve an issue in OT 2.14
-    */
-    const subscriber = await core.subscribe(stream, { subscribeToAudio: true, subscribeToVideo: false });
-    subscriber.subscribeToAudio(false);
+    const subscriber = await core.subscribe(stream, { subscribeToAudio: false, subscribeToVideo: false });
     return;
   } catch (error) {
     throw error;
