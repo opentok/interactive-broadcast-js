@@ -13,7 +13,7 @@ const statusFilter = (filter: EventFilter): (FilterInput => boolean) => ({ statu
     case 'current':
       return status !== 'closed';
     case 'archived':
-      return !!archiveId.length;
+      return status === 'closed' && !!archiveId.length;
     default:
       return true;
   }
