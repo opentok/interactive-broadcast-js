@@ -205,8 +205,7 @@ const subscribeAll = async (instance: SessionName, audioOnly?: boolean = false, 
 const createEmptySubscriber = async (instance: SessionName, stream: Stream): AsyncVoid => {
   const core = instances[instance];
   try {
-    const subscriber = await core.subscribe(stream, { subscribeToAudio: false, subscribeToVideo: false });
-    return;
+    await core.subscribe(stream, { subscribeToAudio: false, subscribeToVideo: false });
   } catch (error) {
     throw error;
   }
