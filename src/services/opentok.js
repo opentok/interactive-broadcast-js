@@ -195,7 +195,7 @@ const subscribeAll = async (instance: SessionName, audioOnly?: boolean = false, 
     R.forEach((s: Subscriber): Subscriber => s.subscribeToAudio(true), getAllSubscribers(instance));
   } else {
     const streams = core.state().streams;
-    const isProducer = (s: Stream): boolean => ignoreProducer ? JSON.parse(s.connection.data).userType === 'producer' : true;
+    const isProducer = (s: Stream): boolean => ignoreProducer ? JSON.parse(s.connection.data).userType !== 'producer' : true;
     const subscriptionPromises = R.filter(isProducer, Object.values(streams)).map(core.subscribe);
     await Promise.all(subscriptionPromises);
   }
@@ -226,7 +226,7 @@ const toggleLocalAudio = (instance: SessionName, enable: boolean): void => insta
  */
 const unsubscribeAll = (instance: SessionName, audioOnly?: boolean = false, ignoreProducer?: boolean = false): CoreState => { // eslint-disable-line
   const core = instances[instance];
-  const isProducer = (s: Subscriber): boolean => ignoreProducer ? JSON.parse(s.session.connection.data).userType === 'producer' : true;
+  const isProducer = (s: Subscriber): boolean => ignoreProducer ? JSON.parse(s.session.connection.data).userType !== 'producer' : true;
   const subscribers: Subscriber[] = R.filter(isProducer, getAllSubscribers(instance));
   const action = (s: Subscriber): Subscriber => audioOnly ? s.subscribeToAudio(false) : core.unsubscribe(s);
   R.forEach(action, subscribers);
