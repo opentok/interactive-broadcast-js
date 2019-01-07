@@ -304,6 +304,8 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
 
       // Get the eventData
       const eventData = R.path(['broadcast', 'event'], getState());
+      const { apiKey, stageSessionId, status } = eventData;
+      analytics = new Analytics(window.location.origin, stageSessionId, null, apiKey);
 
       // Register the celebrity/host in firebase
       firebase.auth().onAuthStateChanged(async (user: InteractiveFan): AsyncVoid => {
@@ -325,9 +327,6 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
             } catch (error) {
               console.log('Failed to create the record: ', error); // eslint-disable-line no-console
             }
-            /* Connect to the session */
-            const { apiKey, stageSessionId, status } = eventData;
-            analytics = new Analytics(window.location.origin, stageSessionId, null, apiKey);
             if (status !== 'closed') {
               dispatch(startHeartBeat(userType));
             }
