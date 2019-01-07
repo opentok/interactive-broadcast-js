@@ -165,6 +165,7 @@ declare type ChatState = {
  */
 
 declare type BroadcastAction =
+  { type: 'EVENT_STARTED', eventStarted: boolean } |
   { type: 'FAN_TRANSITION', fanTransition: boolean } |
   { type: 'SET_BROADCAST_EVENT', event: BroadcastEvent } |
   { type: 'RESET_BROADCAST_EVENT' } |

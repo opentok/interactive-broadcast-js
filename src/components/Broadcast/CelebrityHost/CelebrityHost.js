@@ -7,7 +7,7 @@ import { withRouter } from 'react-router';
 import { toastr } from 'react-redux-toastr';
 import classNames from 'classnames';
 import { validateUser } from '../../../actions/auth';
-import { initializeBroadcast } from '../../../actions/celebrityHost';
+import { initializeBroadcast, eventStarted } from '../../../actions/celebrityHost';
 import { setBroadcastState, publishOnly, setBroadcastEventStatus, startCountdown } from '../../../actions/broadcast';
 import { setInfo, resetAlert } from '../../../actions/alert';
 import CelebrityHostHeader from './components/CelebrityHostHeader';
@@ -29,12 +29,14 @@ type BaseProps = {
   broadcast: BroadcastState,
   disconnected: boolean,
   authError: Error,
-  isEmbed: boolean
+  isEmbed: boolean,
+  eventStarted: boolean
 };
 type DispatchProps = {
   init: CelebHostInitOptions => void,
   changeEventStatus: (event: EventStatus) => void,
-  togglePublishOnly: (enable: boolean) => void
+  togglePublishOnly: (enable: boolean) => void,
+  startEvent: () => void
 };
 type Props = InitialProps & BaseProps & DispatchProps;
 /* beautify preserve:end */
@@ -58,12 +60,17 @@ class CelebrityHost extends Component {
     init(options);
   }
 
+  startEvent = () => {
+    const { startEvent } = this.props;
+    startEvent();
+  } 
+
   componentWillReceiveProps(nextProps: Props) {
     if (R.pathEq(['broadcast', 'event', 'status'], 'closed', nextProps)) { disconnect(); }
   }
 
   render(): ReactComponent {
-    const { userType, togglePublishOnly, broadcast, disconnected, authError, isEmbed } = this.props;
+    const { userType, togglePublishOnly, broadcast, disconnected, authError, isEmbed, eventStarted } = this.props;
     const { event, participants, publishOnlyEnabled, privateCall, chats } = broadcast;
     const producerChat = R.prop('producer', chats);
     if (authError) return <NoEvents />;
@@ -82,12 +89,15 @@ class CelebrityHost extends Component {
             publishOnlyEnabled={publishOnlyEnabled}
             privateCall={privateCall}
             disconnected={disconnected}
+            eventStarted={eventStarted}
           />
           <CelebrityHostBody
             endImage={event.endImage}
             participants={availableParticipants}
             status={event.status}
             userType={userType}
+            eventStarted={eventStarted}
+            startEvent={this.startEvent}
           />
           <div className="HostCelebChat" >
             { producerChat && <Chat chat={producerChat} /> }
@@ -108,6 +118,7 @@ const mapStateToProps = (state: State, ownProps: InitialProps): BaseProps => {
     broadcast: R.prop('broadcast', state),
     disconnected: R.path(['broadcast', 'disconnected'], state),
     authError: R.path(['auth', 'error'], state),
+    eventStarted: R.path(['broadcast', 'eventStarted'], state),
   };
 };
 
@@ -117,6 +128,7 @@ const mapDispatchToProps: MapDispatchToProps<DispatchProps> = (dispatch: Dispatc
   changeEventStatus: (status: EventStatus): void => dispatch(setBroadcastEventStatus(status)),
   showCountdown: (): void => dispatch(startCountdown()),
   togglePublishOnly: (enable: boolean): void => dispatch(publishOnly()),
+  startEvent: (): void => dispatch(eventStarted()),
 });
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(CelebrityHost));

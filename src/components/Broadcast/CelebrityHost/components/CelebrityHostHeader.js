@@ -12,10 +12,11 @@ type Props = {
   togglePublishOnly: boolean => void,
   publishOnlyEnabled: boolean,
   disconnected: boolean,
-  privateCall: PrivateCallState // eslint-disable-line react/no-unused-prop-types
+  privateCall: PrivateCallState, // eslint-disable-line react/no-unused-prop-types
+  eventStarted: boolean
 };
 const CelebrityHostHeader = (props: Props): ReactComponent => {
-  const { userType, name, status, togglePublishOnly, publishOnlyEnabled, disconnected } = props;
+  const { userType, name, status, togglePublishOnly, publishOnlyEnabled, disconnected, eventStarted } = props;
   const btnClass = classNames('btn action', { red: !publishOnlyEnabled }, { green: publishOnlyEnabled });
   const privateCallWith = R.path(['privateCall', 'isWith'], props);
   const inPrivateCall = R.equals(userType, privateCallWith);
@@ -25,7 +26,7 @@ const CelebrityHostHeader = (props: Props): ReactComponent => {
       <div className="CelebrityHostHeader-main">
         <div>
           <h4>{name}<sup>{status === 'notStarted' ? 'NOT STARTED' : status}</sup></h4>
-          { status !== 'closed' && !disconnected &&
+          { status !== 'closed' && !disconnected && eventStarted &&
             <div>
               <button className={btnClass} onClick={togglePublishOnly}>PUBLISH ONLY {publishOnlyEnabled ? 'ON' : 'OFF'}</button>
             </div>

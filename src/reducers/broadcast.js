@@ -62,6 +62,7 @@ const initialState = (): BroadcastState => ({
   disconnected: false,
   elapsedTime: '--:--:--',
   fanTransition: false,
+  eventStarted: false,
 });
 
 const activeFansUpdate = (activeFans: ActiveFans, update: ActiveFanMap): ActiveFans => {
@@ -89,6 +90,8 @@ const updateFanOrder = (activeFans: ActiveFans, update: ActiveFanOrderUpdate): A
 
 const broadcast = (state: BroadcastState = initialState(), action: BroadcastAction): BroadcastState => {
   switch (action.type) {
+    case 'EVENT_STARTED':
+      return R.assoc('eventStarted', action.eventStarted, state);
     case 'FAN_TRANSITION':
       return R.assoc('fanTransition', action.fanTransition, state);
     case 'SET_RECONNECTING':

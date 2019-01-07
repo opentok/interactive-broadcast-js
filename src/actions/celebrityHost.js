@@ -32,6 +32,7 @@ import opentok from '../services/opentok';
 
 const { changeVolume, toggleLocalAudio, toggleLocalVideo } = opentok;
 let analytics;
+let _userType = false;
 
 const newBackstageFan = (): void => toastr.info('A new FAN has been moved to backstage', { showCloseButton: false });
 
@@ -293,6 +294,8 @@ const setBroadcastEventWithCredentials: ThunkActionCreator = (adminId: string, u
 const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }: CelebHostInitOptions): Thunk =>
   async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
     try {
+      _userType = userType;
+
       // Get/set an Auth Token
       await dispatch(validateUser(adminId, userType, userUrl));
 
@@ -323,13 +326,10 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
               console.log('Failed to create the record: ', error); // eslint-disable-line no-console
             }
             /* Connect to the session */
-            const { apiKey, stageToken, stageSessionId, status } = eventData;
-            const credentials = { apiKey, stageSessionId, stageToken };
+            const { apiKey, stageSessionId, status } = eventData;
             analytics = new Analytics(window.location.origin, stageSessionId, null, apiKey);
             if (status !== 'closed') {
-              await dispatch(connectToInteractive(credentials, userType));
               dispatch(startHeartBeat(userType));
-              dispatch(monitorVolume());
             }
           } else {
             /* Let the user know that he/she is already connected in another tab */
@@ -353,8 +353,18 @@ const initializeBroadcast: ThunkActionCreator = ({ adminId, userType, userUrl }:
     }
   };
 
+const eventStarted: ThunkActionCreator = (): Thunk =>
+  async (dispatch: Dispatch, getState: GetState): AsyncVoid => {
+    dispatch({ type: 'EVENT_STARTED', eventStarted: true });
+    // Get the eventData
+    const eventData = R.path(['broadcast', 'event'], getState());
+    const { apiKey, stageToken, stageSessionId } = eventData;
+    const credentials = { apiKey, stageSessionId, stageToken };
+    await dispatch(connectToInteractive(credentials, _userType));
+    dispatch(monitorVolume());
+  };
 
 module.exports = {
   initializeBroadcast,
+  eventStarted,
 };
-

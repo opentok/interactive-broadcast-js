@@ -33,6 +33,15 @@ body {
   right: 15px;
 }
 
+.CelebrityHostBody.notStarted {
+  justify-content: center;
+  align-items: center
+}
+
+.CelebrityHostBody .btn.action.green {
+  position: absolute;
+}
+
 /* Embed styles */
 .CelebrityHostEmbed {
   background: #262626;
