@@ -27,7 +27,7 @@ const CelebrityHostBody = (props: Props): ReactComponent => {
           <img src={endImageUrl || defaultImg} alt="event ended" className="closeImage" />
         </div>
       }
-      { !isClosed && !eventStarted && <button className="btn action green " onClick={startEvent}>START</button> }
+      { !isClosed && !eventStarted && <button className="btn action green " onClick={startEvent}>JOIN SESSION</button> }
       { !isClosed && userTypes.map((type: ParticipantType): ReactComponent =>
         <VideoHolder
           key={`videoStream${type}`}
