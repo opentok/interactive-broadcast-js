@@ -11,12 +11,14 @@ type Props = {
   status: EventStatus,
   endImage?: EventImage,
   participants: null | BroadcastParticipants, // publishOnly => null
-  userType: 'host' | 'celebrity'
+  userType: 'host' | 'celebrity',
+  eventStarted: boolean,
+  startEvent: Unit
 };
 const CelebrityHostBody = (props: Props): ReactComponent => {
-  const { status, endImage, participants, userType } = props;
+  const { status, endImage, participants, userType, eventStarted, startEvent } = props;
   const isClosed = status === 'closed';
-  const imgClass = classNames('CelebrityHostBody', { withStreams: !isClosed });
+  const imgClass = classNames('CelebrityHostBody', { withStreams: !isClosed, notStarted: !eventStarted  });
   const endImageUrl = endImage ? endImage.url : null;
   return (
     <div className={imgClass}>
@@ -25,6 +27,7 @@ const CelebrityHostBody = (props: Props): ReactComponent => {
           <img src={endImageUrl || defaultImg} alt="event ended" className="closeImage" />
         </div>
       }
+      { !isClosed && !eventStarted && <button className="btn action green " onClick={startEvent}>JOIN SESSION</button> }
       { !isClosed && userTypes.map((type: ParticipantType): ReactComponent =>
         <VideoHolder
           key={`videoStream${type}`}
