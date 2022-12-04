@@ -4211,8 +4211,7 @@ opentok-screen-sharing@^1.0.27:
     underscore "^1.8.3"
 
 opentok-solutions-logging@^1.0.10, opentok-solutions-logging@^1.0.6, opentok-solutions-logging@^1.0.7:
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/opentok-solutions-logging/-/opentok-solutions-logging-1.0.10.tgz#9efe2b0cc086408946c5296214e2b3e57f83cdf6"
+  version "1.0.11"
   dependencies:
     axios "^0.15.3"
 
