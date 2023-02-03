@@ -1,6 +1,8 @@
 # Interactive Broadcasting Solution Web Client Server
 ![OpenTok Labs](https://d26dzxoao6i3hh.cloudfront.net/items/0U1R0a0e2g1E361H0x3c/Image%202017-11-22%20at%2012.16.38%20PM.png?v=2507a2df)
 
+**Important note:** We are archiving this prject. Contact Vonage support if you have questions.
+
 This document describes how to create an OpenTok Interactive Broadcast Solution application.
 
 The ibs-js application (this project) is a web server that serves up client pages for web-based
